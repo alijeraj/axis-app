@@ -6,6 +6,8 @@ import Home from './screens/home';
 import Scan from './screens/scan';
 import CPM from './screens/cpm';
 import CBM from './screens/cbm';
+import Progress from './screens/progress';
+import Journal from './screens/journal';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('axis_token'));
@@ -29,8 +31,8 @@ function App() {
         <Route path="/scan" element={token ? <Scan /> : <Navigate to="/login" />} />
         <Route path="/cpm" element={token ? <CPM /> : <Navigate to="/login" />} />
         <Route path="/cbm" element={token ? <CBM /> : <Navigate to="/login" />} />
-        <Route path="/progress" element={token ? <div style={{color:'white',padding:'32px'}}>Progress — coming soon</div> : <Navigate to="/login" />} />
-        <Route path="/journal" element={token ? <div style={{color:'white',padding:'32px'}}>Dream Journal — coming soon</div> : <Navigate to="/login" />} />
+        <Route path="/progress" element={token ? <Progress /> : <Navigate to="/login" />} />
+        <Route path="/journal" element={token ? <Journal /> : <Navigate to="/login" />} />
         <Route path="/tutorial" element={token ? <div style={{color:'white',padding:'32px'}}>Tutorial — coming soon</div> : <Navigate to="/login" />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
