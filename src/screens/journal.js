@@ -21,7 +21,7 @@ function Journal() {
   const [freeForm, setFreeForm] = useState({ text: '', date: new Date().toLocaleDateString('en-CA') });
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { loadData(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadData = async () => {
     try {

@@ -30,7 +30,7 @@ function CBM() {
   const [editBehavior, setEditBehavior] = useState(null);
   const [form, setForm] = useState({ name: '', level: 0, alternative: '' });
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { loadData(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadData = async () => {
     try {
@@ -74,15 +74,6 @@ function CBM() {
     await saveData(newData);
     setData(newData);
     setShowAdd(false);
-  };
-
-  const deleteBehavior = async (levelIdx, behaviorIdx) => {
-    const name = data.levels[levelIdx].behaviors[behaviorIdx]?.name || 'this behavior';
-    if (!window.confirm(`Delete "${name}"?`)) return;
-    const newData = JSON.parse(JSON.stringify(data));
-    newData.levels[levelIdx].behaviors.splice(behaviorIdx, 1);
-    await saveData(newData);
-    setData(newData);
   };
 
   if (loading) return <div style={{ color: 'var(--text-light)', padding: '48px', textAlign: 'center' }}>Loading...</div>;

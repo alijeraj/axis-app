@@ -30,9 +30,7 @@ function CPM() {
   });
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    loadComplexes();
-  }, []);
+  useEffect(() => { loadComplexes(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadComplexes = async () => {
     try {
@@ -104,7 +102,6 @@ function CPM() {
     setEditIdx(null);
   };
 
-  // Group by burden
   const groups = {};
   EMOTION_ORDER.forEach(e => { groups[e] = []; });
   complexes.forEach((c, i) => {

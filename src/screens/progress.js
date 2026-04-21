@@ -10,9 +10,7 @@ function Progress() {
   const [entries, setEntries] = useState({});
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadEntries();
-  }, []);
+  useEffect(() => { loadEntries(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadEntries = async () => {
     try {
@@ -51,7 +49,7 @@ function Progress() {
       <div style={styles.scoreRow}>
         {[
           { label: 'ISM', value: ismAvg, color: 'var(--steel-blue)' },
-          { label: 'ESM', value: esmAvg, color: 'var(--esm-color, #B088D4)' },
+          { label: 'ESM', value: esmAvg, color: '#B088D4' },
           { label: 'AXIS', value: axisAvg, color: 'var(--text-dark)' },
         ].map(s => (
           <div key={s.label} style={styles.scoreCard}>
