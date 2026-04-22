@@ -1,38 +1,250 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const API = 'https://axis-backend-production-5e9b.up.railway.app';
 
 const ISM_DIMS = [
-  { id: 'attention', label: 'Attention', left: 'Focused', right: 'Distracted' },
-  { id: 'location', label: 'Location', left: 'Presence', right: 'Absence' },
-  { id: 'drive', label: 'Drive', left: 'Purposeful', right: 'Compulsive' },
-  { id: 'emotions', label: 'Emotions', left: 'Regulated', right: 'Dysregulated' },
+  { id: 'attention', label: 'Attention', liberated: 'Focused',    burdened: 'Distracted',   questions: [
+    { text: 'Can you direct your attention where you choose right now?', positive: true },
+    { text: 'How fully is your attention available to what matters right now?', positive: true },
+    { text: 'How free is your mind from distracting thoughts, past or future?', positive: true },
+  ]},
+  { id: 'location',  label: 'Location',  liberated: 'Presence',   burdened: 'Absence',      questions: [
+    { text: 'Can you feel yourself present in your body?', positive: true },
+    { text: 'Is your mind here in the now, or is it elsewhere?', positive: true },
+    { text: 'Do you feel connected to what is happening around you right now?', positive: true },
+  ]},
+  { id: 'drive',     label: 'Drive',     liberated: 'Purposeful', burdened: 'Compulsive',   questions: [
+    { text: 'Is your energy deployed towards meaningful and important tasks?', positive: true },
+    { text: 'How purposefully is your energy directing itself right now?', positive: true },
+    { text: 'Does your energy feel like it comes from intention, or from restlessness and anxiety?', positive: true },
+  ]},
+  { id: 'emotions',  label: 'Emotions',  liberated: 'Regulated',  burdened: 'Dysregulated', questions: [
+    { text: 'How emotionally stable do you feel right now?', positive: true },
+    { text: 'How calm and at ease do you feel right now?', positive: true },
+    { text: 'How well are you able to hold your emotions without being swept away?', positive: true },
+  ]},
 ];
 
 const ESM_DIMS = [
-  { id: 'fear', label: 'Fear', left: 'Secure', right: 'Fear' },
-  { id: 'guilt', label: 'Guilt', left: 'Free', right: 'Guilt' },
-  { id: 'shame', label: 'Shame', left: 'Empowered', right: 'Shame' },
-  { id: 'anger', label: 'Anger', left: 'At Peace', right: 'Anger' },
-  { id: 'envy', label: 'Envy', left: 'Abundant', right: 'Envy' },
-  { id: 'grief', label: 'Grief', left: 'Connected', right: 'Grief' },
+  { id: 'fear',   label: 'Survival',   liberated: 'Secure',    burdened: 'Fear',   right: 'The right to feel safe', questions: [
+    { text: 'How do you feel vs the uncertainties in your life right now?', positive: true },
+    { text: 'How do you feel about your short term future?', positive: true },
+    { text: 'Do you trust that life will provide what you need?', positive: true },
+    { text: 'How safe and stable does your environment feel right now?', positive: true },
+    { text: 'How settled does your nervous system feel in your daily life?', positive: true },
+  ]},
+  { id: 'guilt',  label: 'Action',     liberated: 'Free',      burdened: 'Guilt',  right: 'The right to autonomous expression', questions: [
+    { text: 'How kind and compassionate is your internal dialog?', positive: true },
+    { text: 'How at peace are you with your past actions and choices?', positive: true },
+    { text: 'How free do you feel from any sense of debt toward others?', positive: true },
+    { text: 'How freely do you move in your life?', positive: true },
+    { text: 'How free do you feel from the expectations of others?', positive: true },
+  ]},
+  { id: 'shame',  label: 'Identity',   liberated: 'Empowered', burdened: 'Shame',  right: 'The right to be', questions: [
+    { text: 'How much willpower do you have to accomplish what is necessary?', positive: true },
+    { text: 'How worthy do you feel of the things you desire?', positive: true },
+    { text: 'How confident do you feel in your own voice and presence?', positive: true },
+    { text: 'How do you feel about who you are?', positive: true },
+    { text: 'How comfortable are you being seen and known by others?', positive: true },
+  ]},
+  { id: 'anger',  label: 'Boundary',   liberated: 'At Peace',  burdened: 'Anger',  right: 'The right to be respected', questions: [
+    { text: 'How much respect do you show to yourself?', positive: true },
+    { text: 'How free do you feel from a victim mindset?', positive: true },
+    { text: 'How free do you feel from the need for amends or justice from others?', positive: true },
+    { text: 'How able are you to let go of those who have trespassed against you?', positive: true },
+    { text: 'How calm and settled do you feel in your body right now?', positive: true },
+  ]},
+  { id: 'envy',   label: 'Comparison', liberated: 'Abundant',  burdened: 'Envy',   right: 'The right to be seen', questions: [
+    { text: 'How enough do you feel just as you are right now?', positive: true },
+    { text: 'How genuine is the joy you feel for others who are succeeding?', positive: true },
+    { text: 'How secure do you feel in your own worth without needing to measure it against others?', positive: true },
+    { text: 'How free do you feel from the need to prove yourself today?', positive: true },
+    { text: 'How abundant does your life feel to you right now?', positive: true },
+  ]},
+  { id: 'grief',  label: 'Love',       liberated: 'Connected', burdened: 'Grief',  right: 'The right to love and be loved', questions: [
+    { text: 'How whole and complete do you feel within yourself?', positive: true },
+    { text: 'How full and alive does your inner world feel right now?', positive: true },
+    { text: 'Can you genuinely connect with yourself?', positive: true },
+    { text: 'Can you genuinely connect with others?', positive: true },
+    { text: 'To which degree do you feel love on a day to day?', positive: true },
+  ]},
 ];
+
+function ScoreSlider({ value, onChange }) {
+  const displayVal = -value;
+  const color = value > 0 ? '#4AAE88' : value < 0 ? '#B05A5A' : '#6BA3C8';
+  return (
+    <div style={{ padding: '8px 16px', minWidth: '160px' }}>
+      <input
+        type="range" min="-5" max="5" step="1" value={displayVal}
+        onChange={e => onChange(-parseInt(e.target.value))}
+        style={{ width: '100%', accentColor: color }}
+      />
+      <div style={{ textAlign: 'center', fontFamily: 'Georgia, serif', fontSize: '16px', fontWeight: '300', color, marginTop: '2px' }}>
+        {value > 0 ? '+' : ''}{value}
+      </div>
+    </div>
+  );
+}
+
+function QuestionnaireMode({ ismScores, esmScores, onIsmChange, onEsmChange, onComplete }) {
+  const [phase, setPhase] = useState('ism');
+  const [ismDimIdx, setIsmDimIdx] = useState(0);
+  const [ismQIdx, setIsmQIdx] = useState(0);
+  const [esmDimIdx, setEsmDimIdx] = useState(0);
+  const [esmQIdx, setEsmQIdx] = useState(0);
+  const [ismQAnswers, setIsmQAnswers] = useState({});
+  const [esmQAnswers, setEsmQAnswers] = useState({});
+
+  const calcDimScore = (dimId, answers, dims) => {
+    const dim = dims.find(d => d.id === dimId);
+    const vals = dim.questions.map((q, i) => {
+      const v = answers[`${dimId}-${i}`];
+      return v === undefined ? null : (q.positive ? v : -v);
+    }).filter(v => v !== null);
+    if (vals.length === 0) return 0;
+    return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+  };
+
+  if (phase === 'ism') {
+    const dim = ISM_DIMS[ismDimIdx];
+    const q = dim.questions[ismQIdx];
+    const answerKey = `${dim.id}-${ismQIdx}`;
+    const currentAnswer = ismQAnswers[answerKey];
+    const displayVal = currentAnswer !== undefined ? -currentAnswer : 0;
+    const isLastQ = ismQIdx === dim.questions.length - 1;
+    const isLastDim = ismDimIdx === ISM_DIMS.length - 1;
+
+    const handleAnswer = (val) => {
+      const score = -val;
+      const newAnswers = { ...ismQAnswers, [answerKey]: score };
+      setIsmQAnswers(newAnswers);
+      const dimScore = calcDimScore(dim.id, newAnswers, ISM_DIMS);
+      onIsmChange({ ...ismScores, [dim.id]: dimScore });
+    };
+
+    const handleNext = () => {
+      if (!isLastQ) { setIsmQIdx(ismQIdx + 1); }
+      else if (!isLastDim) { setIsmDimIdx(ismDimIdx + 1); setIsmQIdx(0); }
+      else { setPhase('esm'); }
+    };
+
+    return (
+      <div style={styles.qWrap}>
+        <div style={styles.qProgress}>Dimension {ismDimIdx + 1} of {ISM_DIMS.length} — Question {ismQIdx + 1} of {dim.questions.length}</div>
+        <div style={styles.qDimHeader}>
+          <span style={styles.qDimLabel}>{dim.label}</span>
+          <span style={styles.qDimLib}>{dim.liberated}</span>
+          <span style={styles.qVs}>vs</span>
+          <span style={styles.qDimBur}>{dim.burdened}</span>
+        </div>
+        <div style={styles.qText}>{q.text}</div>
+        <div style={styles.qSlider}>
+          <span style={{ fontSize: '11px', color: '#4AAE88' }}>{dim.liberated}</span>
+          <input type="range" min="-5" max="5" step="1" value={displayVal} onChange={e => handleAnswer(parseInt(e.target.value))} style={{ flex: 1, accentColor: '#6BA3C8' }} />
+          <span style={{ fontSize: '11px', color: '#B05A5A' }}>{dim.burdened}</span>
+        </div>
+        <div style={{ textAlign: 'center', fontFamily: 'Georgia, serif', fontSize: '20px', color: currentAnswer !== undefined ? (currentAnswer > 0 ? '#4AAE88' : currentAnswer < 0 ? '#B05A5A' : '#6BA3C8') : '#5A7A94', marginBottom: '24px' }}>
+          {currentAnswer !== undefined ? (currentAnswer > 0 ? '+' : '') + currentAnswer : '--'}
+        </div>
+        <div style={styles.qNav}>
+          {ismQIdx > 0 && <button style={styles.secondaryBtn} onClick={() => setIsmQIdx(ismQIdx - 1)}>Back</button>}
+          {ismDimIdx > 0 && ismQIdx === 0 && <button style={styles.secondaryBtn} onClick={() => { setIsmDimIdx(ismDimIdx - 1); setIsmQIdx(ISM_DIMS[ismDimIdx - 1].questions.length - 1); }}>Back</button>}
+          <div style={{ flex: 1 }} />
+          <button style={styles.primaryBtn} onClick={handleNext} disabled={currentAnswer === undefined}>
+            {isLastQ && isLastDim ? 'Continue to ESM →' : isLastQ ? 'Next Dimension →' : 'Next →'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const dim = ESM_DIMS[esmDimIdx];
+  const q = dim.questions[esmQIdx];
+  const answerKey = `${dim.id}-${esmQIdx}`;
+  const currentAnswer = esmQAnswers[answerKey];
+  const displayVal = currentAnswer !== undefined ? -currentAnswer : 0;
+  const isLastQ = esmQIdx === dim.questions.length - 1;
+  const isLastDim = esmDimIdx === ESM_DIMS.length - 1;
+
+  const handleAnswer = (val) => {
+    const score = -val;
+    const newAnswers = { ...esmQAnswers, [answerKey]: score };
+    setEsmQAnswers(newAnswers);
+    const dimScore = calcDimScore(dim.id, newAnswers, ESM_DIMS);
+    onEsmChange({ ...esmScores, [dim.id]: dimScore });
+  };
+
+  const handleNext = () => {
+    if (!isLastQ) { setEsmQIdx(esmQIdx + 1); }
+    else if (!isLastDim) { setEsmDimIdx(esmDimIdx + 1); setEsmQIdx(0); }
+    else { onComplete(); }
+  };
+
+  return (
+    <div style={styles.qWrap}>
+      <div style={styles.qProgress}>Dimension {esmDimIdx + 1} of {ESM_DIMS.length} — Question {esmQIdx + 1} of {dim.questions.length}</div>
+      <div style={styles.qDimHeader}>
+        <span style={styles.qDimLabel}>{dim.label}</span>
+        <span style={styles.qDimLib}>{dim.liberated}</span>
+        <span style={styles.qVs}>vs</span>
+        <span style={styles.qDimBur}>{dim.burdened}</span>
+      </div>
+      <div style={styles.qText}>{q.text}</div>
+      <div style={styles.qSlider}>
+        <span style={{ fontSize: '11px', color: '#4AAE88' }}>{dim.liberated}</span>
+        <input type="range" min="-5" max="5" step="1" value={displayVal} onChange={e => handleAnswer(parseInt(e.target.value))} style={{ flex: 1, accentColor: '#6BA3C8' }} />
+        <span style={{ fontSize: '11px', color: '#B05A5A' }}>{dim.burdened}</span>
+      </div>
+      <div style={{ textAlign: 'center', fontFamily: 'Georgia, serif', fontSize: '20px', color: currentAnswer !== undefined ? (currentAnswer > 0 ? '#4AAE88' : currentAnswer < 0 ? '#B05A5A' : '#6BA3C8') : '#5A7A94', marginBottom: '24px' }}>
+        {currentAnswer !== undefined ? (currentAnswer > 0 ? '+' : '') + currentAnswer : '--'}
+      </div>
+      <div style={styles.qNav}>
+        {esmQIdx > 0 && <button style={styles.secondaryBtn} onClick={() => setEsmQIdx(esmQIdx - 1)}>Back</button>}
+        {esmDimIdx > 0 && esmQIdx === 0 && <button style={styles.secondaryBtn} onClick={() => { setEsmDimIdx(esmDimIdx - 1); setEsmQIdx(ESM_DIMS[esmDimIdx - 1].questions.length - 1); }}>Back</button>}
+        <div style={{ flex: 1 }} />
+        <button style={styles.primaryBtn} onClick={handleNext} disabled={currentAnswer === undefined}>
+          {isLastQ && isLastDim ? 'Complete →' : isLastQ ? 'Next Dimension →' : 'Next →'}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function Scan() {
   const navigate = useNavigate();
   const token = localStorage.getItem('axis_token');
-
-  const [step, setStep] = useState('ism'); // ism, esm, done
-  const [ism, setIsm] = useState({ attention: 5, location: 5, drive: 5, emotions: 5 });
-  const [esm, setEsm] = useState({ fear: 5, guilt: 5, shame: 5, anger: 5, envy: 5, grief: 5 });
+  const [mode, setMode] = useState('custom');
+  const [ism, setIsm] = useState({ attention: 0, location: 0, drive: 0, emotions: 0 });
+  const [esm, setEsm] = useState({ fear: 0, guilt: 0, shame: 0, anger: 0, envy: 0, grief: 0 });
   const [saving, setSaving] = useState(false);
+  const [alreadyLogged, setAlreadyLogged] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
   const [error, setError] = useState('');
+  const [qComplete, setQComplete] = useState(false);
 
-  const ismScore = Math.round(Object.values(ism).reduce((a, b) => a + b, 0) / 4);
-  const esmScore = Math.round(Object.values(esm).reduce((a, b) => a + b, 0) / 6);
+  const ismScore = Math.round((Object.values(ism).reduce((a, b) => a + b, 0) / 4) + 5);
+  const esmScore = Math.round((Object.values(esm).reduce((a, b) => a + b, 0) / 6) + 5);
   const axisScore = Math.round((ismScore + esmScore) / 2);
+
+  useEffect(() => {
+    const checkToday = async () => {
+      try {
+        const res = await axios.get(`${API}/api/entries`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const today = new Date().toISOString().split('T')[0];
+        if (res.data && res.data[today]) {
+          setAlreadyLogged(true);
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    checkToday();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSave = async () => {
     setSaving(true);
@@ -42,10 +254,9 @@ function Scan() {
       await axios.post(`${API}/api/entries`, {
         date: today,
         data: { ism, esm, ismScore, esmScore, axisScore }
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setStep('done');
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      setAlreadyLogged(true);
+      setJustSaved(true);
     } catch (err) {
       setError('Failed to save. Try again.');
     } finally {
@@ -53,231 +264,127 @@ function Scan() {
     }
   };
 
-  if (step === 'done') {
-    return (
-      <div style={styles.container}>
-        <div style={styles.doneCard}>
-          <div style={styles.doneTitle}>Scan Complete</div>
-          <div style={styles.scores}>
-            <div style={styles.scoreItem}>
-              <div style={styles.scoreVal}>{ismScore}</div>
-              <div style={styles.scoreLabel}>ISM</div>
-            </div>
-            <div style={styles.scoreItem}>
-              <div style={styles.scoreVal}>{esmScore}</div>
-              <div style={styles.scoreLabel}>ESM</div>
-            </div>
-            <div style={styles.scoreItem}>
-              <div style={styles.scoreVal}>{axisScore}</div>
-              <div style={styles.scoreLabel}>AXIS</div>
-            </div>
-          </div>
-          <button style={styles.btn} onClick={() => navigate('/')}>Back to Home</button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div style={styles.container}>
       <div style={styles.header}>
         <button style={styles.backBtn} onClick={() => navigate('/')}>← Home</button>
-        <div style={styles.title}>{step === 'ism' ? 'Internal State Map' : 'Emotional Spectrum Map'}</div>
+        <span style={styles.screenTitle}>Scan</span>
       </div>
 
-      <div style={styles.card}>
-        {step === 'ism' && ISM_DIMS.map(dim => (
-          <div key={dim.id} style={styles.dimRow}>
-            <div style={styles.dimLabel}>{dim.label}</div>
-            <div style={styles.sliderRow}>
-              <span style={styles.sliderLeft}>{dim.left}</span>
-              <input
-                type="range"
-                min="1"
-                max="10"
-                value={ism[dim.id]}
-                onChange={e => setIsm({ ...ism, [dim.id]: parseInt(e.target.value) })}
-                style={styles.slider}
-              />
-              <span style={styles.sliderRight}>{dim.right}</span>
-            </div>
-            <div style={styles.sliderVal}>{ism[dim.id]}</div>
-          </div>
-        ))}
-
-        {step === 'esm' && ESM_DIMS.map(dim => (
-          <div key={dim.id} style={styles.dimRow}>
-            <div style={styles.dimLabel}>{dim.label}</div>
-            <div style={styles.sliderRow}>
-              <span style={styles.sliderLeft}>{dim.left}</span>
-              <input
-                type="range"
-                min="1"
-                max="10"
-                value={esm[dim.id]}
-                onChange={e => setEsm({ ...esm, [dim.id]: parseInt(e.target.value) })}
-                style={styles.slider}
-              />
-              <span style={styles.sliderRight}>{dim.right}</span>
-            </div>
-            <div style={styles.sliderVal}>{esm[dim.id]}</div>
-          </div>
-        ))}
-
-        {error && <div style={styles.error}>{error}</div>}
-
-        <div style={styles.footer}>
-          {step === 'ism' && (
-            <button style={styles.btn} onClick={() => setStep('esm')}>Next — ESM</button>
-          )}
-          {step === 'esm' && (
-            <>
-              <button style={styles.backBtn} onClick={() => setStep('ism')}>← Back</button>
-              <button style={styles.btn} onClick={handleSave} disabled={saving}>
-                {saving ? 'Saving...' : 'Save Scan'}
-              </button>
-            </>
-          )}
+      <div style={styles.body}>
+        <div style={styles.modeBar}>
+          <button style={{ ...styles.modePill, ...(mode === 'custom' ? styles.modePillActive : {}) }} onClick={() => { setMode('custom'); setQComplete(false); }}>Custom</button>
+          <button style={{ ...styles.modePill, ...(mode === 'questionnaire' ? styles.modePillActive : {}) }} onClick={() => { setMode('questionnaire'); setQComplete(false); }}>Questionnaire</button>
         </div>
+
+        {mode === 'questionnaire' && !qComplete ? (
+          <QuestionnaireMode
+            ismScores={ism} esmScores={esm}
+            onIsmChange={setIsm} onEsmChange={setEsm}
+            onComplete={() => setQComplete(true)}
+          />
+        ) : (
+          <>
+            <div style={styles.dimHeader}>
+              <span style={styles.badge}>ISM</span>
+              <span style={styles.dimTitle}>Internal State Map</span>
+              <span style={styles.dimSub}>Neurological Dimension</span>
+            </div>
+            <div style={styles.scanTable}>
+              {ISM_DIMS.map(dim => (
+                <div key={dim.id} style={styles.scanRow}>
+                  <span style={styles.scanLabel}>{dim.label}</span>
+                  <span style={styles.scanLib}>{dim.liberated}</span>
+                  <span style={styles.scanVs}>vs</span>
+                  <span style={styles.scanBur}>{dim.burdened}</span>
+                  <ScoreSlider value={ism[dim.id]} onChange={v => setIsm({ ...ism, [dim.id]: v })} />
+                </div>
+              ))}
+            </div>
+
+            <div style={{ ...styles.dimHeader, marginTop: '48px' }}>
+              <span style={{ ...styles.badge, color: '#B088D4', background: 'rgba(176,136,212,0.1)' }}>ESM</span>
+              <span style={styles.dimTitle}>Emotional Spectrum Map</span>
+              <span style={styles.dimSub}>Emotional Dimension</span>
+            </div>
+            <div style={styles.esmHeaders}>
+              <span style={styles.esmHeaderCell}>Dimension</span>
+              <span style={{ ...styles.esmHeaderCell, color: '#4AAE88', background: 'rgba(74,174,136,0.06)' }}>Liberated</span>
+              <span style={styles.esmHeaderCell}></span>
+              <span style={{ ...styles.esmHeaderCell, color: '#B05A5A', background: 'rgba(176,90,90,0.06)' }}>Burden</span>
+              <span style={styles.esmHeaderCell}>Fundamental Right / Score</span>
+            </div>
+            <div style={styles.scanTable}>
+              {ESM_DIMS.map(dim => (
+                <div key={dim.id} style={styles.scanRow}>
+                  <span style={styles.scanLabel}>{dim.label}</span>
+                  <span style={styles.scanLib}>{dim.liberated}</span>
+                  <span style={styles.scanVs}>vs</span>
+                  <span style={styles.scanBur}>{dim.burdened}</span>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <ScoreSlider value={esm[dim.id]} onChange={v => setEsm({ ...esm, [dim.id]: v })} />
+                    <span style={styles.esmRight}>{dim.right}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div style={styles.logRow}>
+              <button style={styles.primaryBtn} onClick={handleSave} disabled={saving}>
+                {saving ? 'Saving...' : alreadyLogged ? "Re-Log Today's Entry" : "Log Today's Entry"}
+              </button>
+              {alreadyLogged && (
+                <button style={styles.secondaryBtn} onClick={() => navigate('/progress')}>
+                  View Results →
+                </button>
+              )}
+              {justSaved && <span style={styles.logSuccess}>✓ Entry logged</span>}
+              {error && <span style={styles.error}>{error}</span>}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
 }
 
 const styles = {
-  container: {
-    minHeight: '100vh',
-    background: 'var(--navy-1)',
-    padding: '32px 24px',
-    maxWidth: '700px',
-    margin: '0 auto',
-  },
-  header: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '24px',
-    marginBottom: '32px',
-  },
-  title: {
-    fontFamily: 'Georgia, serif',
-    fontSize: '24px',
-    fontWeight: '300',
-    color: 'var(--text-dark)',
-  },
-  backBtn: {
-    background: 'none',
-    border: '1px solid var(--border)',
-    borderRadius: '3px',
-    padding: '8px 16px',
-    color: 'var(--text-light)',
-    fontSize: '12px',
-    cursor: 'pointer',
-  },
-  card: {
-    background: 'var(--navy-3)',
-    border: '1px solid var(--border)',
-    borderRadius: '4px',
-    padding: '32px',
-  },
-  dimRow: {
-    marginBottom: '28px',
-  },
-  dimLabel: {
-    fontSize: '10px',
-    fontWeight: '600',
-    letterSpacing: '3px',
-    textTransform: 'uppercase',
-    color: 'var(--text-light)',
-    marginBottom: '12px',
-  },
-  sliderRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '16px',
-  },
-  sliderLeft: {
-    fontSize: '12px',
-    color: 'var(--regulated)',
-    width: '90px',
-    textAlign: 'right',
-    flexShrink: 0,
-  },
-  sliderRight: {
-    fontSize: '12px',
-    color: 'var(--burdened)',
-    width: '90px',
-    flexShrink: 0,
-  },
-  slider: {
-    flex: 1,
-    accentColor: 'var(--steel-blue)',
-  },
-  sliderVal: {
-    fontSize: '13px',
-    color: 'var(--steel-blue)',
-    textAlign: 'center',
-    marginTop: '6px',
-  },
-  footer: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-    gap: '12px',
-    marginTop: '32px',
-  },
-  btn: {
-    background: 'rgba(107,163,200,0.15)',
-    border: '1px solid rgba(107,163,200,0.4)',
-    borderRadius: '3px',
-    padding: '12px 24px',
-    color: 'var(--steel-blue)',
-    fontSize: '11px',
-    fontWeight: '600',
-    letterSpacing: '3px',
-    textTransform: 'uppercase',
-    cursor: 'pointer',
-  },
-  error: {
-    color: 'var(--burdened)',
-    fontSize: '12px',
-    marginTop: '16px',
-  },
-  doneCard: {
-    background: 'var(--navy-3)',
-    border: '1px solid var(--border)',
-    borderRadius: '4px',
-    padding: '48px',
-    textAlign: 'center',
-    marginTop: '80px',
-  },
-  doneTitle: {
-    fontFamily: 'Georgia, serif',
-    fontSize: '28px',
-    fontWeight: '300',
-    color: 'var(--text-dark)',
-    marginBottom: '40px',
-  },
-  scores: {
-    display: 'flex',
-    justifyContent: 'center',
-    gap: '48px',
-    marginBottom: '40px',
-  },
-  scoreItem: {
-    textAlign: 'center',
-  },
-  scoreVal: {
-    fontFamily: 'Georgia, serif',
-    fontSize: '48px',
-    fontWeight: '300',
-    color: 'var(--steel-blue)',
-    marginBottom: '8px',
-  },
-  scoreLabel: {
-    fontSize: '10px',
-    letterSpacing: '3px',
-    textTransform: 'uppercase',
-    color: 'var(--text-light)',
-  },
+  container: { minHeight: '100vh', background: '#0d1b2a', display: 'flex', flexDirection: 'column' },
+  header: { display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 32px', borderBottom: '1px solid rgba(107,163,200,0.15)', background: '#0f2236' },
+  backBtn: { background: 'none', border: 'none', color: '#5A7A94', fontSize: '12px', fontWeight: '600', letterSpacing: '1px', cursor: 'pointer', padding: 0 },
+  screenTitle: { fontFamily: 'Georgia, serif', fontSize: '18px', fontWeight: '300', color: '#D8E6F0', letterSpacing: '2px' },
+  body: { maxWidth: '960px', margin: '0 auto', padding: '40px 32px 80px', width: '100%' },
+  modeBar: { display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '40px', padding: '16px 20px', border: '1px solid rgba(107,163,200,0.15)', background: '#0f2236' },
+  modePill: { fontFamily: '-apple-system, sans-serif', fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', padding: '8px 20px', border: '1px solid rgba(107,163,200,0.2)', background: 'none', color: '#5A7A94', cursor: 'pointer', borderRadius: '2px' },
+  modePillActive: { borderColor: '#6BA3C8', background: 'rgba(107,163,200,0.1)', color: '#D8E6F0' },
+  dimHeader: { display: 'flex', alignItems: 'baseline', gap: '16px', marginBottom: '16px', paddingBottom: '12px', borderBottom: '2px solid rgba(107,163,200,0.25)' },
+  badge: { fontSize: '11px', fontWeight: '600', letterSpacing: '3px', color: '#6BA3C8', background: 'rgba(107,163,200,0.1)', padding: '5px 12px', borderRadius: '2px' },
+  dimTitle: { fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: '300', color: '#D8E6F0' },
+  dimSub: { fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#5A7A94', marginLeft: 'auto' },
+  scanTable: { borderTop: '1px solid rgba(107,163,200,0.15)' },
+  scanRow: { display: 'grid', gridTemplateColumns: '140px 160px 32px 160px 1fr', alignItems: 'center', borderBottom: '1px solid rgba(107,163,200,0.1)', minHeight: '52px' },
+  scanLabel: { fontSize: '11px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#8BAFC8', padding: '14px 12px 14px 0' },
+  scanLib: { fontSize: '13px', fontWeight: '500', color: '#4AAE88', background: 'rgba(74,174,136,0.08)', padding: '14px', borderLeft: '2px solid rgba(74,174,136,0.2)' },
+  scanVs: { fontSize: '9px', fontWeight: '600', letterSpacing: '2px', color: '#5A7A94', textAlign: 'center' },
+  scanBur: { fontSize: '13px', fontWeight: '600', color: '#B05A5A', background: 'rgba(176,90,90,0.08)', padding: '14px', borderRight: '2px solid rgba(176,90,90,0.2)' },
+  esmHeaders: { display: 'grid', gridTemplateColumns: '140px 160px 32px 160px 1fr', paddingBottom: '8px', marginBottom: '4px', borderBottom: '2px solid rgba(107,163,200,0.25)' },
+  esmHeaderCell: { fontSize: '9px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#5A7A94', padding: '0 8px' },
+  esmRight: { fontSize: '11px', fontStyle: 'italic', color: '#5A7A94', paddingLeft: '8px' },
+  logRow: { marginTop: '40px', display: 'flex', alignItems: 'center', gap: '16px', paddingTop: '24px', borderTop: '1px solid rgba(107,163,200,0.15)' },
+  primaryBtn: { background: 'rgba(107,163,200,0.15)', border: '1px solid rgba(107,163,200,0.4)', borderRadius: '3px', padding: '14px 32px', color: '#6BA3C8', fontSize: '11px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', cursor: 'pointer' },
+  secondaryBtn: { background: 'none', border: '1px solid rgba(107,163,200,0.3)', borderRadius: '3px', padding: '14px 24px', color: '#6BA3C8', fontSize: '11px', fontWeight: '600', letterSpacing: '2px', cursor: 'pointer' },
+  logSuccess: { fontSize: '12px', color: '#4AAE88', letterSpacing: '2px' },
+  error: { color: '#B05A5A', fontSize: '12px' },
+  qWrap: { background: '#162534', border: '1px solid rgba(107,163,200,0.15)', borderRadius: '3px', padding: '40px', maxWidth: '600px' },
+  qProgress: { fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#5A7A94', marginBottom: '20px' },
+  qDimHeader: { display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid rgba(107,163,200,0.15)' },
+  qDimLabel: { fontSize: '11px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#8BAFC8', minWidth: '100px' },
+  qDimLib: { fontSize: '13px', color: '#4AAE88' },
+  qVs: { fontSize: '9px', color: '#5A7A94' },
+  qDimBur: { fontSize: '13px', color: '#B05A5A' },
+  qText: { fontFamily: 'Georgia, serif', fontSize: '18px', fontWeight: '300', color: '#D8E6F0', lineHeight: 1.6, marginBottom: '32px' },
+  qSlider: { display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px' },
+  qNav: { display: 'flex', alignItems: 'center', gap: '12px', marginTop: '8px' },
 };
 
 export default Scan;
