@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import Landing from './screens/landing';
 import Login from './screens/login';
 import Register from './screens/register';
 import Home from './screens/home';
@@ -26,9 +27,9 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={token ? <Home onLogout={handleLogout} /> : <Landing />} />
         <Route path="/login" element={token ? <Navigate to="/" /> : <Login onLogin={handleLogin} />} />
         <Route path="/register" element={token ? <Navigate to="/" /> : <Register onLogin={handleLogin} />} />
-        <Route path="/" element={token ? <Home onLogout={handleLogout} /> : <Navigate to="/login" />} />
         <Route path="/scan" element={token ? <Scan /> : <Navigate to="/login" />} />
         <Route path="/cpm" element={token ? <CPM /> : <Navigate to="/login" />} />
         <Route path="/cbm" element={token ? <CBM /> : <Navigate to="/login" />} />
