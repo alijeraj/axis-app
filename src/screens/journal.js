@@ -4,7 +4,80 @@ import axios from 'axios';
 
 const API = 'https://axis-backend-production-5e9b.up.railway.app';
 
-const TONES = ['Peaceful','Anxious','Joyful','Fearful','Melancholic','Intense','Confusing','Vivid','Dark','Healing'];
+function ComplexViewModal({ complex, onClose }) {
+  if (!complex) return null;
+  const c = complex;
+  const hasCounter = c.counter && c.counter.trim();
+  const hasCounterBehavior = c.counterBehavior && c.counterBehavior.trim();
+  const W = 220; const CW = 180; const GAP = 16;
+
+  const Arrow = ({ up, color }) => (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '28px' }}>
+      {up && <div style={{ borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderBottom: `7px solid ${color || 'rgba(107,163,200,0.35)'}` }} />}
+      <div style={{ width: '2px', flex: 1, background: color || 'rgba(107,163,200,0.35)' }} />
+      {!up && <div style={{ borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderTop: `7px solid ${color || 'rgba(107,163,200,0.35)'}` }} />}
+    </div>
+  );
+
+  const FlowNode = ({ label, text, isBurden, isTrigger, isCounter }) => (
+    <div style={{ border: `1px solid ${isCounter ? 'rgba(74,174,136,0.3)' : isBurden ? 'rgba(176,90,90,0.35)' : isTrigger ? 'rgba(200,168,80,0.3)' : 'rgba(107,163,200,0.2)'}`, borderRadius: '3px', padding: '12px 14px', background: isCounter ? 'rgba(74,174,136,0.06)' : isBurden ? 'rgba(176,90,90,0.08)' : isTrigger ? 'rgba(200,168,80,0.06)' : 'rgba(107,163,200,0.04)', width: '100%', boxSizing: 'border-box' }}>
+      <div style={{ fontSize: '8px', fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase', color: isCounter ? '#4AAE88' : isBurden ? '#B05A5A' : isTrigger ? '#C8A840' : '#6BA3C8', marginBottom: '6px' }}>{label}</div>
+      <div style={{ fontSize: '13px', color: '#D8E6F0', fontFamily: 'Georgia, serif', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{text || ''}</div>
+    </div>
+  );
+
+  const Row = ({ main, counter, connector }) => (
+    <div style={{ display: 'flex', alignItems: 'stretch', width: W + GAP + CW }}>
+      <div style={{ width: W, flexShrink: 0 }}>{main}</div>
+      <div style={{ width: GAP, flexShrink: 0, display: 'flex', alignItems: 'center' }}>{connector}</div>
+      <div style={{ width: CW, flexShrink: 0 }}>{counter}</div>
+    </div>
+  );
+
+  const ArrowRow = ({ left, right }) => (
+    <div style={{ display: 'flex', width: W + GAP + CW }}>
+      <div style={{ width: W, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>{left}</div>
+      <div style={{ width: GAP }} />
+      <div style={{ width: CW, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>{right}</div>
+    </div>
+  );
+
+  const Connector = ({ color }) => <div style={{ height: '2px', width: '100%', background: color || 'rgba(74,174,136,0.4)' }} />;
+  const bVal = Array.isArray(c.behaviors) ? c.behaviors.join('\n') : (c.behaviors || '');
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 400, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '40px 20px' }}>
+      <div style={{ background: '#162534', border: '1px solid rgba(107,163,200,0.3)', borderRadius: '4px', width: '100%', maxWidth: '560px', padding: '32px', boxShadow: '0 0 40px rgba(0,0,0,0.6)', margin: 'auto' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '8px' }}>
+          <div>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: '300', color: '#D8E6F0' }}>{c.name}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
+              <span style={{ fontSize: '8px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', padding: '3px 8px', borderRadius: '2px', color: c.status === 'resolved' ? '#4AAE88' : '#B05A5A', background: c.status === 'resolved' ? 'rgba(74,174,136,0.12)' : 'rgba(176,90,90,0.12)', border: c.status === 'resolved' ? '1px solid rgba(74,174,136,0.3)' : '1px solid rgba(176,90,90,0.3)' }}>{c.status || 'active'}</span>
+              {c.originalWound && <span style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '2px', textTransform: 'uppercase', color: '#C8A840', border: '1px dashed #C8A840', padding: '2px 7px', borderRadius: '2px' }}>Original Wound</span>}
+            </div>
+          </div>
+          <button style={{ background: 'none', border: 'none', color: '#5A7A94', cursor: 'pointer', fontSize: '18px' }} onClick={onClose}>✕</button>
+        </div>
+        <div style={{ overflowX: 'auto', paddingBottom: '8px', marginTop: '24px' }}>
+          <Row main={<FlowNode label="Emotional Burden" text={c.burden || ''} isBurden />} counter={<div />} connector={<div />} />
+          <ArrowRow left={<Arrow />} right={<div />} />
+          <Row main={<FlowNode label="Beliefs" text={c.beliefs || ''} />} connector={hasCounter ? <Connector /> : <div />} counter={hasCounter ? <><FlowNode label="Counter Beliefs" text={c.counter} isCounter />{c.originalWound && <div style={{ fontSize: '9px', fontStyle: 'italic', color: 'rgba(200,168,80,0.6)', marginTop: '6px' }}>You are speaking to your inner child.</div>}</> : <div />} />
+          <ArrowRow left={<Arrow />} right={<div />} />
+          <Row main={<FlowNode label="Thoughts" text={c.thoughts || ''} />} connector={<div />} counter={<div />} />
+          {c.feelings && c.feelings.trim() && <><ArrowRow left={<Arrow />} right={<div />} /><Row main={<FlowNode label="Feelings" text={c.feelings} />} connector={<div />} counter={<div />} /></>}
+          <ArrowRow left={<Arrow />} right={hasCounterBehavior ? <Arrow color="rgba(74,174,136,0.4)" /> : <div />} />
+          <Row main={<FlowNode label="Behaviors" text={bVal} />} connector={hasCounterBehavior ? <Connector /> : <div />} counter={hasCounterBehavior ? <><FlowNode label="Counter Behaviors" text={c.counterBehavior} isCounter />{c.originalWound && <div style={{ fontSize: '9px', fontStyle: 'italic', color: 'rgba(200,168,80,0.6)', marginTop: '6px' }}>You are speaking to your inner child.</div>}</> : <div />} />
+          <ArrowRow left={<Arrow up />} right={<div />} />
+          <Row main={<FlowNode label="Triggers" text={c.trigger || ''} isTrigger />} connector={<div />} counter={<div />} />
+          {c.notes && c.notes.trim() && <div style={{ marginTop: '20px', opacity: 0.7, width: W + GAP + CW }}><FlowNode label="Notes" text={c.notes} /></div>}
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(107,163,200,0.15)' }}>
+          <button style={{ background: 'rgba(107,163,200,0.15)', border: '1px solid rgba(107,163,200,0.4)', borderRadius: '3px', padding: '10px 24px', color: '#6BA3C8', fontSize: '11px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', cursor: 'pointer' }} onClick={onClose}>Close</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function Journal() {
   const navigate = useNavigate();
@@ -15,15 +88,13 @@ function Journal() {
   const [complexes, setComplexes] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Dream form
   const [showDreamForm, setShowDreamForm] = useState(false);
   const [editDreamIdx, setEditDreamIdx] = useState(null);
-  const [dreamForm, setDreamForm] = useState({ title: '', tone: '', narrative: '', people: '', symbols: '', reflection: '', complexLink: '', date: new Date().toISOString() });
+  const [dreamForm, setDreamForm] = useState({ title: '', narrative: '', people: '', symbols: '', reflection: '', complexLink: '', date: new Date().toISOString() });
 
-  // Dream view modal
   const [viewDreamIdx, setViewDreamIdx] = useState(null);
+  const [viewComplex, setViewComplex] = useState(null);
 
-  // Free journal
   const [showFreeForm, setShowFreeForm] = useState(false);
   const [editFreeIdx, setEditFreeIdx] = useState(null);
   const [freeForm, setFreeForm] = useState({ text: '', date: new Date().toISOString() });
@@ -64,7 +135,7 @@ function Journal() {
       setDreamForm({ ...dreams[idx] });
       setEditDreamIdx(idx);
     } else {
-      setDreamForm({ title: '', tone: '', narrative: '', people: '', symbols: '', reflection: '', complexLink: '', date: new Date().toISOString() });
+      setDreamForm({ title: '', narrative: '', people: '', symbols: '', reflection: '', complexLink: '', date: new Date().toISOString() });
       setEditDreamIdx(null);
     }
     setShowDreamForm(true);
@@ -133,7 +204,6 @@ function Journal() {
 
   if (loading) return <div style={{ color: '#5A7A94', padding: '48px', textAlign: 'center' }}>Loading...</div>;
 
-  // Dream form screen
   if (showDreamForm) {
     return (
       <div style={styles.container}>
@@ -146,18 +216,6 @@ function Journal() {
             <div style={styles.formGroup}>
               <label style={styles.label}>Title</label>
               <input style={styles.input} value={dreamForm.title} onChange={e => setDreamForm({ ...dreamForm, title: e.target.value })} placeholder="Give this dream a name..." autoFocus />
-            </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Tone</label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                {TONES.map(t => (
-                  <button
-                    key={t}
-                    style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', padding: '6px 14px', border: `1px solid ${dreamForm.tone === t ? '#6BA3C8' : 'rgba(107,163,200,0.2)'}`, background: dreamForm.tone === t ? 'rgba(107,163,200,0.1)' : 'none', color: dreamForm.tone === t ? '#6BA3C8' : '#5A7A94', cursor: 'pointer', borderRadius: '2px' }}
-                    onClick={() => setDreamForm({ ...dreamForm, tone: dreamForm.tone === t ? '' : t })}
-                  >{t}</button>
-                ))}
-              </div>
             </div>
             {[
               { key: 'narrative', label: 'Narrative', placeholder: 'What happened in the dream?' },
@@ -187,7 +245,6 @@ function Journal() {
     );
   }
 
-  // Free entry form screen
   if (showFreeForm) {
     return (
       <div style={styles.container}>
@@ -206,23 +263,24 @@ function Journal() {
             placeholder="Write freely. This space is yours."
             autoFocus
           />
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '12px' }}>
-            <span style={{ fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', color: '#5A7A94' }}></span>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button style={styles.cancelBtn} onClick={() => setShowFreeForm(false)}>Cancel</button>
-              <button style={styles.btn} onClick={saveFreeEntry} disabled={saving}>{saving ? 'Saving...' : 'Save Entry'}</button>
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' }}>
+            <button style={styles.cancelBtn} onClick={() => setShowFreeForm(false)}>Cancel</button>
+            <button style={styles.btn} onClick={saveFreeEntry} disabled={saving}>{saving ? 'Saving...' : 'Save Entry'}</button>
           </div>
         </div>
       </div>
     );
   }
 
-  // Dream view modal
   const viewDream = viewDreamIdx !== null ? dreams[viewDreamIdx] : null;
 
   return (
     <div style={styles.container}>
+
+      {/* Complex flow modal */}
+      {viewComplex && (
+        <ComplexViewModal complex={viewComplex} onClose={() => setViewComplex(null)} />
+      )}
 
       {/* Dream view modal */}
       {viewDream && (
@@ -234,7 +292,6 @@ function Journal() {
             </div>
             <div style={styles.modalBody}>
               {viewDream.date && <div style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#5A7A94', marginBottom: '20px' }}>{new Date(viewDream.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</div>}
-              {viewDream.tone && <div style={{ display: 'inline-block', fontSize: '9px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', padding: '4px 12px', borderRadius: '10px', background: 'rgba(176,144,216,0.15)', border: '1px solid rgba(176,144,216,0.3)', color: '#B088D4', marginBottom: '24px' }}>{viewDream.tone}</div>}
               {[
                 { key: 'narrative', label: 'Narrative' },
                 { key: 'people', label: 'Who Appeared' },
@@ -246,14 +303,21 @@ function Journal() {
                   <div style={{ fontSize: '14px', color: field.color || '#D8E6F0', lineHeight: 1.7, whiteSpace: 'pre-line' }}>{viewDream[field.key]}</div>
                 </div>
               ) : null)}
-              {viewDream.complexLink && (
-                <div style={{ marginBottom: '20px' }}>
-                  <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#5A7A94', marginBottom: '8px' }}>Linked Complex</div>
-                  <div style={{ border: '1px solid rgba(74,174,136,0.25)', borderRadius: '3px', padding: '12px 16px', background: 'rgba(74,174,136,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ fontSize: '14px', color: '#4AAE88', fontFamily: 'Georgia, serif' }}>{viewDream.complexLink}</div>
+              {viewDream.complexLink && (() => {
+                const complex = complexes.find(c => c.name === viewDream.complexLink);
+                return (
+                  <div style={{ marginBottom: '20px' }}>
+                    <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#5A7A94', marginBottom: '8px' }}>Linked Complex</div>
+                    <div
+                      style={{ border: '1px solid rgba(74,174,136,0.25)', borderRadius: '3px', padding: '12px 16px', background: 'rgba(74,174,136,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: complex ? 'pointer' : 'default' }}
+                      onClick={() => { if (complex) { setViewDreamIdx(null); setViewComplex(complex); } }}
+                    >
+                      <div style={{ fontSize: '14px', color: '#4AAE88', fontFamily: 'Georgia, serif' }}>{viewDream.complexLink}</div>
+                      {complex && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4 2 L9 6 L4 10" stroke="rgba(74,174,136,0.5)" strokeWidth="1.5" strokeLinecap="round" /></svg>}
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
             <div style={styles.modalFooter}>
               <button style={{ ...styles.cancelBtn, color: '#B05A5A', borderColor: 'rgba(176,90,90,0.3)' }} onClick={() => { deleteDream(viewDreamIdx); setViewDreamIdx(null); }}>Delete</button>
@@ -272,13 +336,11 @@ function Journal() {
       </div>
 
       <div style={styles.body}>
-        {/* Tabs */}
         <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid rgba(107,163,200,0.15)', marginBottom: '32px' }}>
           <button style={{ ...styles.tabBtn, ...(tab === 'dreams' ? styles.tabBtnActive : {}) }} onClick={() => setTab('dreams')}>Dream Journal</button>
           <button style={{ ...styles.tabBtn, ...(tab === 'free' ? styles.tabBtnActive : {}) }} onClick={() => setTab('free')}>Free Journal</button>
         </div>
 
-        {/* Dream Journal */}
         {tab === 'dreams' && (
           dreams.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '80px 40px', color: '#5A7A94' }}>
@@ -291,13 +353,8 @@ function Journal() {
                 const realIdx = dreams.length - 1 - i;
                 const dateStr = d.date ? new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
                 return (
-                  <div
-                    key={realIdx}
-                    style={styles.dreamCard}
-                    onClick={(e) => { if (!e.target.closest('button')) setViewDreamIdx(realIdx); }}
-                  >
+                  <div key={realIdx} style={styles.dreamCard} onClick={(e) => { if (!e.target.closest('button')) setViewDreamIdx(realIdx); }}>
                     <div style={{ fontFamily: 'Georgia, serif', fontSize: '16px', fontWeight: '300', color: '#D8E6F0', lineHeight: 1.4, marginBottom: '8px' }}>{d.title || 'Untitled Dream'}</div>
-                    {d.tone && <div style={{ display: 'inline-block', fontSize: '9px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', padding: '3px 10px', borderRadius: '10px', background: 'rgba(176,144,216,0.12)', border: '1px solid rgba(176,144,216,0.25)', color: '#B088D4', marginBottom: '10px' }}>{d.tone}</div>}
                     {d.narrative && <div style={{ fontSize: '13px', color: '#5A7A94', lineHeight: 1.6, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{d.narrative}</div>}
                     <div style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#5A7A94', opacity: 0.6, marginTop: '10px' }}>{dateStr}</div>
                     <div style={styles.cardFooter}>
@@ -311,7 +368,6 @@ function Journal() {
           )
         )}
 
-        {/* Free Journal */}
         {tab === 'free' && (
           freeEntries.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '80px 40px' }}>
@@ -327,11 +383,7 @@ function Journal() {
                 const timeStr = dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
                 const preview = e.text ? e.text.trim().substring(0, 120).replace(/\n/g, ' ') + (e.text.length > 120 ? '...' : '') : '';
                 return (
-                  <div
-                    key={realIdx}
-                    style={styles.freeCard}
-                    onClick={() => openFreeForm(realIdx)}
-                  >
+                  <div key={realIdx} style={styles.freeCard} onClick={() => openFreeForm(realIdx)}>
                     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '10px' }}>
                       <div>
                         <div style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#5A7A94', marginBottom: '4px' }}>{dateStr}</div>

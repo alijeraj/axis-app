@@ -76,8 +76,7 @@ function ScoreSlider({ value, onChange }) {
   const trackRef = React.useRef(null);
   const isDragging = React.useRef(false);
 
-  const pct = ((value + 5) / 10); // 0 = liberated, 1 = burdened
-  const displayPct = ((-value + 5) / 10) * 100; // left=liberated so invert
+  const displayPct = ((-value + 5) / 10) * 100;
   const handleLeft = `${displayPct}%`;
   const color = value > 0 ? '#4AAE88' : value < 0 ? '#B05A5A' : '#6BA3C8';
   const borderColor = value > 0 ? '#4AAE88' : value < 0 ? '#B05A5A' : '#6BA3C8';
@@ -89,7 +88,6 @@ function ScoreSlider({ value, onChange }) {
     const rect = track.getBoundingClientRect();
     let p = (clientX - rect.left) / rect.width;
     p = Math.max(0, Math.min(1, p));
-    // left = liberated (+5), right = burdened (-5)
     const raw = Math.round(5 - p * 10);
     onChange(raw);
   };
@@ -109,7 +107,6 @@ function ScoreSlider({ value, onChange }) {
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Fill calculation
   const fillStyle = value === 0
     ? { left: '45%', width: '10%', background: 'rgba(107,163,200,0.2)' }
     : value > 0
@@ -118,42 +115,16 @@ function ScoreSlider({ value, onChange }) {
 
   return (
     <div style={{ padding: '8px 16px', minWidth: '180px' }}>
-      {/* Track */}
       <div
         ref={trackRef}
-        style={{
-          position: 'relative',
-          height: '10px',
-          background: 'linear-gradient(to right, rgba(74,174,136,0.4), rgba(107,163,200,0.15) 50%, rgba(176,90,90,0.4))',
-          borderRadius: '5px',
-          cursor: 'pointer',
-          border: '1px solid rgba(107,163,200,0.2)',
-          margin: '8px 0',
-        }}
+        style={{ position: 'relative', height: '10px', background: 'linear-gradient(to right, rgba(74,174,136,0.4), rgba(107,163,200,0.15) 50%, rgba(176,90,90,0.4))', borderRadius: '5px', cursor: 'pointer', border: '1px solid rgba(107,163,200,0.2)', margin: '8px 0' }}
         onMouseDown={(e) => { isDragging.current = true; applyPct(e.clientX); e.preventDefault(); }}
         onTouchStart={(e) => { isDragging.current = true; applyPct(e.touches[0].clientX); }}
         onClick={(e) => applyPct(e.clientX)}
       >
-        {/* Fill */}
         <div style={{ position: 'absolute', top: 0, bottom: 0, borderRadius: '5px', pointerEvents: 'none', ...fillStyle }} />
-        {/* Handle */}
-        <div style={{
-          position: 'absolute',
-          top: '50%',
-          left: handleLeft,
-          transform: 'translate(-50%, -50%)',
-          width: '22px',
-          height: '22px',
-          borderRadius: '50%',
-          background: '#1a2d3d',
-          border: `2.5px solid ${borderColor}`,
-          boxShadow: `0 0 8px ${glow}`,
-          cursor: 'grab',
-          zIndex: 2,
-          pointerEvents: 'none',
-        }} />
+        <div style={{ position: 'absolute', top: '50%', left: handleLeft, transform: 'translate(-50%, -50%)', width: '22px', height: '22px', borderRadius: '50%', background: '#1a2d3d', border: `2.5px solid ${borderColor}`, boxShadow: `0 0 8px ${glow}`, cursor: 'grab', zIndex: 2, pointerEvents: 'none' }} />
       </div>
-      {/* Value */}
       <div style={{ textAlign: 'center', fontFamily: 'Georgia, serif', fontSize: '28px', fontWeight: '300', color, marginTop: '8px', lineHeight: 1 }}>
         {value > 0 ? '+' : ''}{value}
       </div>
@@ -185,13 +156,11 @@ function QuestionnaireMode({ ismScores, esmScores, onIsmChange, onEsmChange, onC
     const q = dim.questions[ismQIdx];
     const answerKey = `${dim.id}-${ismQIdx}`;
     const currentAnswer = ismQAnswers[answerKey];
-    const displayVal = currentAnswer !== undefined ? -currentAnswer : 0;
     const isLastQ = ismQIdx === dim.questions.length - 1;
     const isLastDim = ismDimIdx === ISM_DIMS.length - 1;
 
     const handleAnswer = (val) => {
-      const score = -val;
-      const newAnswers = { ...ismQAnswers, [answerKey]: score };
+      const newAnswers = { ...ismQAnswers, [answerKey]: val };
       setIsmQAnswers(newAnswers);
       const dimScore = calcDimScore(dim.id, newAnswers, ISM_DIMS);
       onIsmChange({ ...ismScores, [dim.id]: dimScore });
@@ -205,7 +174,7 @@ function QuestionnaireMode({ ismScores, esmScores, onIsmChange, onEsmChange, onC
 
     return (
       <div style={styles.qWrap}>
-        <div style={styles.qProgress}>Dimension {ismDimIdx + 1} of {ISM_DIMS.length} — Question {ismQIdx + 1} of {dim.questions.length}</div>
+        <div style={styles.qProgress}>ISM · Dimension {ismDimIdx + 1} of {ISM_DIMS.length} — Question {ismQIdx + 1} of {dim.questions.length}</div>
         <div style={styles.qDimHeader}>
           <span style={styles.qDimLabel}>{dim.label}</span>
           <span style={styles.qDimLib}>{dim.liberated}</span>
@@ -213,13 +182,12 @@ function QuestionnaireMode({ ismScores, esmScores, onIsmChange, onEsmChange, onC
           <span style={styles.qDimBur}>{dim.burdened}</span>
         </div>
         <div style={styles.qText}>{q.text}</div>
-        <div style={styles.qSlider}>
-          <span style={{ fontSize: '11px', color: '#4AAE88' }}>{dim.liberated}</span>
-          <input type="range" min="-5" max="5" step="1" value={displayVal} onChange={e => handleAnswer(parseInt(e.target.value))} style={{ flex: 1, accentColor: '#6BA3C8' }} />
-          <span style={{ fontSize: '11px', color: '#B05A5A' }}>{dim.burdened}</span>
-        </div>
-        <div style={{ textAlign: 'center', fontFamily: 'Georgia, serif', fontSize: '20px', color: currentAnswer !== undefined ? (currentAnswer > 0 ? '#4AAE88' : currentAnswer < 0 ? '#B05A5A' : '#6BA3C8') : '#5A7A94', marginBottom: '24px' }}>
-          {currentAnswer !== undefined ? (currentAnswer > 0 ? '+' : '') + currentAnswer : '--'}
+        <div style={{ marginBottom: '8px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+            <span style={{ fontSize: '11px', color: '#4AAE88', fontWeight: '600' }}>{dim.liberated}</span>
+            <span style={{ fontSize: '11px', color: '#B05A5A', fontWeight: '600' }}>{dim.burdened}</span>
+          </div>
+          <ScoreSlider value={currentAnswer !== undefined ? currentAnswer : 0} onChange={v => handleAnswer(v)} />
         </div>
         <div style={styles.qNav}>
           {ismQIdx > 0 && <button style={styles.secondaryBtn} onClick={() => setIsmQIdx(ismQIdx - 1)}>Back</button>}
@@ -237,13 +205,11 @@ function QuestionnaireMode({ ismScores, esmScores, onIsmChange, onEsmChange, onC
   const q = dim.questions[esmQIdx];
   const answerKey = `${dim.id}-${esmQIdx}`;
   const currentAnswer = esmQAnswers[answerKey];
-  const displayVal = currentAnswer !== undefined ? -currentAnswer : 0;
   const isLastQ = esmQIdx === dim.questions.length - 1;
   const isLastDim = esmDimIdx === ESM_DIMS.length - 1;
 
   const handleAnswer = (val) => {
-    const score = -val;
-    const newAnswers = { ...esmQAnswers, [answerKey]: score };
+    const newAnswers = { ...esmQAnswers, [answerKey]: val };
     setEsmQAnswers(newAnswers);
     const dimScore = calcDimScore(dim.id, newAnswers, ESM_DIMS);
     onEsmChange({ ...esmScores, [dim.id]: dimScore });
@@ -257,7 +223,7 @@ function QuestionnaireMode({ ismScores, esmScores, onIsmChange, onEsmChange, onC
 
   return (
     <div style={styles.qWrap}>
-      <div style={styles.qProgress}>Dimension {esmDimIdx + 1} of {ESM_DIMS.length} — Question {esmQIdx + 1} of {dim.questions.length}</div>
+      <div style={styles.qProgress}>ESM · Dimension {esmDimIdx + 1} of {ESM_DIMS.length} — Question {esmQIdx + 1} of {dim.questions.length}</div>
       <div style={styles.qDimHeader}>
         <span style={styles.qDimLabel}>{dim.label}</span>
         <span style={styles.qDimLib}>{dim.liberated}</span>
@@ -265,13 +231,12 @@ function QuestionnaireMode({ ismScores, esmScores, onIsmChange, onEsmChange, onC
         <span style={styles.qDimBur}>{dim.burdened}</span>
       </div>
       <div style={styles.qText}>{q.text}</div>
-      <div style={styles.qSlider}>
-        <span style={{ fontSize: '11px', color: '#4AAE88' }}>{dim.liberated}</span>
-        <input type="range" min="-5" max="5" step="1" value={displayVal} onChange={e => handleAnswer(parseInt(e.target.value))} style={{ flex: 1, accentColor: '#6BA3C8' }} />
-        <span style={{ fontSize: '11px', color: '#B05A5A' }}>{dim.burdened}</span>
-      </div>
-      <div style={{ textAlign: 'center', fontFamily: 'Georgia, serif', fontSize: '20px', color: currentAnswer !== undefined ? (currentAnswer > 0 ? '#4AAE88' : currentAnswer < 0 ? '#B05A5A' : '#6BA3C8') : '#5A7A94', marginBottom: '24px' }}>
-        {currentAnswer !== undefined ? (currentAnswer > 0 ? '+' : '') + currentAnswer : '--'}
+      <div style={{ marginBottom: '8px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+          <span style={{ fontSize: '11px', color: '#4AAE88', fontWeight: '600' }}>{dim.liberated}</span>
+          <span style={{ fontSize: '11px', color: '#B05A5A', fontWeight: '600' }}>{dim.burdened}</span>
+        </div>
+        <ScoreSlider value={currentAnswer !== undefined ? currentAnswer : 0} onChange={v => handleAnswer(v)} />
       </div>
       <div style={styles.qNav}>
         {esmQIdx > 0 && <button style={styles.secondaryBtn} onClick={() => setEsmQIdx(esmQIdx - 1)}>Back</button>}
@@ -304,13 +269,9 @@ function Scan() {
   useEffect(() => {
     const checkToday = async () => {
       try {
-        const res = await axios.get(`${API}/api/entries`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await axios.get(`${API}/api/entries`, { headers: { Authorization: `Bearer ${token}` } });
         const today = new Date().toISOString().split('T')[0];
-        if (res.data && res.data[today]) {
-          setAlreadyLogged(true);
-        }
+        if (res.data && res.data[today]) setAlreadyLogged(true);
       } catch (err) {
         console.log(err);
       }
@@ -456,7 +417,7 @@ const styles = {
   qDimBur: { fontSize: '13px', color: '#B05A5A' },
   qText: { fontFamily: 'Georgia, serif', fontSize: '18px', fontWeight: '300', color: '#D8E6F0', lineHeight: 1.6, marginBottom: '32px' },
   qSlider: { display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px' },
-  qNav: { display: 'flex', alignItems: 'center', gap: '12px', marginTop: '8px' },
+  qNav: { display: 'flex', alignItems: 'center', gap: '12px', marginTop: '24px' },
 };
 
 export default Scan;
