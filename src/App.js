@@ -8,6 +8,7 @@ import Scan from './screens/scan';
 import CPM from './screens/cpm';
 import CBM from './screens/cbm';
 import Progress from './screens/progress';
+import Results from './screens/results';
 import Journal from './screens/journal';
 import Tutorial from './screens/tutorial';
 
@@ -34,6 +35,7 @@ function App() {
         <Route path="/cpm" element={token ? <CPM /> : <Navigate to="/login" />} />
         <Route path="/cbm" element={token ? <CBM /> : <Navigate to="/login" />} />
         <Route path="/progress" element={token ? <Progress /> : <Navigate to="/login" />} />
+        <Route path="/results" element={token ? <Results /> : <Navigate to="/login" />} />
         <Route path="/journal" element={token ? <Journal /> : <Navigate to="/login" />} />
         <Route path="/tutorial" element={token ? <Tutorial /> : <Navigate to="/login" />} />
         <Route path="*" element={<Navigate to="/" />} />

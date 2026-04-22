@@ -334,7 +334,7 @@ function Scan() {
                 {saving ? 'Saving...' : alreadyLogged ? "Re-Log Today's Entry" : "Log Today's Entry"}
               </button>
               {alreadyLogged && (
-                <button style={styles.secondaryBtn} onClick={() => navigate('/progress')}>
+                <button style={styles.secondaryBtn} onClick={() => navigate('/results', { state: { origin: 'scan' } })}>
                   View Results →
                 </button>
               )}
