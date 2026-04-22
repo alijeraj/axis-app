@@ -73,16 +73,88 @@ const ESM_DIMS = [
 ];
 
 function ScoreSlider({ value, onChange }) {
-  const displayVal = -value;
+  const trackRef = React.useRef(null);
+  const isDragging = React.useRef(false);
+
+  const pct = ((value + 5) / 10); // 0 = liberated, 1 = burdened
+  const displayPct = ((-value + 5) / 10) * 100; // left=liberated so invert
+  const handleLeft = `${displayPct}%`;
   const color = value > 0 ? '#4AAE88' : value < 0 ? '#B05A5A' : '#6BA3C8';
+  const borderColor = value > 0 ? '#4AAE88' : value < 0 ? '#B05A5A' : '#6BA3C8';
+  const glow = value > 0 ? 'rgba(74,174,136,0.5)' : value < 0 ? 'rgba(176,90,90,0.5)' : 'rgba(107,163,200,0.4)';
+
+  const applyPct = (clientX) => {
+    const track = trackRef.current;
+    if (!track) return;
+    const rect = track.getBoundingClientRect();
+    let p = (clientX - rect.left) / rect.width;
+    p = Math.max(0, Math.min(1, p));
+    // left = liberated (+5), right = burdened (-5)
+    const raw = Math.round(5 - p * 10);
+    onChange(raw);
+  };
+
+  React.useEffect(() => {
+    const onMove = (e) => { if (isDragging.current) applyPct(e.touches ? e.touches[0].clientX : e.clientX); };
+    const onUp = () => { isDragging.current = false; };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('touchend', onUp);
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onUp);
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fill calculation
+  const fillStyle = value === 0
+    ? { left: '45%', width: '10%', background: 'rgba(107,163,200,0.2)' }
+    : value > 0
+      ? { left: `${displayPct}%`, width: `${100 - displayPct}%`, background: 'rgba(74,174,136,0.5)' }
+      : { left: '0%', width: `${displayPct}%`, background: 'rgba(176,90,90,0.5)' };
+
   return (
-    <div style={{ padding: '8px 16px', minWidth: '160px' }}>
-      <input
-        type="range" min="-5" max="5" step="1" value={displayVal}
-        onChange={e => onChange(-parseInt(e.target.value))}
-        style={{ width: '100%', accentColor: color }}
-      />
-      <div style={{ textAlign: 'center', fontFamily: 'Georgia, serif', fontSize: '16px', fontWeight: '300', color, marginTop: '2px' }}>
+    <div style={{ padding: '8px 16px', minWidth: '180px' }}>
+      {/* Track */}
+      <div
+        ref={trackRef}
+        style={{
+          position: 'relative',
+          height: '10px',
+          background: 'linear-gradient(to right, rgba(74,174,136,0.4), rgba(107,163,200,0.15) 50%, rgba(176,90,90,0.4))',
+          borderRadius: '5px',
+          cursor: 'pointer',
+          border: '1px solid rgba(107,163,200,0.2)',
+          margin: '8px 0',
+        }}
+        onMouseDown={(e) => { isDragging.current = true; applyPct(e.clientX); e.preventDefault(); }}
+        onTouchStart={(e) => { isDragging.current = true; applyPct(e.touches[0].clientX); }}
+        onClick={(e) => applyPct(e.clientX)}
+      >
+        {/* Fill */}
+        <div style={{ position: 'absolute', top: 0, bottom: 0, borderRadius: '5px', pointerEvents: 'none', ...fillStyle }} />
+        {/* Handle */}
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: handleLeft,
+          transform: 'translate(-50%, -50%)',
+          width: '22px',
+          height: '22px',
+          borderRadius: '50%',
+          background: '#1a2d3d',
+          border: `2.5px solid ${borderColor}`,
+          boxShadow: `0 0 8px ${glow}`,
+          cursor: 'grab',
+          zIndex: 2,
+          pointerEvents: 'none',
+        }} />
+      </div>
+      {/* Value */}
+      <div style={{ textAlign: 'center', fontFamily: 'Georgia, serif', fontSize: '28px', fontWeight: '300', color, marginTop: '8px', lineHeight: 1 }}>
         {value > 0 ? '+' : ''}{value}
       </div>
     </div>

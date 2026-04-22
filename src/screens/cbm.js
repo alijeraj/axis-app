@@ -37,7 +37,6 @@ const getAlternatives = (b) => {
   return [];
 };
 
-// Complex flow diagram modal — same as CPM view modal
 function ComplexViewModal({ complex, onClose }) {
   if (!complex) return null;
   const c = complex;
@@ -54,14 +53,7 @@ function ComplexViewModal({ complex, onClose }) {
   );
 
   const FlowNode = ({ label, text, isBurden, isTrigger, isCounter }) => (
-    <div style={{
-      border: `1px solid ${isCounter ? 'rgba(74,174,136,0.3)' : isBurden ? 'rgba(176,90,90,0.35)' : isTrigger ? 'rgba(200,168,80,0.3)' : 'rgba(107,163,200,0.2)'}`,
-      borderRadius: '3px',
-      padding: '12px 14px',
-      background: isCounter ? 'rgba(74,174,136,0.06)' : isBurden ? 'rgba(176,90,90,0.08)' : isTrigger ? 'rgba(200,168,80,0.06)' : 'rgba(107,163,200,0.04)',
-      width: '100%',
-      boxSizing: 'border-box',
-    }}>
+    <div style={{ border: `1px solid ${isCounter ? 'rgba(74,174,136,0.3)' : isBurden ? 'rgba(176,90,90,0.35)' : isTrigger ? 'rgba(200,168,80,0.3)' : 'rgba(107,163,200,0.2)'}`, borderRadius: '3px', padding: '12px 14px', background: isCounter ? 'rgba(74,174,136,0.06)' : isBurden ? 'rgba(176,90,90,0.08)' : isTrigger ? 'rgba(200,168,80,0.06)' : 'rgba(107,163,200,0.04)', width: '100%', boxSizing: 'border-box' }}>
       <div style={{ fontSize: '8px', fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase', color: isCounter ? '#4AAE88' : isBurden ? '#B05A5A' : isTrigger ? '#C8A840' : '#6BA3C8', marginBottom: '6px' }}>{label}</div>
       <div style={{ fontSize: '13px', color: '#D8E6F0', fontFamily: 'Georgia, serif', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{text || ''}</div>
     </div>
@@ -84,7 +76,6 @@ function ComplexViewModal({ complex, onClose }) {
   );
 
   const Connector = ({ color }) => <div style={{ height: '2px', width: '100%', background: color || 'rgba(74,174,136,0.4)' }} />;
-
   const bVal = Array.isArray(c.behaviors) ? c.behaviors.join('\n') : (c.behaviors || '');
 
   return (
@@ -100,36 +91,19 @@ function ComplexViewModal({ complex, onClose }) {
           </div>
           <button style={{ background: 'none', border: 'none', color: '#5A7A94', cursor: 'pointer', fontSize: '18px' }} onClick={onClose}>✕</button>
         </div>
-
         <div style={{ overflowX: 'auto', paddingBottom: '8px', marginTop: '24px' }}>
           <Row main={<FlowNode label="Emotional Burden" text={c.burden || ''} isBurden />} counter={<div />} connector={<div />} />
           <ArrowRow left={<Arrow />} right={<div />} />
-          <Row
-            main={<FlowNode label="Beliefs" text={c.beliefs || ''} />}
-            connector={hasCounter ? <Connector /> : <div />}
-            counter={hasCounter ? <><FlowNode label="Counter Beliefs" text={c.counter} isCounter />{c.originalWound && <div style={{ fontSize: '9px', fontStyle: 'italic', color: 'rgba(200,168,80,0.6)', marginTop: '6px' }}>You are speaking to your inner child.</div>}</> : <div />}
-          />
+          <Row main={<FlowNode label="Beliefs" text={c.beliefs || ''} />} connector={hasCounter ? <Connector /> : <div />} counter={hasCounter ? <><FlowNode label="Counter Beliefs" text={c.counter} isCounter />{c.originalWound && <div style={{ fontSize: '9px', fontStyle: 'italic', color: 'rgba(200,168,80,0.6)', marginTop: '6px' }}>You are speaking to your inner child.</div>}</> : <div />} />
           <ArrowRow left={<Arrow />} right={<div />} />
           <Row main={<FlowNode label="Thoughts" text={c.thoughts || ''} />} connector={<div />} counter={<div />} />
-          {c.feelings && c.feelings.trim() && <>
-            <ArrowRow left={<Arrow />} right={<div />} />
-            <Row main={<FlowNode label="Feelings" text={c.feelings} />} connector={<div />} counter={<div />} />
-          </>}
+          {c.feelings && c.feelings.trim() && <><ArrowRow left={<Arrow />} right={<div />} /><Row main={<FlowNode label="Feelings" text={c.feelings} />} connector={<div />} counter={<div />} /></>}
           <ArrowRow left={<Arrow />} right={hasCounterBehavior ? <Arrow color="rgba(74,174,136,0.4)" /> : <div />} />
-          <Row
-            main={<FlowNode label="Behaviors" text={bVal} />}
-            connector={hasCounterBehavior ? <Connector /> : <div />}
-            counter={hasCounterBehavior ? <><FlowNode label="Counter Behaviors" text={c.counterBehavior} isCounter />{c.originalWound && <div style={{ fontSize: '9px', fontStyle: 'italic', color: 'rgba(200,168,80,0.6)', marginTop: '6px' }}>You are speaking to your inner child.</div>}</> : <div />}
-          />
+          <Row main={<FlowNode label="Behaviors" text={bVal} />} connector={hasCounterBehavior ? <Connector /> : <div />} counter={hasCounterBehavior ? <><FlowNode label="Counter Behaviors" text={c.counterBehavior} isCounter />{c.originalWound && <div style={{ fontSize: '9px', fontStyle: 'italic', color: 'rgba(200,168,80,0.6)', marginTop: '6px' }}>You are speaking to your inner child.</div>}</> : <div />} />
           <ArrowRow left={<Arrow up />} right={<div />} />
           <Row main={<FlowNode label="Triggers" text={c.trigger || ''} isTrigger />} connector={<div />} counter={<div />} />
-          {c.notes && c.notes.trim() && (
-            <div style={{ marginTop: '20px', opacity: 0.7, width: W + GAP + CW }}>
-              <FlowNode label="Notes" text={c.notes} />
-            </div>
-          )}
+          {c.notes && c.notes.trim() && <div style={{ marginTop: '20px', opacity: 0.7, width: W + GAP + CW }}><FlowNode label="Notes" text={c.notes} /></div>}
         </div>
-
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(107,163,200,0.15)' }}>
           <button style={{ background: 'rgba(107,163,200,0.15)', border: '1px solid rgba(107,163,200,0.4)', borderRadius: '3px', padding: '10px 24px', color: '#6BA3C8', fontSize: '11px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', cursor: 'pointer' }} onClick={onClose}>Close</button>
         </div>
@@ -219,12 +193,7 @@ function CBM() {
   const saveBehavior = async () => {
     if (!form.name.trim()) return;
     const newData = JSON.parse(JSON.stringify(data));
-    newData.levels[form.level].behaviors.push({
-      name: form.name,
-      alternatives: form.alternatives,
-      alternative: form.alternatives[0] || '',
-      relocated: false
-    });
+    newData.levels[form.level].behaviors.push({ name: form.name, alternatives: form.alternatives, alternative: form.alternatives[0] || '', relocated: false });
     await saveData(newData);
     setData(newData);
     setShowAdd(false);
@@ -270,10 +239,7 @@ function CBM() {
     if (!altTarget) return;
     const newData = JSON.parse(JSON.stringify(data));
     const behavior = newData.levels[altTarget.level].behaviors[altTarget.idx];
-    if (behavior) {
-      behavior.alternatives = altList;
-      behavior.alternative = altList[0] || '';
-    }
+    if (behavior) { behavior.alternatives = altList; behavior.alternative = altList[0] || ''; }
     await saveData(newData);
     setData(newData);
     setShowAltModal(false);
@@ -347,31 +313,15 @@ function CBM() {
   return (
     <div style={styles.container} onClick={() => setPopup(null)}>
 
-      {/* Complex flow diagram modal */}
       {showComplexModal && viewComplex && (
         <ComplexViewModal complex={viewComplex} onClose={() => { setShowComplexModal(false); setViewComplex(null); }} />
       )}
 
-      {/* Tag popup */}
       {popup && (
         <div style={{ position: 'fixed', top: popup.y, left: popup.x, background: '#162534', border: '1px solid rgba(107,163,200,0.2)', borderRadius: '3px', zIndex: 300, minWidth: '200px', boxShadow: '0 4px 24px rgba(0,0,0,0.4)' }} onClick={e => e.stopPropagation()}>
-          <button style={{ ...styles.popupBtn, color: '#6BA3C8' }} onClick={() => {
-            setInsightData({ name: popup.name, level: popup.levelIdx, idx: popup.behaviorIdx });
-            setShowInsightModal(true); setPopup(null);
-          }}>See Insight</button>
-          <button style={{ ...styles.popupBtn, borderTop: '1px solid rgba(107,163,200,0.1)' }} onClick={() => {
-            const b = data.levels[popup.levelIdx].behaviors[popup.behaviorIdx];
-            setEditForm({ name: b.name, level: popup.levelIdx });
-            setEditTarget({ level: popup.levelIdx, idx: popup.behaviorIdx });
-            setShowEditModal(true); setPopup(null);
-          }}>Edit</button>
-          <button style={{ ...styles.popupBtn, borderTop: '1px solid rgba(107,163,200,0.1)', color: '#4AAE88' }} onClick={() => {
-            const b = data.levels[popup.levelIdx].behaviors[popup.behaviorIdx];
-            setAltTarget({ level: popup.levelIdx, idx: popup.behaviorIdx, name: popup.name });
-            setAltList(getAlternatives(b));
-            setAltInput('');
-            setShowAltModal(true); setPopup(null);
-          }}>Alternatives</button>
+          <button style={{ ...styles.popupBtn, color: '#6BA3C8' }} onClick={() => { setInsightData({ name: popup.name, level: popup.levelIdx, idx: popup.behaviorIdx }); setShowInsightModal(true); setPopup(null); }}>See Insight</button>
+          <button style={{ ...styles.popupBtn, borderTop: '1px solid rgba(107,163,200,0.1)' }} onClick={() => { const b = data.levels[popup.levelIdx].behaviors[popup.behaviorIdx]; setEditForm({ name: b.name, level: popup.levelIdx }); setEditTarget({ level: popup.levelIdx, idx: popup.behaviorIdx }); setShowEditModal(true); setPopup(null); }}>Edit</button>
+          <button style={{ ...styles.popupBtn, borderTop: '1px solid rgba(107,163,200,0.1)', color: '#4AAE88' }} onClick={() => { const b = data.levels[popup.levelIdx].behaviors[popup.behaviorIdx]; setAltTarget({ level: popup.levelIdx, idx: popup.behaviorIdx, name: popup.name }); setAltList(getAlternatives(b)); setAltInput(''); setShowAltModal(true); setPopup(null); }}>Alternatives</button>
           <div style={{ borderTop: '1px solid rgba(107,163,200,0.1)' }}>
             <button style={{ ...styles.popupBtn, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} onClick={e => { e.stopPropagation(); setPopup({ ...popup, showMove: !popup.showMove }); }}>
               Move to Level <span style={{ opacity: 0.5 }}>{popup.showMove ? '▲' : '▼'}</span>
@@ -384,17 +334,12 @@ function CBM() {
               </div>
             )}
           </div>
-          <button style={{ ...styles.popupBtn, borderTop: '1px solid rgba(107,163,200,0.1)' }} onClick={() => {
-            setLinkTarget({ level: popup.levelIdx, idx: popup.behaviorIdx, name: popup.name });
-            setSelectedComplex(data.levels[popup.levelIdx].behaviors[popup.behaviorIdx]?.complexLink || '');
-            setShowLinkModal(true); setPopup(null);
-          }}>Link to Complex</button>
+          <button style={{ ...styles.popupBtn, borderTop: '1px solid rgba(107,163,200,0.1)' }} onClick={() => { setLinkTarget({ level: popup.levelIdx, idx: popup.behaviorIdx, name: popup.name }); setSelectedComplex(data.levels[popup.levelIdx].behaviors[popup.behaviorIdx]?.complexLink || ''); setShowLinkModal(true); setPopup(null); }}>Link to Complex</button>
           <button style={{ ...styles.popupBtn, borderTop: '1px solid rgba(107,163,200,0.1)' }} onClick={() => { setPopup(null); navigate('/cpm'); }}>Build Complex</button>
           <button style={{ ...styles.popupBtn, borderTop: '1px solid rgba(107,163,200,0.1)', color: '#B05A5A' }} onClick={() => { deleteBehavior(popup.levelIdx, popup.behaviorIdx); setPopup(null); }}>Delete</button>
         </div>
       )}
 
-      {/* Log modal */}
       {showLogModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.modal}>
@@ -438,7 +383,6 @@ function CBM() {
         </div>
       )}
 
-      {/* Edit modal */}
       {showEditModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.modal}>
@@ -466,7 +410,6 @@ function CBM() {
         </div>
       )}
 
-      {/* Alternatives modal */}
       {showAltModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.modal}>
@@ -499,7 +442,6 @@ function CBM() {
         </div>
       )}
 
-      {/* Insight modal */}
       {showInsightModal && insightData && (
         <div style={styles.modalOverlay}>
           <div style={styles.modal}>
@@ -536,10 +478,7 @@ function CBM() {
                         <div style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase', color: '#5A7A94', marginBottom: '12px' }}>Linked Complex</div>
                         {complex ? (
                           <>
-                            <div
-                              style={{ cursor: 'pointer', padding: '14px 16px', border: '1px solid rgba(107,163,200,0.2)', borderRadius: '3px', background: 'rgba(107,163,200,0.04)', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-                              onClick={() => { setShowInsightModal(false); setViewComplex(complex); setShowComplexModal(true); }}
-                            >
+                            <div style={{ cursor: 'pointer', padding: '14px 16px', border: '1px solid rgba(107,163,200,0.2)', borderRadius: '3px', background: 'rgba(107,163,200,0.04)', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} onClick={() => { setShowInsightModal(false); setViewComplex(complex); setShowComplexModal(true); }}>
                               <div>
                                 <div style={{ fontSize: '15px', fontWeight: '600', color: '#D8E6F0', marginBottom: '4px' }}>{complex.name}</div>
                                 {complex.burden && <div style={{ fontSize: '9px', letterSpacing: '2px', textTransform: 'uppercase', color: BURDEN_COLORS[complex.burden] || '#6BA3C8' }}>{complex.burden}</div>}
@@ -571,7 +510,6 @@ function CBM() {
         </div>
       )}
 
-      {/* Link to Complex modal */}
       {showLinkModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.modal}>
@@ -602,13 +540,13 @@ function CBM() {
         <button style={styles.backBtn} onClick={() => navigate('/')}>← Home</button>
         <span style={styles.toolbarTitle}>Compulsive Behavior Map</span>
         <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#5A7A94', marginRight: '8px' }} onClick={() => navigate('/progress')}>View Progress →</button>
+        <button style={{ ...styles.btn, marginRight: '8px', background: 'rgba(255,200,80,0.08)', border: '1px solid rgba(255,200,80,0.25)', color: 'rgba(255,200,80,0.8)' }} onClick={() => navigate('/yesterday')}>Yesterday</button>
         <button style={{ ...styles.btn, marginRight: '8px' }} onClick={() => setShowLogModal(true)}>Set Resistance</button>
         <button style={styles.btn} onClick={() => setShowAdd(true)}>+ Add Behavior</button>
       </div>
 
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: '32px 32px 80px', width: '100%' }}>
 
-        {/* Resistance bar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', marginBottom: '8px' }}>
           {recentLogs.length === 0 ? (
             <>
@@ -626,13 +564,11 @@ function CBM() {
           )}
         </div>
 
-        {/* View tabs */}
         <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid rgba(107,163,200,0.15)', marginBottom: '20px' }}>
           <button style={{ ...styles.tabBtn, ...(view === 'dysregulated' ? styles.tabBtnActive : {}) }} onClick={() => setView('dysregulated')}>Dysregulated</button>
           <button style={{ ...styles.tabBtn, ...(view === 'regulated' ? { ...styles.tabBtnActive, color: '#4AAE88', borderBottomColor: '#4AAE88' } : {}) }} onClick={() => setView('regulated')}>Regulated Self</button>
         </div>
 
-        {/* Pyramid */}
         {view === 'regulated' && !hasAlternatives ? (
           <div style={{ textAlign: 'center', padding: '40px 24px', fontFamily: 'Georgia, serif', fontStyle: 'italic', color: '#5A7A94' }}>
             Add alternative behaviors to your compulsive behaviors to build your regulated self map.
@@ -663,15 +599,8 @@ function CBM() {
                           behaviors.length === 0
                             ? <span style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', pointerEvents: 'none' }}>Level {i + 1}</span>
                             : behaviors.map((b, bi) => (
-                              <span
-                                key={bi}
-                                style={{ fontSize: '11px', fontWeight: '500', letterSpacing: '1px', padding: '5px 14px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.85)', background: 'rgba(0,0,0,0.15)', cursor: 'default', position: 'relative' }}
-                                onClick={e => {
-                                  e.stopPropagation();
-                                  const rect = e.currentTarget.getBoundingClientRect();
-                                  setPopup({ levelIdx: i, behaviorIdx: bi, name: b.name, y: rect.bottom + 6, x: rect.left, showMove: false });
-                                }}
-                              >
+                              <span key={bi} style={{ fontSize: '11px', fontWeight: '500', letterSpacing: '1px', padding: '5px 14px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.85)', background: 'rgba(0,0,0,0.15)', cursor: 'default', position: 'relative' }}
+                                onClick={e => { e.stopPropagation(); const rect = e.currentTarget.getBoundingClientRect(); setPopup({ levelIdx: i, behaviorIdx: bi, name: b.name, y: rect.bottom + 6, x: rect.left, showMove: false }); }}>
                                 {b.name}
                                 {b.complexLink && <span style={{ fontSize: '8px', opacity: 0.6, marginLeft: '4px' }}>⟡</span>}
                                 {getAlternatives(b).length > 0 && <span style={{ fontSize: '8px', opacity: 0.6, marginLeft: '4px', color: '#4AAE88' }}>✓</span>}
