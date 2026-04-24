@@ -335,7 +335,7 @@ function CBM() {
             )}
           </div>
           <button style={{ ...styles.popupBtn, borderTop: '1px solid rgba(107,163,200,0.1)' }} onClick={() => { setLinkTarget({ level: popup.levelIdx, idx: popup.behaviorIdx, name: popup.name }); setSelectedComplex(data.levels[popup.levelIdx].behaviors[popup.behaviorIdx]?.complexLink || ''); setShowLinkModal(true); setPopup(null); }}>Link to Complex</button>
-          <button style={{ ...styles.popupBtn, borderTop: '1px solid rgba(107,163,200,0.1)' }} onClick={() => { setPopup(null); navigate('/cpm'); }}>Build Complex</button>
+          <button style={{ ...styles.popupBtn, borderTop: '1px solid rgba(107,163,200,0.1)' }} onClick={() => { setPopup(null); navigate('/cpm', { state: { buildFromBehavior: popup.name } }); }}>Build Complex</button>
           <button style={{ ...styles.popupBtn, borderTop: '1px solid rgba(107,163,200,0.1)', color: '#B05A5A' }} onClick={() => { deleteBehavior(popup.levelIdx, popup.behaviorIdx); setPopup(null); }}>Delete</button>
         </div>
       )}

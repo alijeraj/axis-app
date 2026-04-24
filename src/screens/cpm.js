@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 
 const API = 'https://axis-backend-production-5e9b.up.railway.app';
@@ -93,18 +93,18 @@ const ENTRY_POINTS = [
   { id: 'beliefs',   label: 'Belief',    desc: 'I am aware of a deep rooted belief I carry.' },
 ];
 
-function GuidedBuilder({ onSave, complexes }) {
-  const [phase, setPhase] = useState('entry');
-  const [sequence, setSequence] = useState([]);
+function GuidedBuilder({ onSave, complexes, prefillBehavior }) {
+  const [phase, setPhase] = useState(prefillBehavior ? 'steps' : 'entry');
+  const [sequence, setSequence] = useState(prefillBehavior ? SEQUENCES.behaviors : []);
   const [stepIdx, setStepIdx] = useState(0);
-  const [data, setData] = useState({});
+  const [data, setData] = useState(prefillBehavior ? { behaviors: prefillBehavior } : {});
 
   const selectEntry = (id) => { setSequence(SEQUENCES[id]); setStepIdx(0); setPhase('steps'); };
   const currentKey = sequence[stepIdx];
   const cfg = STEP_CONFIGS[currentKey] || {};
   const isLast = stepIdx === sequence.length - 1;
   const handleNext = () => { if (isLast) onSave({ ...data, status: 'active', originalWound: data.originalWound || false }); else setStepIdx(stepIdx + 1); };
-  const handleBack = () => { if (stepIdx === 0) setPhase('entry'); else setStepIdx(stepIdx - 1); };
+  const handleBack = () => { if (stepIdx === 0) { if (prefillBehavior) return; setPhase('entry'); } else setStepIdx(stepIdx - 1); };
   const availableRoots = complexes.filter(c => c.status !== 'resolved' && c.name !== data.name);
 
   if (phase === 'entry') {
@@ -129,6 +129,11 @@ function GuidedBuilder({ onSave, complexes }) {
 
   return (
     <div>
+      {prefillBehavior && (
+        <div style={{ fontSize: '11px', color: '#4AAE88', marginBottom: '20px', padding: '8px 12px', background: 'rgba(74,174,136,0.06)', border: '1px solid rgba(74,174,136,0.2)', borderRadius: '3px' }}>
+          Building from behavior: <strong>{prefillBehavior}</strong>
+        </div>
+      )}
       <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#5A7A94', marginBottom: '20px' }}>{stepIdx + 1} of {sequence.length}</div>
       <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: cfg.optional ? '#5A7A94' : '#6BA3C8', marginBottom: '8px' }}>
         {cfg.label}{cfg.optional && <span style={{ marginLeft: '8px', fontStyle: 'italic', fontWeight: 400 }}>optional</span>}
@@ -169,7 +174,7 @@ function GuidedBuilder({ onSave, complexes }) {
       )}
       <div style={{ fontSize: '11px', color: 'rgba(107,163,200,0.5)', marginTop: '10px', fontStyle: 'italic' }}>{cfg.hint}</div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '32px', paddingTop: '20px', borderTop: '1px solid rgba(107,163,200,0.1)' }}>
-        <button style={styles.cancelBtn} onClick={handleBack}>{stepIdx === 0 ? 'Entry Point' : 'Back'}</button>
+        <button style={styles.cancelBtn} onClick={handleBack}>{stepIdx === 0 ? (prefillBehavior ? 'Cancel' : 'Entry Point') : 'Back'}</button>
         <button style={styles.btn} onClick={handleNext}>{isLast ? 'Save to Map' : 'Next →'}</button>
       </div>
     </div>
@@ -338,7 +343,6 @@ function TreeView({ complexes, onViewComplex }) {
 
   rootNames.sort((a, b) => getPeriodOrder(complexes[nameToIdx[a]] && complexes[nameToIdx[a]].period) - getPeriodOrder(complexes[nameToIdx[b]] && complexes[nameToIdx[b]].period));
 
-  // Group roots by source
   const sourceGroups = {};
   rootNames.forEach(name => {
     const c = complexes[nameToIdx[name]];
@@ -350,7 +354,6 @@ function TreeView({ complexes, onViewComplex }) {
   const namedSources = Object.keys(sourceGroups).filter(s => s !== '');
   const orderedSources = [...namedSources, ...(sourceGroups[''] && sourceGroups[''].length > 0 ? [''] : [])];
 
-  // Build each group — positions are LOCAL within each group (no offsetX added here)
   const renderedGroups = [];
   let globalX = 0;
 
@@ -358,7 +361,6 @@ function TreeView({ complexes, onViewComplex }) {
     const groupRoots = sourceGroups[source];
     const groupTrees = [];
     let localX = 0;
-
     groupRoots.forEach((rootName, ri) => {
       const tree = buildNode(rootName, {});
       if (!tree) return;
@@ -369,7 +371,6 @@ function TreeView({ complexes, onViewComplex }) {
       localX += treeW + (ri < groupRoots.length - 1 ? H_GAP : 0);
       groupTrees.push({ tree, allNodes });
     });
-
     const groupWidth = localX;
     renderedGroups.push({ source, groupTrees, groupWidth, offsetX: globalX });
     globalX += groupWidth + GROUP_GAP;
@@ -414,33 +415,29 @@ function TreeView({ complexes, onViewComplex }) {
   if (complexes.length === 0) return <div style={{ textAlign: 'center', padding: '48px', fontFamily: 'Georgia, serif', fontStyle: 'italic', color: '#5A7A94' }}>No complexes yet. Build your first complex to begin mapping.</div>;
 
   return (
-    <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', padding: '0 32px' }}>
         <button style={styles.treeCtrlBtn} onClick={() => setScale(s => Math.min(3, s + 0.2))}>+</button>
         <button style={styles.treeCtrlBtn} onClick={() => setScale(s => Math.max(0.2, s - 0.2))}>−</button>
         <button style={{ ...styles.treeCtrlBtn, fontSize: '9px', letterSpacing: '2px', padding: '0 12px' }} onClick={() => { setScale(1); setPanX(20); setPanY(20); }}>Fit</button>
         <span style={{ fontSize: '10px', color: '#5A7A94', letterSpacing: '2px' }}>{Math.round(scale * 100)}%</span>
       </div>
-      <div ref={viewportRef} style={{ width: '100%', height: '600px', overflow: 'hidden', border: '1px solid rgba(107,163,200,0.1)', borderRadius: '3px', background: 'rgba(107,163,200,0.02)', cursor: 'grab', position: 'relative' }}>
+      <div ref={viewportRef} style={{ flex: 1, overflow: 'hidden', background: 'rgba(107,163,200,0.02)', cursor: 'grab', position: 'relative', borderTop: '1px solid rgba(107,163,200,0.1)' }}>
         <div ref={treeRef} style={{ position: 'absolute', transformOrigin: '0 0', transform: 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')', willChange: 'transform', width: totalW, height: totalH + LABEL_H + 20 }}>
           {renderedGroups.map((group, gi) => (
             <div key={gi} style={{ position: 'absolute', left: group.offsetX, top: 0, width: group.groupWidth, height: totalH + LABEL_H + 20 }}>
-              {/* Source label */}
               {group.source && (
                 <div style={{ position: 'absolute', top: 0, left: 0, fontSize: '9px', fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase', color: 'rgba(107,163,200,0.4)', borderBottom: '1px solid rgba(107,163,200,0.1)', paddingBottom: '6px', width: '100%' }}>
                   {group.source}
                 </div>
               )}
-              {/* SVG lines — local coords only */}
               <svg style={{ position: 'absolute', top: 0, left: 0, width: group.groupWidth, height: totalH + LABEL_H + 20, overflow: 'visible' }}>
                 {group.groupTrees.map(({ tree }, ti) => {
                   const paths = [];
                   const drawLines = (node) => {
                     node.children.forEach(child => {
-                      const px = node.x + NODE_W / 2;
-                      const py = LABEL_H + node.y + NODE_H;
-                      const cx = child.x + NODE_W / 2;
-                      const cy = LABEL_H + child.y;
+                      const px = node.x + NODE_W / 2; const py = LABEL_H + node.y + NODE_H;
+                      const cx = child.x + NODE_W / 2; const cy = LABEL_H + child.y;
                       const my = py + (cy - py) / 2;
                       paths.push('M' + px + ',' + py + ' L' + px + ',' + my + ' L' + cx + ',' + my + ' L' + cx + ',' + cy);
                       drawLines(child);
@@ -450,7 +447,6 @@ function TreeView({ complexes, onViewComplex }) {
                   return paths.map((d, i) => <path key={ti + '-' + i} d={d} fill="none" stroke="rgba(107,163,200,0.3)" strokeWidth="1.5" />);
                 })}
               </svg>
-              {/* Nodes — local coords only */}
               {group.groupTrees.map(({ allNodes }, ti) =>
                 allNodes.map((node, ni) => {
                   const c = complexes[nameToIdx[node.name]];
@@ -528,6 +524,7 @@ function BTFView({ complexes }) {
 
 function CPM() {
   const navigate = useNavigate();
+  const location = useLocation();
   const token = localStorage.getItem('axis_token');
   const [complexes, setComplexes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -535,6 +532,7 @@ function CPM() {
   const [filter, setFilter] = useState('active');
   const [showBuilder, setShowBuilder] = useState(false);
   const [builderMode, setBuilderMode] = useState('guided');
+  const [prefillBehavior, setPrefillBehavior] = useState(null);
   const [editIdx, setEditIdx] = useState(null);
   const [viewIdx, setViewIdx] = useState(null);
   const [form, setForm] = useState({
@@ -545,7 +543,15 @@ function CPM() {
   });
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => { loadComplexes(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    loadComplexes();
+    if (location.state && location.state.buildFromBehavior) {
+      setPrefillBehavior(location.state.buildFromBehavior);
+      setShowBuilder(true);
+      setBuilderMode('guided');
+      setEditIdx(null);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadComplexes = async () => {
     try {
@@ -589,6 +595,7 @@ function CPM() {
   };
 
   const openBuilder = (idx = null) => {
+    setPrefillBehavior(null);
     if (idx !== null) {
       setForm({ ...complexes[idx], rootComplex: complexes[idx].rootComplex || [], source: complexes[idx].source || '' });
       setEditIdx(idx);
@@ -601,7 +608,7 @@ function CPM() {
     setShowBuilder(true);
   };
 
-  const closeBuilder = () => { setShowBuilder(false); setEditIdx(null); };
+  const closeBuilder = () => { setShowBuilder(false); setEditIdx(null); setPrefillBehavior(null); };
 
   const groups = {};
   EMOTION_ORDER.forEach(e => { groups[e] = []; });
@@ -632,7 +639,7 @@ function CPM() {
           <div style={styles.title}>{isEdit ? 'Edit Complex' : 'Build Complex'}</div>
         </div>
         <div style={{ maxWidth: '700px', margin: '0 auto', padding: '40px 32px' }}>
-          {!isEdit && (
+          {!isEdit && !prefillBehavior && (
             <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid rgba(107,163,200,0.15)', marginBottom: '36px' }}>
               {['guided', 'custom'].map(m => (
                 <button key={m} style={{ ...styles.tabBtn, ...(builderMode === m ? styles.tabBtnActive : {}) }} onClick={() => setBuilderMode(m)}>
@@ -641,47 +648,23 @@ function CPM() {
               ))}
             </div>
           )}
-          {builderMode === 'guided' && !isEdit && <GuidedBuilder onSave={saveComplex} complexes={complexes} />}
+          {(builderMode === 'guided' && !isEdit) && (
+            <GuidedBuilder onSave={saveComplex} complexes={complexes} prefillBehavior={prefillBehavior} />
+          )}
           {(builderMode === 'custom' || isEdit) && (
             <div style={styles.card}>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Name</label>
-                <input style={styles.input} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Give this complex a name..." autoFocus />
-              </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Underlying Emotional Burden</label>
-                <select style={styles.input} value={form.burden} onChange={e => setForm({ ...form, burden: e.target.value })}>
-                  <option value="">-- Select burden --</option>
-                  {EMOTION_ORDER.map(e => <option key={e} value={e}>{e}</option>)}
-                </select>
-              </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Beliefs <ArrowLeft /></label>
-                <textarea style={styles.textarea} value={form.beliefs} onChange={e => setForm({ ...form, beliefs: e.target.value })} placeholder="What are beliefs you hold while this complex is active?" rows={3} />
-              </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Thoughts <ArrowLeft /></label>
-                <textarea style={styles.textarea} value={form.thoughts} onChange={e => setForm({ ...form, thoughts: e.target.value })} placeholder="What thoughts go through your mind while this complex is active?" rows={3} />
-              </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Feelings <ArrowLeft /></label>
-                <textarea style={styles.textarea} value={form.feelings} onChange={e => setForm({ ...form, feelings: e.target.value })} placeholder="What do you feel while this complex is active?" rows={3} />
-              </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Behaviors <ArrowRight /></label>
-                <textarea style={styles.textarea} value={form.behaviors} onChange={e => setForm({ ...form, behaviors: e.target.value })} placeholder="How do you act while this complex is active?" rows={3} />
-              </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Trigger</label>
-                <input style={styles.input} value={form.trigger} onChange={e => setForm({ ...form, trigger: e.target.value })} placeholder="What activates this complex?" />
-              </div>
+              <div style={styles.formGroup}><label style={styles.label}>Name</label><input style={styles.input} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Give this complex a name..." autoFocus /></div>
+              <div style={styles.formGroup}><label style={styles.label}>Underlying Emotional Burden</label><select style={styles.input} value={form.burden} onChange={e => setForm({ ...form, burden: e.target.value })}><option value="">-- Select burden --</option>{EMOTION_ORDER.map(e => <option key={e} value={e}>{e}</option>)}</select></div>
+              <div style={styles.formGroup}><label style={styles.label}>Beliefs <ArrowLeft /></label><textarea style={styles.textarea} value={form.beliefs} onChange={e => setForm({ ...form, beliefs: e.target.value })} placeholder="What are beliefs you hold while this complex is active?" rows={3} /></div>
+              <div style={styles.formGroup}><label style={styles.label}>Thoughts <ArrowLeft /></label><textarea style={styles.textarea} value={form.thoughts} onChange={e => setForm({ ...form, thoughts: e.target.value })} placeholder="What thoughts go through your mind while this complex is active?" rows={3} /></div>
+              <div style={styles.formGroup}><label style={styles.label}>Feelings <ArrowLeft /></label><textarea style={styles.textarea} value={form.feelings} onChange={e => setForm({ ...form, feelings: e.target.value })} placeholder="What do you feel while this complex is active?" rows={3} /></div>
+              <div style={styles.formGroup}><label style={styles.label}>Behaviors <ArrowRight /></label><textarea style={styles.textarea} value={form.behaviors} onChange={e => setForm({ ...form, behaviors: e.target.value })} placeholder="How do you act while this complex is active?" rows={3} /></div>
+              <div style={styles.formGroup}><label style={styles.label}>Trigger</label><input style={styles.input} value={form.trigger} onChange={e => setForm({ ...form, trigger: e.target.value })} placeholder="What activates this complex?" /></div>
               <div style={styles.formGroup}>
                 <label style={styles.label}>Life Period <span style={{ fontStyle: 'italic', fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: '6px' }}>optional</span></label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                   {LIFE_PERIODS.map(p => (
-                    <button key={p.label}
-                      style={{ background: form.period === p.label ? 'rgba(107,163,200,0.12)' : 'rgba(107,163,200,0.03)', border: '1px solid ' + (form.period === p.label ? 'rgba(107,163,200,0.6)' : 'rgba(107,163,200,0.15)'), borderRadius: '3px', padding: '10px 12px', textAlign: 'left', cursor: 'pointer' }}
-                      onClick={() => setForm({ ...form, period: form.period === p.label ? '' : p.label })}>
+                    <button key={p.label} style={{ background: form.period === p.label ? 'rgba(107,163,200,0.12)' : 'rgba(107,163,200,0.03)', border: '1px solid ' + (form.period === p.label ? 'rgba(107,163,200,0.6)' : 'rgba(107,163,200,0.15)'), borderRadius: '3px', padding: '10px 12px', textAlign: 'left', cursor: 'pointer' }} onClick={() => setForm({ ...form, period: form.period === p.label ? '' : p.label })}>
                       <div style={{ fontSize: '12px', fontWeight: '600', color: form.period === p.label ? '#D8E6F0' : '#8BAFC8' }}>{p.label}</div>
                       <div style={{ fontSize: '10px', color: '#5A7A94', marginTop: '2px' }}>{p.range}</div>
                     </button>
@@ -690,25 +673,16 @@ function CPM() {
               </div>
               <div style={styles.formGroup}>
                 <label style={styles.label}>Source <span style={{ fontStyle: 'italic', fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: '6px' }}>optional</span></label>
-                <select style={styles.input} value={form.source || ''} onChange={e => setForm({ ...form, source: e.target.value })}>
-                  <option value="">None / Unknown</option>
-                  {SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
+                <select style={styles.input} value={form.source || ''} onChange={e => setForm({ ...form, source: e.target.value })}><option value="">None / Unknown</option>{SOURCES.map(s => <option key={s} value={s}>{s}</option>)}</select>
               </div>
               <div style={{ ...styles.woundToggle, ...(form.originalWound ? styles.woundActive : {}) }} onClick={() => setForm({ ...form, originalWound: !form.originalWound })}>
                 <div style={{ ...styles.woundDot, ...(form.originalWound ? styles.woundDotActive : {}) }} />
-                <div>
-                  <div style={styles.woundLabel}>Original Wound</div>
-                  <div style={styles.woundDesc}>Mark this complex as the origin, where the pattern first formed.</div>
-                </div>
+                <div><div style={styles.woundLabel}>Original Wound</div><div style={styles.woundDesc}>Mark this complex as the origin, where the pattern first formed.</div></div>
               </div>
               {!form.originalWound && (
                 <div style={styles.formGroup}>
                   <label style={styles.label}>Root Complex <span style={{ fontStyle: 'italic', fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: '6px' }}>optional</span></label>
-                  <select style={styles.input} value={currentRoot} onChange={e => setForm({ ...form, rootComplex: e.target.value ? [e.target.value] : [] })}>
-                    <option value="">None / Unknown</option>
-                    {availableRoots.map((c, i) => <option key={i} value={c.name}>{c.name}{c.period ? ' · ' + c.period : ''}</option>)}
-                  </select>
+                  <select style={styles.input} value={currentRoot} onChange={e => setForm({ ...form, rootComplex: e.target.value ? [e.target.value] : [] })}><option value="">None / Unknown</option>{availableRoots.map((c, i) => <option key={i} value={c.name}>{c.name}{c.period ? ' · ' + c.period : ''}</option>)}</select>
                 </div>
               )}
               <div style={styles.formGroup}>
@@ -721,10 +695,7 @@ function CPM() {
                 {isInnerChildForm && <div style={{ fontSize: '11px', fontStyle: 'italic', color: 'rgba(200,168,80,0.6)', marginBottom: '8px' }}>You are speaking to your inner child.</div>}
                 <textarea style={{ ...styles.textarea, borderColor: 'rgba(74,174,136,0.2)' }} value={form.counterBehavior} onChange={e => setForm({ ...form, counterBehavior: e.target.value })} placeholder="What would be alternative behaviors?" rows={3} />
               </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Notes</label>
-                <textarea style={styles.textarea} value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="Any additional observations..." rows={3} />
-              </div>
+              <div style={styles.formGroup}><label style={styles.label}>Notes</label><textarea style={styles.textarea} value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="Any additional observations..." rows={3} /></div>
               <div style={styles.formFooter}>
                 <button style={styles.cancelBtn} onClick={closeBuilder}>Cancel</button>
                 <button style={styles.btn} onClick={() => saveComplex(form)} disabled={saving}>{saving ? 'Saving...' : 'Save to Map'}</button>
@@ -732,6 +703,25 @@ function CPM() {
             </div>
           )}
         </div>
+      </div>
+    );
+  }
+
+  // Tree tab gets full screen layout — no maxWidth container
+  if (tab === 'tree') {
+    return (
+      <div style={{ ...styles.container, height: '100vh' }}>
+        {viewIdx !== null && <ViewModal complex={complexes[viewIdx]} onClose={() => setViewIdx(null)} onEdit={() => { openBuilder(viewIdx); setViewIdx(null); }} />}
+        <div style={styles.header}>
+          <button style={styles.backBtn} onClick={() => navigate('/')}>← Home</button>
+          <div style={{ display: 'flex', gap: 0, flex: 1, justifyContent: 'center' }}>
+            {[{ id: 'emotion', label: 'By Emotion' }, { id: 'tree', label: 'Tree View' }, { id: 'btf', label: 'BTF' }].map(t => (
+              <button key={t.id} style={{ ...styles.tabBtn, ...(tab === t.id ? styles.tabBtnActive : {}) }} onClick={() => setTab(t.id)}>{t.label}</button>
+            ))}
+          </div>
+          <button style={styles.btn} onClick={() => openBuilder()}>+ Build Complex</button>
+        </div>
+        <TreeView complexes={complexes} onViewComplex={(idx) => setViewIdx(idx)} />
       </div>
     );
   }
@@ -798,7 +788,6 @@ function CPM() {
             )}
           </>
         )}
-        {tab === 'tree' && <TreeView complexes={complexes} onViewComplex={(idx) => setViewIdx(idx)} />}
         {tab === 'btf' && <BTFView complexes={complexes} />}
       </div>
     </div>
@@ -807,7 +796,7 @@ function CPM() {
 
 const styles = {
   container: { minHeight: '100vh', background: '#0d1b2a', display: 'flex', flexDirection: 'column' },
-  header: { display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 32px', borderBottom: '1px solid rgba(107,163,200,0.15)', background: '#0f2236' },
+  header: { display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 32px', borderBottom: '1px solid rgba(107,163,200,0.15)', background: '#0f2236', flexShrink: 0 },
   backBtn: { background: 'none', border: 'none', color: '#5A7A94', fontSize: '12px', fontWeight: '600', letterSpacing: '1px', cursor: 'pointer', padding: 0 },
   title: { fontFamily: 'Georgia, serif', fontSize: '24px', fontWeight: '300', color: '#D8E6F0', flex: 1 },
   toolbarTitle: { fontSize: '11px', fontWeight: '600', letterSpacing: '4px', textTransform: 'uppercase', color: '#5A7A94', flex: 1, textAlign: 'center' },
