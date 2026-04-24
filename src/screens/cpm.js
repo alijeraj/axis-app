@@ -6,6 +6,28 @@ const API = 'https://axis-backend-production-5e9b.up.railway.app';
 
 const EMOTION_ORDER = ['Fear', 'Guilt', 'Shame', 'Anger', 'Envy', 'Grief'];
 
+const SOURCES = [
+  'Mother', 'Father', 'Stepmother', 'Stepfather', 'Both Parents',
+  'Grandmother', 'Grandfather', 'Brother', 'Sister',
+  'Romantic Partner', 'Teacher', 'Boss', 'Custom'
+];
+
+const LIFE_PERIODS = [
+  { label: 'Early Childhood', range: '0–7', order: 1 },
+  { label: 'Childhood', range: '8–12', order: 2 },
+  { label: 'Adolescence', range: '13–17', order: 3 },
+  { label: 'Early Adulthood', range: '18–25', order: 4 },
+  { label: 'Adulthood', range: '26–40', order: 5 },
+  { label: 'Mature Adulthood', range: '41–60', order: 6 },
+  { label: 'Later Life', range: '60+', order: 7 },
+];
+
+const getPeriodOrder = (period) => {
+  if (!period) return 999;
+  const found = LIFE_PERIODS.find(p => p.label === period);
+  return found ? found.order : 999;
+};
+
 const EMOTION_COLORS = {
   Fear:  { bg: 'rgba(101,67,33,0.35)',   border: 'rgba(139,90,43,0.6)',   text: '#C8A87A' },
   Guilt: { bg: 'rgba(180,150,0,0.25)',   border: 'rgba(210,180,0,0.5)',   text: '#D4C060' },
@@ -42,72 +64,26 @@ const ArrowRight = () => (
   <span style={{ fontSize: '10px', color: '#5A7A94', marginLeft: '6px' }}>→ <span style={{ fontStyle: 'italic', fontWeight: 400, letterSpacing: '1px', textTransform: 'none' }}>emotional output</span></span>
 );
 
-// Guided builder sequences — exactly from HTML
 const SEQUENCES = {
-  trigger:   ['name','trigger','behaviors','thoughts','feelings','beliefs','burden','counter','counterBehavior'],
-  behaviors: ['name','behaviors','trigger','thoughts','feelings','beliefs','burden','counter','counterBehavior'],
-  burden:    ['name','burden','beliefs','thoughts','feelings','behaviors','trigger','counter','counterBehavior'],
-  beliefs:   ['name','beliefs','thoughts','feelings','behaviors','trigger','burden','counter','counterBehavior'],
+  trigger:   ['name','trigger','behaviors','thoughts','feelings','beliefs','burden','period','source','rootComplex','counter','counterBehavior'],
+  behaviors: ['name','behaviors','trigger','thoughts','feelings','beliefs','burden','period','source','rootComplex','counter','counterBehavior'],
+  burden:    ['name','burden','beliefs','thoughts','feelings','behaviors','trigger','period','source','rootComplex','counter','counterBehavior'],
+  beliefs:   ['name','beliefs','thoughts','feelings','behaviors','trigger','burden','period','source','rootComplex','counter','counterBehavior'],
 };
 
 const STEP_CONFIGS = {
-  name: {
-    label: 'Name',
-    q: 'Give this pattern a name.',
-    hint: 'A name you will recognize. It can be simple.',
-    type: 'input',
-  },
-  trigger: {
-    label: 'Trigger',
-    q: 'What triggered you? Describe what happened.',
-    hint: 'It can be a situation, a word, a moment — whatever activated this.',
-    type: 'textarea',
-  },
-  behaviors: {
-    label: 'Behavior',
-    q: 'How are you acting or reacting when this complex is triggered?',
-    hint: 'What are you doing, avoiding, or compelled toward?',
-    type: 'textarea',
-  },
-  thoughts: {
-    label: 'Thoughts',
-    q: 'What thoughts are arising?',
-    hint: 'What is the mind saying? Follow the thread.',
-    type: 'textarea',
-  },
-  feelings: {
-    label: 'Feelings',
-    q: 'What do you feel as these thoughts arise?',
-    hint: 'Optional. Name the felt sense — not the thought, not the action. The raw feeling.',
-    type: 'textarea',
-    optional: true,
-  },
-  beliefs: {
-    label: 'Beliefs',
-    q: 'What do you believe when this pattern is active?',
-    hint: 'Write it in the first person. What feels true in this moment?',
-    type: 'textarea',
-  },
-  burden: {
-    label: 'Underlying Emotional Burden',
-    q: 'What is the underlying emotion at the root of this?',
-    hint: 'This is the emotional wound the complex is built around.',
-    type: 'select',
-  },
-  counter: {
-    label: 'Counter Belief',
-    q: 'What else could also be true?',
-    hint: 'Optional. Give this belief an honest opposing voice.',
-    type: 'textarea',
-    optional: true,
-  },
-  counterBehavior: {
-    label: 'Counter Behavior',
-    q: 'When that counter belief is active, how do you act differently?',
-    hint: 'Optional. The conscious alternative to your pattern.',
-    type: 'textarea',
-    optional: true,
-  },
+  name:            { label: 'Name', q: 'Give this pattern a name.', hint: 'A name you will recognize. It can be simple.', type: 'input' },
+  trigger:         { label: 'Trigger', q: 'What triggered you? Describe what happened.', hint: 'It can be a situation, a word, a moment — whatever activated this.', type: 'textarea' },
+  behaviors:       { label: 'Behavior', q: 'How are you acting or reacting when this complex is triggered?', hint: 'What are you doing, avoiding, or compelled toward?', type: 'textarea' },
+  thoughts:        { label: 'Thoughts', q: 'What thoughts are arising?', hint: 'What is the mind saying? Follow the thread.', type: 'textarea' },
+  feelings:        { label: 'Feelings', q: 'What do you feel as these thoughts arise?', hint: 'Optional. Name the felt sense — not the thought, not the action. The raw feeling.', type: 'textarea', optional: true },
+  beliefs:         { label: 'Beliefs', q: 'What do you believe when this pattern is active?', hint: 'Write it in the first person. What feels true in this moment?', type: 'textarea' },
+  burden:          { label: 'Underlying Emotional Burden', q: 'What is the underlying emotion at the root of this?', hint: 'This is the emotional wound the complex is built around.', type: 'select' },
+  period:          { label: 'Life Period', q: 'When in your life did this pattern first emerge?', hint: 'Optional. This places the complex in your timeline.', type: 'period', optional: true },
+  source:          { label: 'Source', q: 'Who or what was the source of this pattern?', hint: 'Optional. The person or origin this complex formed around.', type: 'sourceSelect', optional: true },
+  rootComplex:     { label: 'Root Complex', q: 'Does this pattern trace back to an earlier complex?', hint: 'Optional. Link this to its origin in the tree.', type: 'rootSelect', optional: true },
+  counter:         { label: 'Counter Belief', q: 'What else could also be true?', hint: 'Optional. Give this belief an honest opposing voice.', type: 'textarea', optional: true },
+  counterBehavior: { label: 'Counter Behavior', q: 'When that counter belief is active, how do you act differently?', hint: 'Optional. The conscious alternative to your pattern.', type: 'textarea', optional: true },
 };
 
 const ENTRY_POINTS = [
@@ -117,55 +93,31 @@ const ENTRY_POINTS = [
   { id: 'beliefs',   label: 'Belief',    desc: 'I am aware of a deep rooted belief I carry.' },
 ];
 
-// Guided Builder Component
-function GuidedBuilder({ onSave, onCancel, editData }) {
-  const [phase, setPhase] = useState('entry'); // 'entry' | 'steps'
-  const [entryPoint, setEntryPoint] = useState(null);
+function GuidedBuilder({ onSave, complexes }) {
+  const [phase, setPhase] = useState('entry');
   const [sequence, setSequence] = useState([]);
   const [stepIdx, setStepIdx] = useState(0);
-  const [data, setData] = useState(editData || {});
+  const [data, setData] = useState({});
 
-  const selectEntry = (id) => {
-    setEntryPoint(id);
-    setSequence(SEQUENCES[id]);
-    setStepIdx(0);
-    setPhase('steps');
-  };
-
+  const selectEntry = (id) => { setSequence(SEQUENCES[id]); setStepIdx(0); setPhase('steps'); };
   const currentKey = sequence[stepIdx];
   const cfg = STEP_CONFIGS[currentKey] || {};
   const isLast = stepIdx === sequence.length - 1;
-
-  const handleNext = () => {
-    if (isLast) {
-      onSave({ ...data, status: data.status || 'active', originalWound: data.originalWound || false });
-    } else {
-      setStepIdx(stepIdx + 1);
-    }
-  };
-
-  const handleBack = () => {
-    if (stepIdx === 0) {
-      setPhase('entry');
-      setEntryPoint(null);
-    } else {
-      setStepIdx(stepIdx - 1);
-    }
-  };
+  const handleNext = () => { if (isLast) onSave({ ...data, status: 'active', originalWound: data.originalWound || false }); else setStepIdx(stepIdx + 1); };
+  const handleBack = () => { if (stepIdx === 0) setPhase('entry'); else setStepIdx(stepIdx - 1); };
+  const availableRoots = complexes.filter(c => c.status !== 'resolved' && c.name !== data.name);
 
   if (phase === 'entry') {
     return (
       <div>
         <div style={{ fontFamily: 'Georgia, serif', fontSize: '26px', fontWeight: '300', color: '#D8E6F0', marginBottom: '32px' }}>Where are you right now?</div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '8px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           {ENTRY_POINTS.map(ep => (
-            <button
-              key={ep.id}
-              style={{ background: 'rgba(107,163,200,0.04)', border: '1px solid rgba(107,163,200,0.2)', borderRadius: '3px', padding: '18px 16px', textAlign: 'left', cursor: 'pointer', transition: 'all 0.15s' }}
+            <button key={ep.id}
+              style={{ background: 'rgba(107,163,200,0.04)', border: '1px solid rgba(107,163,200,0.2)', borderRadius: '3px', padding: '18px 16px', textAlign: 'left', cursor: 'pointer' }}
               onClick={() => selectEntry(ep.id)}
               onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(107,163,200,0.5)'; e.currentTarget.style.background = 'rgba(107,163,200,0.08)'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(107,163,200,0.2)'; e.currentTarget.style.background = 'rgba(107,163,200,0.04)'; }}
-            >
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(107,163,200,0.2)'; e.currentTarget.style.background = 'rgba(107,163,200,0.04)'; }}>
               <div style={{ fontSize: '11px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#6BA3C8', marginBottom: '6px' }}>{ep.label}</div>
               <div style={{ fontSize: '13px', color: '#5A7A94', lineHeight: 1.5 }}>{ep.desc}</div>
             </button>
@@ -177,40 +129,13 @@ function GuidedBuilder({ onSave, onCancel, editData }) {
 
   return (
     <div>
-      {/* Progress */}
-      <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#5A7A94', marginBottom: '20px' }}>
-        {stepIdx + 1} of {sequence.length}
-      </div>
-
-      {/* Step label */}
+      <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#5A7A94', marginBottom: '20px' }}>{stepIdx + 1} of {sequence.length}</div>
       <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: cfg.optional ? '#5A7A94' : '#6BA3C8', marginBottom: '8px' }}>
         {cfg.label}{cfg.optional && <span style={{ marginLeft: '8px', fontStyle: 'italic', fontWeight: 400 }}>optional</span>}
       </div>
-
-      {/* Question */}
       <div style={{ fontFamily: 'Georgia, serif', fontSize: '20px', fontWeight: '300', color: '#D8E6F0', lineHeight: 1.5, marginBottom: '20px' }}>{cfg.q}</div>
-
-      {/* Input */}
-      {cfg.type === 'input' && (
-        <input
-          style={styles.input}
-          value={data[currentKey] || ''}
-          onChange={e => setData({ ...data, [currentKey]: e.target.value })}
-          placeholder="..."
-          autoFocus
-          onKeyDown={e => { if (e.key === 'Enter') handleNext(); }}
-        />
-      )}
-      {cfg.type === 'textarea' && (
-        <textarea
-          style={{ ...styles.textarea, minHeight: '100px' }}
-          value={data[currentKey] || ''}
-          onChange={e => setData({ ...data, [currentKey]: e.target.value })}
-          placeholder="..."
-          autoFocus
-          rows={4}
-        />
-      )}
+      {cfg.type === 'input' && <input style={styles.input} value={data[currentKey] || ''} onChange={e => setData({ ...data, [currentKey]: e.target.value })} placeholder="..." autoFocus onKeyDown={e => { if (e.key === 'Enter') handleNext(); }} />}
+      {cfg.type === 'textarea' && <textarea style={{ ...styles.textarea, minHeight: '100px' }} value={data[currentKey] || ''} onChange={e => setData({ ...data, [currentKey]: e.target.value })} placeholder="..." autoFocus rows={4} />}
       {cfg.type === 'select' && (
         <select style={styles.input} value={data[currentKey] || ''} onChange={e => setData({ ...data, [currentKey]: e.target.value })} autoFocus>
           <option value="">-- Select the emotion --</option>
@@ -218,39 +143,57 @@ function GuidedBuilder({ onSave, onCancel, editData }) {
           <option value="unsure">I'm not sure</option>
         </select>
       )}
-
-      {/* Hint */}
+      {cfg.type === 'period' && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+          {LIFE_PERIODS.map(p => (
+            <button key={p.label}
+              style={{ background: data[currentKey] === p.label ? 'rgba(107,163,200,0.12)' : 'rgba(107,163,200,0.03)', border: '1px solid ' + (data[currentKey] === p.label ? 'rgba(107,163,200,0.6)' : 'rgba(107,163,200,0.15)'), borderRadius: '3px', padding: '12px 14px', textAlign: 'left', cursor: 'pointer' }}
+              onClick={() => setData({ ...data, [currentKey]: data[currentKey] === p.label ? '' : p.label })}>
+              <div style={{ fontSize: '12px', fontWeight: '600', color: data[currentKey] === p.label ? '#D8E6F0' : '#8BAFC8' }}>{p.label}</div>
+              <div style={{ fontSize: '10px', color: '#5A7A94', marginTop: '2px' }}>{p.range}</div>
+            </button>
+          ))}
+        </div>
+      )}
+      {cfg.type === 'sourceSelect' && (
+        <select style={styles.input} value={data[currentKey] || ''} onChange={e => setData({ ...data, [currentKey]: e.target.value })}>
+          <option value="">None / Unknown</option>
+          {SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+      )}
+      {cfg.type === 'rootSelect' && (
+        <select style={styles.input} value={data[currentKey] || ''} onChange={e => setData({ ...data, [currentKey]: e.target.value })}>
+          <option value="">None / Unknown</option>
+          {availableRoots.map((c, i) => <option key={i} value={c.name}>{c.name}{c.period ? ' · ' + c.period : ''}</option>)}
+        </select>
+      )}
       <div style={{ fontSize: '11px', color: 'rgba(107,163,200,0.5)', marginTop: '10px', fontStyle: 'italic' }}>{cfg.hint}</div>
-
-      {/* Nav */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '32px', paddingTop: '20px', borderTop: '1px solid rgba(107,163,200,0.1)' }}>
         <button style={styles.cancelBtn} onClick={handleBack}>{stepIdx === 0 ? 'Entry Point' : 'Back'}</button>
-        <button style={styles.btn} onClick={handleNext}>
-          {isLast ? 'Save to Map' : 'Next →'}
-        </button>
+        <button style={styles.btn} onClick={handleNext}>{isLast ? 'Save to Map' : 'Next →'}</button>
       </div>
     </div>
   );
 }
 
-// View Modal
 function ViewModal({ complex, onClose, onEdit }) {
   if (!complex) return null;
   const c = complex;
   const hasCounter = c.counter && c.counter.trim();
   const hasCounterBehavior = c.counterBehavior && c.counterBehavior.trim();
+  const isInnerChild = c.period === 'Early Childhood' || c.period === 'Childhood';
   const W = 220; const CW = 180; const GAP = 16;
 
   const Arrow = ({ up, color }) => (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '28px' }}>
-      {up && <div style={{ borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderBottom: `7px solid ${color || 'rgba(107,163,200,0.35)'}` }} />}
+      {up && <div style={{ borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderBottom: '7px solid ' + (color || 'rgba(107,163,200,0.35)') }} />}
       <div style={{ width: '2px', flex: 1, background: color || 'rgba(107,163,200,0.35)' }} />
-      {!up && <div style={{ borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderTop: `7px solid ${color || 'rgba(107,163,200,0.35)'}` }} />}
+      {!up && <div style={{ borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderTop: '7px solid ' + (color || 'rgba(107,163,200,0.35)') }} />}
     </div>
   );
 
   const FlowNode = ({ label, text, isBurden, isTrigger, isCounter }) => (
-    <div style={{ border: `1px solid ${isCounter ? 'rgba(74,174,136,0.3)' : isBurden ? 'rgba(176,90,90,0.35)' : isTrigger ? 'rgba(200,168,80,0.3)' : 'rgba(107,163,200,0.2)'}`, borderRadius: '3px', padding: '12px 14px', background: isCounter ? 'rgba(74,174,136,0.06)' : isBurden ? 'rgba(176,90,90,0.08)' : isTrigger ? 'rgba(200,168,80,0.06)' : 'rgba(107,163,200,0.04)', width: '100%', boxSizing: 'border-box' }}>
+    <div style={{ border: '1px solid ' + (isCounter ? 'rgba(74,174,136,0.3)' : isBurden ? 'rgba(176,90,90,0.35)' : isTrigger ? 'rgba(200,168,80,0.3)' : 'rgba(107,163,200,0.2)'), borderRadius: '3px', padding: '12px 14px', background: isCounter ? 'rgba(74,174,136,0.06)' : isBurden ? 'rgba(176,90,90,0.08)' : isTrigger ? 'rgba(200,168,80,0.06)' : 'rgba(107,163,200,0.04)', width: '100%', boxSizing: 'border-box' }}>
       <div style={{ fontSize: '8px', fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase', color: isCounter ? '#4AAE88' : isBurden ? '#B05A5A' : isTrigger ? '#C8A840' : '#6BA3C8', marginBottom: '6px' }}>{label}</div>
       <div style={{ fontSize: '13px', color: '#D8E6F0', fontFamily: 'Georgia, serif', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{text || ''}</div>
     </div>
@@ -272,8 +215,9 @@ function ViewModal({ complex, onClose, onEdit }) {
     </div>
   );
 
-  const Connector = ({ color }) => <div style={{ height: '2px', width: '100%', background: color || 'rgba(74,174,136,0.4)' }} />;
+  const Connector = () => <div style={{ height: '2px', width: '100%', background: 'rgba(74,174,136,0.4)' }} />;
   const bVal = Array.isArray(c.behaviors) ? c.behaviors.join('\n') : (c.behaviors || '');
+  const InnerChildNote = () => <div style={{ fontSize: '9px', fontStyle: 'italic', color: 'rgba(200,168,80,0.6)', marginTop: '6px' }}>You are speaking to your inner child.</div>;
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 200, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '40px 20px' }}>
@@ -281,23 +225,33 @@ function ViewModal({ complex, onClose, onEdit }) {
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '8px' }}>
           <div>
             <div style={{ fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: '300', color: '#D8E6F0' }}>{c.name}</div>
-            {c.originalWound && <span style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '2px', textTransform: 'uppercase', color: '#C8A840', border: '1px dashed #C8A840', padding: '2px 7px', borderRadius: '2px' }}>Original Wound</span>}
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '6px', flexWrap: 'wrap' }}>
+              {c.originalWound && <span style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '2px', textTransform: 'uppercase', color: '#C8A840', border: '1px dashed #C8A840', padding: '2px 7px', borderRadius: '2px' }}>Original Wound</span>}
+              {c.period && <span style={{ fontSize: '10px', color: '#5A7A94', letterSpacing: '1px' }}>{c.period}</span>}
+              {c.source && <span style={{ fontSize: '10px', color: '#5A7A94', letterSpacing: '1px' }}>· {c.source}</span>}
+            </div>
           </div>
           <button style={{ background: 'none', border: 'none', color: '#5A7A94', cursor: 'pointer', fontSize: '18px' }} onClick={onClose}>✕</button>
         </div>
         <div style={{ overflowX: 'auto', paddingBottom: '8px', marginTop: '16px' }}>
           <Row main={<FlowNode label="Underlying Emotional Burden" text={c.burden || ''} isBurden />} counter={<div />} connector={<div />} />
           <ArrowRow left={<Arrow />} right={<div />} />
-          <Row main={<FlowNode label="Beliefs" text={c.beliefs || ''} />} connector={hasCounter ? <Connector /> : <div />} counter={hasCounter ? <><FlowNode label="Counter Beliefs" text={c.counter} isCounter />{c.originalWound && <div style={{ fontSize: '9px', fontStyle: 'italic', color: 'rgba(200,168,80,0.6)', marginTop: '6px' }}>You are speaking to your inner child.</div>}</> : <div />} />
+          <Row main={<FlowNode label="Beliefs" text={c.beliefs || ''} />} connector={hasCounter ? <Connector /> : <div />} counter={hasCounter ? <><FlowNode label="Counter Beliefs" text={c.counter} isCounter />{isInnerChild && <InnerChildNote />}</> : <div />} />
           <ArrowRow left={<Arrow />} right={<div />} />
           <Row main={<FlowNode label="Thoughts" text={c.thoughts || ''} />} connector={<div />} counter={<div />} />
           {c.feelings && c.feelings.trim() && <><ArrowRow left={<Arrow />} right={<div />} /><Row main={<FlowNode label="Feelings" text={c.feelings} />} connector={<div />} counter={<div />} /></>}
           <ArrowRow left={<Arrow />} right={hasCounterBehavior ? <Arrow color="rgba(74,174,136,0.4)" /> : <div />} />
-          <Row main={<FlowNode label="Behaviors" text={bVal} />} connector={hasCounterBehavior ? <Connector /> : <div />} counter={hasCounterBehavior ? <><FlowNode label="Counter Behaviors" text={c.counterBehavior} isCounter />{c.originalWound && <div style={{ fontSize: '9px', fontStyle: 'italic', color: 'rgba(200,168,80,0.6)', marginTop: '6px' }}>You are speaking to your inner child.</div>}</> : <div />} />
+          <Row main={<FlowNode label="Behaviors" text={bVal} />} connector={hasCounterBehavior ? <Connector /> : <div />} counter={hasCounterBehavior ? <><FlowNode label="Counter Behaviors" text={c.counterBehavior} isCounter />{isInnerChild && <InnerChildNote />}</> : <div />} />
           <ArrowRow left={<Arrow up />} right={<div />} />
           <Row main={<FlowNode label="Triggers" text={c.trigger || ''} isTrigger />} connector={<div />} counter={<div />} />
           {c.notes && c.notes.trim() && <div style={{ marginTop: '20px', opacity: 0.7, width: W + GAP + CW }}><FlowNode label="Notes" text={c.notes} /></div>}
         </div>
+        {c.rootComplex && (Array.isArray(c.rootComplex) ? c.rootComplex.length > 0 : c.rootComplex) && (
+          <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(107,163,200,0.1)' }}>
+            <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#5A7A94', marginBottom: '6px' }}>Root Complex</div>
+            <div style={{ fontSize: '13px', color: '#8BAFC8' }}>{Array.isArray(c.rootComplex) ? c.rootComplex[0] : c.rootComplex}</div>
+          </div>
+        )}
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(107,163,200,0.15)' }}>
           <button style={styles.cancelBtn} onClick={onClose}>Close</button>
           <button style={styles.btn} onClick={onEdit}>Edit</button>
@@ -307,7 +261,6 @@ function ViewModal({ complex, onClose, onEdit }) {
   );
 }
 
-// Tree View
 function TreeView({ complexes, onViewComplex }) {
   const viewportRef = useRef(null);
   const treeRef = useRef(null);
@@ -318,7 +271,8 @@ function TreeView({ complexes, onViewComplex }) {
   const dragStart = useRef({ x: 0, y: 0 });
   const panStart = useRef({ x: 20, y: 20 });
 
-  const NODE_W = 180; const NODE_H = 56; const H_GAP = 32; const V_GAP = 72;
+  const NODE_W = 200; const NODE_H = 72; const H_GAP = 40; const V_GAP = 80; const GROUP_GAP = 60;
+  const LABEL_H = 28;
 
   const nameToIdx = {};
   complexes.forEach((c, i) => { nameToIdx[c.name] = i; });
@@ -348,14 +302,20 @@ function TreeView({ complexes, onViewComplex }) {
     const children = [];
     complexes.forEach(c => {
       const roots = Array.isArray(c.rootComplex) ? c.rootComplex : (c.rootComplex ? [c.rootComplex] : []);
-      if (roots.indexOf(name) !== -1 && !visited[c.name] && roots[0] === name) { const child = buildNode(c.name, visited); if (child) children.push(child); }
+      if (roots.indexOf(name) !== -1 && !visited[c.name] && roots[0] === name) {
+        const child = buildNode(c.name, visited);
+        if (child) children.push(child);
+      }
+    });
+    children.sort((a, b) => {
+      const ca = complexes[nameToIdx[a.name]];
+      const cb = complexes[nameToIdx[b.name]];
+      return getPeriodOrder(ca && ca.period) - getPeriodOrder(cb && cb.period);
     });
     return { name, children };
   };
 
-  const rootSet = {};
-  const roots = [];
-  complexes.forEach(c => {
+  const getUltimateRoot = (c) => {
     let cur = c;
     const visited = {};
     while (cur) {
@@ -366,19 +326,60 @@ function TreeView({ complexes, onViewComplex }) {
       const parent = complexes[nameToIdx[curRoots[0]]];
       if (parent) { cur = parent; } else break;
     }
-    if (!rootSet[cur.name]) { rootSet[cur.name] = true; roots.push(cur.name); }
+    return cur;
+  };
+
+  const rootSet = {};
+  const rootNames = [];
+  complexes.forEach(c => {
+    const root = getUltimateRoot(c);
+    if (!rootSet[root.name]) { rootSet[root.name] = true; rootNames.push(root.name); }
   });
 
-  const trees = roots.map(rootName => {
-    const tree = buildNode(rootName, {});
-    if (!tree) return null;
-    assignPositions(tree, 0, 0);
-    const allNodes = [];
-    collectNodes(tree, allNodes);
-    let maxX = 0, maxY = 0;
-    allNodes.forEach(n => { if (n.x + NODE_W > maxX) maxX = n.x + NODE_W; if (n.y + NODE_H > maxY) maxY = n.y + NODE_H; });
-    return { tree, allNodes, W: maxX + 20, H: maxY + 20 };
-  }).filter(Boolean);
+  rootNames.sort((a, b) => getPeriodOrder(complexes[nameToIdx[a]] && complexes[nameToIdx[a]].period) - getPeriodOrder(complexes[nameToIdx[b]] && complexes[nameToIdx[b]].period));
+
+  // Group roots by source
+  const sourceGroups = {};
+  rootNames.forEach(name => {
+    const c = complexes[nameToIdx[name]];
+    const src = (c && c.source) || '';
+    if (!sourceGroups[src]) sourceGroups[src] = [];
+    sourceGroups[src].push(name);
+  });
+
+  const namedSources = Object.keys(sourceGroups).filter(s => s !== '');
+  const orderedSources = [...namedSources, ...(sourceGroups[''] && sourceGroups[''].length > 0 ? [''] : [])];
+
+  // Build each group — positions are LOCAL within each group (no offsetX added here)
+  const renderedGroups = [];
+  let globalX = 0;
+
+  orderedSources.forEach(source => {
+    const groupRoots = sourceGroups[source];
+    const groupTrees = [];
+    let localX = 0;
+
+    groupRoots.forEach((rootName, ri) => {
+      const tree = buildNode(rootName, {});
+      if (!tree) return;
+      const treeW = subtreeWidth(tree);
+      assignPositions(tree, localX, 0);
+      const allNodes = [];
+      collectNodes(tree, allNodes);
+      localX += treeW + (ri < groupRoots.length - 1 ? H_GAP : 0);
+      groupTrees.push({ tree, allNodes });
+    });
+
+    const groupWidth = localX;
+    renderedGroups.push({ source, groupTrees, groupWidth, offsetX: globalX });
+    globalX += groupWidth + GROUP_GAP;
+  });
+
+  const totalW = globalX;
+  let totalH = 0;
+  renderedGroups.forEach(g => g.groupTrees.forEach(t => {
+    t.allNodes.forEach(n => { if (n.y + NODE_H > totalH) totalH = n.y + NODE_H; });
+  }));
 
   useEffect(() => {
     const viewport = viewportRef.current;
@@ -421,50 +422,63 @@ function TreeView({ complexes, onViewComplex }) {
         <span style={{ fontSize: '10px', color: '#5A7A94', letterSpacing: '2px' }}>{Math.round(scale * 100)}%</span>
       </div>
       <div ref={viewportRef} style={{ width: '100%', height: '600px', overflow: 'hidden', border: '1px solid rgba(107,163,200,0.1)', borderRadius: '3px', background: 'rgba(107,163,200,0.02)', cursor: 'grab', position: 'relative' }}>
-        <div ref={treeRef} style={{ position: 'absolute', transformOrigin: '0 0', transform: `translate(${panX}px,${panY}px) scale(${scale})`, willChange: 'transform' }}>
-          {trees.map((t, ti) => {
-            const lines = [];
-            const drawLines = (node) => {
-              node.children.forEach(child => {
-                const px = node.x + NODE_W / 2; const py = node.y + NODE_H;
-                const cx = child.x + NODE_W / 2; const cy = child.y;
-                const my = py + (cy - py) / 2;
-                lines.push(`M${px},${py} L${px},${my} L${cx},${my} L${cx},${cy}`);
-                drawLines(child);
-              });
-            };
-            drawLines(t.tree);
-            return (
-              <div key={ti} style={{ marginBottom: '48px', position: 'relative', width: t.W, height: t.H }}>
-                <svg style={{ position: 'absolute', top: 0, left: 0, width: t.W, height: t.H, overflow: 'visible' }}>
-                  {lines.map((d, i) => <path key={i} d={d} fill="none" stroke="rgba(107,163,200,0.3)" strokeWidth="1.5" />)}
-                </svg>
-                {t.allNodes.map((node, ni) => {
+        <div ref={treeRef} style={{ position: 'absolute', transformOrigin: '0 0', transform: 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')', willChange: 'transform', width: totalW, height: totalH + LABEL_H + 20 }}>
+          {renderedGroups.map((group, gi) => (
+            <div key={gi} style={{ position: 'absolute', left: group.offsetX, top: 0, width: group.groupWidth, height: totalH + LABEL_H + 20 }}>
+              {/* Source label */}
+              {group.source && (
+                <div style={{ position: 'absolute', top: 0, left: 0, fontSize: '9px', fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase', color: 'rgba(107,163,200,0.4)', borderBottom: '1px solid rgba(107,163,200,0.1)', paddingBottom: '6px', width: '100%' }}>
+                  {group.source}
+                </div>
+              )}
+              {/* SVG lines — local coords only */}
+              <svg style={{ position: 'absolute', top: 0, left: 0, width: group.groupWidth, height: totalH + LABEL_H + 20, overflow: 'visible' }}>
+                {group.groupTrees.map(({ tree }, ti) => {
+                  const paths = [];
+                  const drawLines = (node) => {
+                    node.children.forEach(child => {
+                      const px = node.x + NODE_W / 2;
+                      const py = LABEL_H + node.y + NODE_H;
+                      const cx = child.x + NODE_W / 2;
+                      const cy = LABEL_H + child.y;
+                      const my = py + (cy - py) / 2;
+                      paths.push('M' + px + ',' + py + ' L' + px + ',' + my + ' L' + cx + ',' + my + ' L' + cx + ',' + cy);
+                      drawLines(child);
+                    });
+                  };
+                  drawLines(tree);
+                  return paths.map((d, i) => <path key={ti + '-' + i} d={d} fill="none" stroke="rgba(107,163,200,0.3)" strokeWidth="1.5" />);
+                })}
+              </svg>
+              {/* Nodes — local coords only */}
+              {group.groupTrees.map(({ allNodes }, ti) =>
+                allNodes.map((node, ni) => {
                   const c = complexes[nameToIdx[node.name]];
                   const colors = (c && TREE_COLORS[c.burden]) || DEFAULT_TREE_COLORS;
                   const isWound = c && c.originalWound === true;
                   const resolved = c && c.status === 'resolved';
                   return (
-                    <div key={ni} onClick={() => c && onViewComplex(nameToIdx[node.name])} style={{ position: 'absolute', left: node.x, top: node.y, width: NODE_W, height: NODE_H, border: `1px solid ${colors.border}`, borderLeft: `3px solid ${colors.border}`, background: colors.bg, borderRadius: '3px', padding: '8px 12px', cursor: 'pointer', boxSizing: 'border-box', overflow: 'hidden' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px' }}>
+                    <div key={ti + '-' + ni} onClick={() => c && onViewComplex(nameToIdx[node.name])}
+                      style={{ position: 'absolute', left: node.x, top: LABEL_H + node.y, width: NODE_W, height: NODE_H, border: '1px solid ' + colors.border, borderLeft: '3px solid ' + colors.border, background: colors.bg, borderRadius: '3px', padding: '8px 12px', cursor: 'pointer', boxSizing: 'border-box', overflow: 'hidden' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
                         <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: colors.dot, flexShrink: 0 }} />
                         <span style={{ fontSize: '12px', fontWeight: '600', color: '#D8E6F0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', opacity: resolved ? 0.6 : 1, textDecoration: resolved ? 'line-through' : 'none' }}>{node.name}</span>
                         {isWound && <span style={{ color: '#C8A840', fontSize: '13px', flexShrink: 0 }}>◉</span>}
                       </div>
                       {c && c.burden && <div style={{ fontSize: '8px', letterSpacing: '2px', textTransform: 'uppercase', color: colors.dot, marginLeft: '13px' }}>{c.burden}</div>}
+                      {c && c.period && <div style={{ fontSize: '8px', color: 'rgba(107,163,200,0.4)', marginLeft: '13px', marginTop: '2px', letterSpacing: '1px' }}>{c.period}</div>}
                     </div>
                   );
-                })}
-              </div>
-            );
-          })}
+                })
+              )}
+            </div>
+          ))}
         </div>
       </div>
     </div>
   );
 }
 
-// BTF View
 function BTFView({ complexes }) {
   const active = complexes.filter(c => c.status !== 'resolved');
   if (active.length === 0) return <div style={{ textAlign: 'center', padding: '48px', fontFamily: 'Georgia, serif', fontStyle: 'italic', color: '#5A7A94' }}>No active complexes yet. Build your first complex to begin.</div>;
@@ -483,7 +497,7 @@ function BTFView({ complexes }) {
         const colors = BTF_COLORS[burden] || DEFAULT_BTF;
         return (
           <div key={burden} style={{ marginBottom: '40px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', paddingBottom: '10px', borderBottom: `1px solid ${colors.border}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', paddingBottom: '10px', borderBottom: '1px solid ' + colors.border }}>
               <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: colors.dot }} />
               <div style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '4px', textTransform: 'uppercase', color: colors.label }}>{burden}</div>
               <div style={{ fontSize: '10px', color: '#5A7A94' }}>{group.length} complex{group.length === 1 ? '' : 'es'}</div>
@@ -492,7 +506,7 @@ function BTFView({ complexes }) {
               const hasContent = (c.beliefs && c.beliefs.trim()) || (c.thoughts && c.thoughts.trim()) || (c.feelings && c.feelings.trim());
               if (!hasContent) return null;
               return (
-                <div key={i} style={{ marginBottom: '20px', padding: '16px 20px', border: `1px solid ${colors.border}`, borderRadius: '3px', background: colors.bg }}>
+                <div key={i} style={{ marginBottom: '20px', padding: '16px 20px', border: '1px solid ' + colors.border, borderRadius: '3px', background: colors.bg }}>
                   <div style={{ fontSize: '12px', fontWeight: '600', color: '#D8E6F0', letterSpacing: '1px', marginBottom: '14px', paddingBottom: '10px', borderBottom: '1px solid rgba(107,163,200,0.1)' }}>{c.name}</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
                     {['beliefs', 'thoughts', 'feelings'].map(field => (
@@ -520,14 +534,14 @@ function CPM() {
   const [tab, setTab] = useState('emotion');
   const [filter, setFilter] = useState('active');
   const [showBuilder, setShowBuilder] = useState(false);
-  const [builderMode, setBuilderMode] = useState('guided'); // 'guided' | 'custom'
+  const [builderMode, setBuilderMode] = useState('guided');
   const [editIdx, setEditIdx] = useState(null);
   const [viewIdx, setViewIdx] = useState(null);
   const [form, setForm] = useState({
     name: '', burden: '', beliefs: '', thoughts: '',
     feelings: '', behaviors: '', trigger: '',
     counter: '', counterBehavior: '', notes: '',
-    status: 'active', originalWound: false
+    period: '', source: '', rootComplex: [], status: 'active', originalWound: false
   });
   const [saving, setSaving] = useState(false);
 
@@ -535,21 +549,23 @@ function CPM() {
 
   const loadComplexes = async () => {
     try {
-      const res = await axios.get(`${API}/api/complexes`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.get(API + '/api/complexes', { headers: { Authorization: 'Bearer ' + token } });
       setComplexes(res.data || []);
     } catch (err) { console.log(err); }
     finally { setLoading(false); }
   };
 
   const saveComplex = async (data) => {
-    const payload = data || form;
+    const payload = { ...data };
     if (!payload.name || !payload.name.trim()) return;
+    if (typeof payload.rootComplex === 'string') payload.rootComplex = payload.rootComplex ? [payload.rootComplex] : [];
+    if (!Array.isArray(payload.rootComplex)) payload.rootComplex = [];
     setSaving(true);
     try {
       let updated;
       if (editIdx !== null) { updated = [...complexes]; updated[editIdx] = payload; }
-      else { updated = [...complexes, { ...payload }]; }
-      await axios.post(`${API}/api/complexes`, { data: updated }, { headers: { Authorization: `Bearer ${token}` } });
+      else { updated = [...complexes, payload]; }
+      await axios.post(API + '/api/complexes', { data: updated }, { headers: { Authorization: 'Bearer ' + token } });
       setComplexes(updated);
       closeBuilder();
     } catch (err) { console.log(err); }
@@ -557,10 +573,10 @@ function CPM() {
   };
 
   const deleteComplex = async (idx) => {
-    const name = complexes[idx]?.name || 'this complex';
-    if (!window.confirm(`Delete "${name}"? This cannot be undone.`)) return;
+    const name = complexes[idx] && complexes[idx].name ? complexes[idx].name : 'this complex';
+    if (!window.confirm('Delete "' + name + '"? This cannot be undone.')) return;
     const updated = complexes.filter((_, i) => i !== idx);
-    await axios.post(`${API}/api/complexes`, { data: updated }, { headers: { Authorization: `Bearer ${token}` } });
+    await axios.post(API + '/api/complexes', { data: updated }, { headers: { Authorization: 'Bearer ' + token } });
     setComplexes(updated);
     if (viewIdx === idx) setViewIdx(null);
   };
@@ -568,17 +584,17 @@ function CPM() {
   const toggleStatus = async (idx, status) => {
     const updated = [...complexes];
     updated[idx] = { ...updated[idx], status };
-    await axios.post(`${API}/api/complexes`, { data: updated }, { headers: { Authorization: `Bearer ${token}` } });
+    await axios.post(API + '/api/complexes', { data: updated }, { headers: { Authorization: 'Bearer ' + token } });
     setComplexes(updated);
   };
 
   const openBuilder = (idx = null) => {
     if (idx !== null) {
-      setForm({ ...complexes[idx] });
+      setForm({ ...complexes[idx], rootComplex: complexes[idx].rootComplex || [], source: complexes[idx].source || '' });
       setEditIdx(idx);
-      setBuilderMode('custom'); // edits always go to custom
+      setBuilderMode('custom');
     } else {
-      setForm({ name: '', burden: '', beliefs: '', thoughts: '', feelings: '', behaviors: '', trigger: '', counter: '', counterBehavior: '', notes: '', status: 'active', originalWound: false });
+      setForm({ name: '', burden: '', beliefs: '', thoughts: '', feelings: '', behaviors: '', trigger: '', counter: '', counterBehavior: '', notes: '', period: '', source: '', rootComplex: [], status: 'active', originalWound: false });
       setEditIdx(null);
       setBuilderMode('guided');
     }
@@ -601,6 +617,10 @@ function CPM() {
     if (key) groups[key].push({ ...c, _idx: realIdx });
   });
 
+  const availableRoots = complexes.filter((c, i) => i !== editIdx && c.status !== 'resolved');
+  const currentRoot = Array.isArray(form.rootComplex) ? (form.rootComplex[0] || '') : (form.rootComplex || '');
+  const isInnerChildForm = form.period === 'Early Childhood' || form.period === 'Childhood';
+
   if (loading) return <div style={{ color: '#5A7A94', padding: '48px', textAlign: 'center' }}>Loading...</div>;
 
   if (showBuilder) {
@@ -612,8 +632,6 @@ function CPM() {
           <div style={styles.title}>{isEdit ? 'Edit Complex' : 'Build Complex'}</div>
         </div>
         <div style={{ maxWidth: '700px', margin: '0 auto', padding: '40px 32px' }}>
-
-          {/* Mode tabs — only show when not editing */}
           {!isEdit && (
             <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid rgba(107,163,200,0.15)', marginBottom: '36px' }}>
               {['guided', 'custom'].map(m => (
@@ -623,26 +641,13 @@ function CPM() {
               ))}
             </div>
           )}
-
-          {/* Guided mode */}
-          {builderMode === 'guided' && !isEdit && (
-            <GuidedBuilder
-              onSave={saveComplex}
-              onCancel={closeBuilder}
-              editData={null}
-            />
-          )}
-
-          {/* Custom mode */}
+          {builderMode === 'guided' && !isEdit && <GuidedBuilder onSave={saveComplex} complexes={complexes} />}
           {(builderMode === 'custom' || isEdit) && (
             <div style={styles.card}>
-              {/* Name */}
               <div style={styles.formGroup}>
                 <label style={styles.label}>Name</label>
                 <input style={styles.input} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Give this complex a name..." autoFocus />
               </div>
-
-              {/* Underlying Emotional Burden */}
               <div style={styles.formGroup}>
                 <label style={styles.label}>Underlying Emotional Burden</label>
                 <select style={styles.input} value={form.burden} onChange={e => setForm({ ...form, burden: e.target.value })}>
@@ -650,64 +655,76 @@ function CPM() {
                   {EMOTION_ORDER.map(e => <option key={e} value={e}>{e}</option>)}
                 </select>
               </div>
-
-              {/* Beliefs */}
               <div style={styles.formGroup}>
                 <label style={styles.label}>Beliefs <ArrowLeft /></label>
                 <textarea style={styles.textarea} value={form.beliefs} onChange={e => setForm({ ...form, beliefs: e.target.value })} placeholder="What are beliefs you hold while this complex is active?" rows={3} />
               </div>
-
-              {/* Thoughts */}
               <div style={styles.formGroup}>
                 <label style={styles.label}>Thoughts <ArrowLeft /></label>
                 <textarea style={styles.textarea} value={form.thoughts} onChange={e => setForm({ ...form, thoughts: e.target.value })} placeholder="What thoughts go through your mind while this complex is active?" rows={3} />
               </div>
-
-              {/* Feelings */}
               <div style={styles.formGroup}>
                 <label style={styles.label}>Feelings <ArrowLeft /></label>
                 <textarea style={styles.textarea} value={form.feelings} onChange={e => setForm({ ...form, feelings: e.target.value })} placeholder="What do you feel while this complex is active?" rows={3} />
               </div>
-
-              {/* Behaviors */}
               <div style={styles.formGroup}>
                 <label style={styles.label}>Behaviors <ArrowRight /></label>
-                <textarea style={styles.textarea} value={form.behaviors} onChange={e => setForm({ ...form, behaviors: e.target.value })} placeholder="How do you act while this complex is active? What behaviors can you observe?" rows={3} />
+                <textarea style={styles.textarea} value={form.behaviors} onChange={e => setForm({ ...form, behaviors: e.target.value })} placeholder="How do you act while this complex is active?" rows={3} />
               </div>
-
-              {/* Trigger */}
               <div style={styles.formGroup}>
                 <label style={styles.label}>Trigger</label>
                 <input style={styles.input} value={form.trigger} onChange={e => setForm({ ...form, trigger: e.target.value })} placeholder="What activates this complex?" />
               </div>
-
-              {/* Counter Belief */}
               <div style={styles.formGroup}>
-                <label style={{ ...styles.label, color: '#4AAE88' }}>Counter Belief</label>
-                <textarea style={{ ...styles.textarea, borderColor: 'rgba(74,174,136,0.2)' }} value={form.counter} onChange={e => setForm({ ...form, counter: e.target.value })} placeholder="What else could also be true?" rows={3} />
+                <label style={styles.label}>Life Period <span style={{ fontStyle: 'italic', fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: '6px' }}>optional</span></label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  {LIFE_PERIODS.map(p => (
+                    <button key={p.label}
+                      style={{ background: form.period === p.label ? 'rgba(107,163,200,0.12)' : 'rgba(107,163,200,0.03)', border: '1px solid ' + (form.period === p.label ? 'rgba(107,163,200,0.6)' : 'rgba(107,163,200,0.15)'), borderRadius: '3px', padding: '10px 12px', textAlign: 'left', cursor: 'pointer' }}
+                      onClick={() => setForm({ ...form, period: form.period === p.label ? '' : p.label })}>
+                      <div style={{ fontSize: '12px', fontWeight: '600', color: form.period === p.label ? '#D8E6F0' : '#8BAFC8' }}>{p.label}</div>
+                      <div style={{ fontSize: '10px', color: '#5A7A94', marginTop: '2px' }}>{p.range}</div>
+                    </button>
+                  ))}
+                </div>
               </div>
-
-              {/* Counter Behavior */}
               <div style={styles.formGroup}>
-                <label style={{ ...styles.label, color: '#4AAE88' }}>Counter Behavior</label>
-                <textarea style={{ ...styles.textarea, borderColor: 'rgba(74,174,136,0.2)' }} value={form.counterBehavior} onChange={e => setForm({ ...form, counterBehavior: e.target.value })} placeholder="What would be alternative behaviors?" rows={3} />
+                <label style={styles.label}>Source <span style={{ fontStyle: 'italic', fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: '6px' }}>optional</span></label>
+                <select style={styles.input} value={form.source || ''} onChange={e => setForm({ ...form, source: e.target.value })}>
+                  <option value="">None / Unknown</option>
+                  {SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
               </div>
-
-              {/* Notes */}
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Notes</label>
-                <textarea style={styles.textarea} value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="Any additional observations..." rows={3} />
-              </div>
-
-              {/* Original Wound */}
               <div style={{ ...styles.woundToggle, ...(form.originalWound ? styles.woundActive : {}) }} onClick={() => setForm({ ...form, originalWound: !form.originalWound })}>
                 <div style={{ ...styles.woundDot, ...(form.originalWound ? styles.woundDotActive : {}) }} />
                 <div>
                   <div style={styles.woundLabel}>Original Wound</div>
-                  <div style={styles.woundDesc}>Mark this complex as the origin — where the pattern first formed.</div>
+                  <div style={styles.woundDesc}>Mark this complex as the origin, where the pattern first formed.</div>
                 </div>
               </div>
-
+              {!form.originalWound && (
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Root Complex <span style={{ fontStyle: 'italic', fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: '6px' }}>optional</span></label>
+                  <select style={styles.input} value={currentRoot} onChange={e => setForm({ ...form, rootComplex: e.target.value ? [e.target.value] : [] })}>
+                    <option value="">None / Unknown</option>
+                    {availableRoots.map((c, i) => <option key={i} value={c.name}>{c.name}{c.period ? ' · ' + c.period : ''}</option>)}
+                  </select>
+                </div>
+              )}
+              <div style={styles.formGroup}>
+                <label style={{ ...styles.label, color: '#4AAE88' }}>Counter Belief</label>
+                {isInnerChildForm && <div style={{ fontSize: '11px', fontStyle: 'italic', color: 'rgba(200,168,80,0.6)', marginBottom: '8px' }}>You are speaking to your inner child.</div>}
+                <textarea style={{ ...styles.textarea, borderColor: 'rgba(74,174,136,0.2)' }} value={form.counter} onChange={e => setForm({ ...form, counter: e.target.value })} placeholder="What else could also be true?" rows={3} />
+              </div>
+              <div style={styles.formGroup}>
+                <label style={{ ...styles.label, color: '#4AAE88' }}>Counter Behavior</label>
+                {isInnerChildForm && <div style={{ fontSize: '11px', fontStyle: 'italic', color: 'rgba(200,168,80,0.6)', marginBottom: '8px' }}>You are speaking to your inner child.</div>}
+                <textarea style={{ ...styles.textarea, borderColor: 'rgba(74,174,136,0.2)' }} value={form.counterBehavior} onChange={e => setForm({ ...form, counterBehavior: e.target.value })} placeholder="What would be alternative behaviors?" rows={3} />
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Notes</label>
+                <textarea style={styles.textarea} value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="Any additional observations..." rows={3} />
+              </div>
               <div style={styles.formFooter}>
                 <button style={styles.cancelBtn} onClick={closeBuilder}>Cancel</button>
                 <button style={styles.btn} onClick={() => saveComplex(form)} disabled={saving}>{saving ? 'Saving...' : 'Save to Map'}</button>
@@ -721,35 +738,28 @@ function CPM() {
 
   return (
     <div style={styles.container}>
-      {viewIdx !== null && (
-        <ViewModal complex={complexes[viewIdx]} onClose={() => setViewIdx(null)} onEdit={() => { openBuilder(viewIdx); setViewIdx(null); }} />
-      )}
-
+      {viewIdx !== null && <ViewModal complex={complexes[viewIdx]} onClose={() => setViewIdx(null)} onEdit={() => { openBuilder(viewIdx); setViewIdx(null); }} />}
       <div style={styles.header}>
         <button style={styles.backBtn} onClick={() => navigate('/')}>← Home</button>
         <span style={styles.toolbarTitle}>Complex Pattern Map</span>
         <button style={styles.btn} onClick={() => openBuilder()}>+ Build Complex</button>
       </div>
-
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: '32px 32px 80px', width: '100%' }}>
         <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid rgba(107,163,200,0.15)', marginBottom: '24px' }}>
           {[{ id: 'emotion', label: 'By Emotion' }, { id: 'tree', label: 'Tree View' }, { id: 'btf', label: 'BTF' }].map(t => (
             <button key={t.id} style={{ ...styles.tabBtn, ...(tab === t.id ? styles.tabBtnActive : {}) }} onClick={() => setTab(t.id)}>{t.label}</button>
           ))}
         </div>
-
         {tab === 'emotion' && (
           <>
             <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
               {['all', 'active', 'resolved'].map(f => (
-                <button key={f} style={{ ...styles.filterTab, ...(filter === f ? styles.filterTabActive : {}) }} onClick={() => setFilter(f)}>
-                  {f.charAt(0).toUpperCase() + f.slice(1)}
-                </button>
+                <button key={f} style={{ ...styles.filterTab, ...(filter === f ? styles.filterTabActive : {}) }} onClick={() => setFilter(f)}>{f.charAt(0).toUpperCase() + f.slice(1)}</button>
               ))}
             </div>
             {filtered.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '80px 24px', fontFamily: 'Georgia, serif', fontStyle: 'italic', color: '#5A7A94' }}>
-                {filter === 'all' ? 'No complexes yet. Build your first complex pattern to begin mapping your inner world.' : `No ${filter} complexes.`}
+                {filter === 'all' ? 'No complexes yet. Build your first complex pattern to begin mapping your inner world.' : 'No ' + filter + ' complexes.'}
               </div>
             ) : (
               EMOTION_ORDER.map(emotion => {
@@ -768,19 +778,15 @@ function CPM() {
                       {group.map(c => (
                         <div key={c._idx} style={{ ...styles.complexCard, borderLeftColor: col.border, background: col.bg, opacity: c.status === 'resolved' ? 0.45 : 1, ...(c.originalWound ? { borderStyle: 'dashed', borderLeftStyle: 'solid', borderWidth: '2px', borderLeftWidth: '3px' } : {}) }} onClick={(e) => { if (!e.target.closest('button')) setViewIdx(c._idx); }}>
                           <div style={styles.complexCardHeader}>
-                            <div style={styles.complexCardName}>
-                              {c.name}
-                              {c.originalWound && <span style={{ color: '#C8A840', fontSize: '14px' }}> ◉</span>}
-                            </div>
-                            {c.originalWound && <span style={{ fontSize: '8px', fontWeight: '700', letterSpacing: '2px', textTransform: 'uppercase', color: col.text, border: `1px dashed ${col.border}`, padding: '2px 7px', borderRadius: '2px', whiteSpace: 'nowrap' }}>Original Wound</span>}
+                            <div style={styles.complexCardName}>{c.name}{c.originalWound && <span style={{ color: '#C8A840', fontSize: '14px' }}> ◉</span>}</div>
+                            {c.originalWound && <span style={{ fontSize: '8px', fontWeight: '700', letterSpacing: '2px', textTransform: 'uppercase', color: col.text, border: '1px dashed ' + col.border, padding: '2px 7px', borderRadius: '2px', whiteSpace: 'nowrap' }}>Original Wound</span>}
                           </div>
                           <div style={{ ...styles.cardBurden, color: col.text }}>{c.burden}</div>
+                          {c.period && <div style={{ fontSize: '9px', color: '#5A7A94', marginBottom: '4px', letterSpacing: '1px' }}>{c.period}</div>}
+                          {c.source && <div style={{ fontSize: '9px', color: '#5A7A94', marginBottom: '6px', letterSpacing: '1px' }}>{c.source}</div>}
                           <div style={styles.cardFooter}>
                             <button style={styles.smallBtn} onClick={e => { e.stopPropagation(); openBuilder(c._idx); }}>Edit</button>
-                            {c.status === 'active'
-                              ? <button style={styles.smallBtn} onClick={e => { e.stopPropagation(); toggleStatus(c._idx, 'resolved'); }}>Mark Resolved</button>
-                              : <button style={styles.smallBtn} onClick={e => { e.stopPropagation(); toggleStatus(c._idx, 'active'); }}>Reopen</button>
-                            }
+                            {c.status === 'active' ? <button style={styles.smallBtn} onClick={e => { e.stopPropagation(); toggleStatus(c._idx, 'resolved'); }}>Mark Resolved</button> : <button style={styles.smallBtn} onClick={e => { e.stopPropagation(); toggleStatus(c._idx, 'active'); }}>Reopen</button>}
                             <button style={{ ...styles.smallBtn, color: '#B05A5A', borderColor: 'rgba(176,90,90,0.3)', marginLeft: 'auto' }} onClick={e => { e.stopPropagation(); deleteComplex(c._idx); }}>Delete</button>
                           </div>
                         </div>
@@ -792,7 +798,6 @@ function CPM() {
             )}
           </>
         )}
-
         {tab === 'tree' && <TreeView complexes={complexes} onViewComplex={(idx) => setViewIdx(idx)} />}
         {tab === 'btf' && <BTFView complexes={complexes} />}
       </div>
@@ -815,7 +820,7 @@ const styles = {
   complexCard: { border: '1px solid rgba(107,163,200,0.1)', borderLeft: '3px solid', borderRadius: '3px', padding: '14px 16px', cursor: 'pointer', transition: 'opacity 0.2s' },
   complexCardHeader: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '6px' },
   complexCardName: { fontFamily: 'Georgia, serif', fontSize: '15px', fontWeight: '300', color: '#D8E6F0', lineHeight: 1.4 },
-  cardBurden: { fontSize: '9px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '8px' },
+  cardBurden: { fontSize: '9px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '4px' },
   cardFooter: { display: 'flex', gap: '6px', marginTop: '10px', paddingTop: '10px', borderTop: '1px solid rgba(107,163,200,0.08)' },
   smallBtn: { background: 'none', border: '1px solid rgba(107,163,200,0.2)', borderRadius: '2px', padding: '4px 10px', color: '#5A7A94', fontSize: '10px', cursor: 'pointer' },
   card: { background: '#162534', border: '1px solid rgba(107,163,200,0.15)', borderRadius: '4px', padding: '32px' },
@@ -823,7 +828,7 @@ const styles = {
   label: { display: 'flex', alignItems: 'center', fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#5A7A94', marginBottom: '8px' },
   input: { width: '100%', background: '#0f2236', border: '1px solid rgba(107,163,200,0.2)', borderRadius: '3px', padding: '10px 14px', color: '#D8E6F0', fontSize: '14px', outline: 'none', boxSizing: 'border-box' },
   textarea: { width: '100%', background: '#0f2236', border: '1px solid rgba(107,163,200,0.2)', borderRadius: '3px', padding: '10px 14px', color: '#D8E6F0', fontSize: '14px', outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' },
-  woundToggle: { display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', border: '1px solid rgba(200,168,80,0.2)', borderRadius: '3px', background: 'rgba(200,168,80,0.03)', cursor: 'pointer', marginBottom: '24px' },
+  woundToggle: { display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', border: '1px solid rgba(200,168,80,0.2)', borderRadius: '3px', background: 'rgba(200,168,80,0.03)', cursor: 'pointer', marginBottom: '20px' },
   woundActive: { borderColor: 'rgba(200,168,80,0.5)', background: 'rgba(200,168,80,0.07)' },
   woundDot: { width: '16px', height: '16px', borderRadius: '50%', border: '2px solid rgba(200,168,80,0.4)', flexShrink: 0 },
   woundDotActive: { background: 'rgba(200,168,80,0.8)', borderColor: 'rgba(200,168,80,0.9)' },
