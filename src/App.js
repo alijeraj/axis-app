@@ -12,6 +12,7 @@ import Results from './screens/results';
 import Journal from './screens/journal';
 import Tutorial from './screens/tutorial';
 import Yesterday from './screens/yesterday';
+import SelfPortrait from './screens/selfportrait';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('axis_token'));
@@ -40,6 +41,7 @@ function App() {
         <Route path="/journal" element={token ? <Journal /> : <Navigate to="/login" />} />
         <Route path="/tutorial" element={token ? <Tutorial /> : <Navigate to="/login" />} />
         <Route path="/yesterday" element={token ? <Yesterday /> : <Navigate to="/login" />} />
+        <Route path="/selfportrait" element={token ? <SelfPortrait /> : <Navigate to="/login" />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>

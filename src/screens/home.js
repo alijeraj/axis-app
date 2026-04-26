@@ -62,6 +62,17 @@ function Home(props) {
       )
     },
     {
+      id: 'selfportrait', label: 'Self\nPortrait',
+      svg: (
+        <svg width="64" height="64" viewBox="0 0 80 80" fill="none">
+          <ellipse cx="40" cy="38" rx="22" ry="30" stroke="#6BA3C8" strokeWidth="2.5" fill="none" opacity="0.7"/>
+          <ellipse cx="40" cy="38" rx="17" ry="25" stroke="#6BA3C8" strokeWidth="1" fill="none" opacity="0.3"/>
+          <line x1="33" y1="28" x2="40" y2="48" stroke="#6BA3C8" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
+          <line x1="36" y1="24" x2="43" y2="44" stroke="#6BA3C8" strokeWidth="1" strokeLinecap="round" opacity="0.3"/>
+        </svg>
+      )
+    },
+    {
       id: 'journal', label: 'Dream\nJournal',
       svg: (
         <svg width="64" height="64" viewBox="0 0 80 80" fill="none">
@@ -165,8 +176,8 @@ const styles = {
     alignItems: 'flex-start',
     justifyContent: 'center',
     gap: '32px',
-    flexWrap: 'wrap',
-    maxWidth: '800px',
+    flexWrap: 'nowrap',
+    maxWidth: '900px',
     margin: '0 auto',
   },
   iconBtn: {

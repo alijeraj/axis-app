@@ -24,8 +24,19 @@ const LIFE_PERIODS = [
 
 const getPeriodOrder = (period) => {
   if (!period) return 999;
-  const found = LIFE_PERIODS.find(p => p.label === period);
+  const p = Array.isArray(period) ? period[0] : period;
+  const found = LIFE_PERIODS.find(lp => lp.label === p);
   return found ? found.order : 999;
+};
+
+const getPeriodDisplay = (period) => {
+  if (!period) return '';
+  if (Array.isArray(period)) {
+    if (period.length === 0) return '';
+    if (period.length === 1) return period[0];
+    return period[0] + ' → ' + period[period.length - 1];
+  }
+  return period;
 };
 
 const EMOTION_COLORS = {
@@ -47,15 +58,7 @@ const TREE_COLORS = {
 };
 const DEFAULT_TREE_COLORS = { bg: 'rgba(107,163,200,0.08)', border: 'rgba(107,163,200,0.3)', dot: '#6BA3C8' };
 
-const BTF_COLORS = {
-  Fear:  { bg: 'rgba(139,90,60,0.1)',   border: 'rgba(139,90,60,0.4)',   dot: '#8B5A3C',  label: '#8B5A3C' },
-  Guilt: { bg: 'rgba(180,160,60,0.1)',  border: 'rgba(180,160,60,0.4)',  dot: '#B4A03C',  label: '#B4A03C' },
-  Shame: { bg: 'rgba(200,120,50,0.1)',  border: 'rgba(200,120,50,0.4)',  dot: '#C87832',  label: '#C87832' },
-  Anger: { bg: 'rgba(176,90,90,0.1)',   border: 'rgba(176,90,90,0.4)',   dot: '#B05A5A',  label: '#B05A5A' },
-  Envy:  { bg: 'rgba(130,90,180,0.1)',  border: 'rgba(130,90,180,0.4)',  dot: '#825AB4',  label: '#825AB4' },
-  Grief: { bg: 'rgba(160,120,130,0.1)', border: 'rgba(160,120,130,0.4)', dot: '#A07882',  label: '#A07882' },
-};
-const DEFAULT_BTF = { bg: 'rgba(107,163,200,0.06)', border: 'rgba(107,163,200,0.2)', dot: '#6BA3C8', label: '#6BA3C8' };
+
 
 const ArrowLeft = () => (
   <span style={{ fontSize: '10px', color: '#5A7A94', marginLeft: '6px' }}>← <span style={{ fontStyle: 'italic', fontWeight: 400, letterSpacing: '1px', textTransform: 'none' }}>emotional input</span></span>
@@ -79,7 +82,7 @@ const STEP_CONFIGS = {
   feelings:        { label: 'Feelings', q: 'What do you feel as these thoughts arise?', hint: 'Optional. Name the felt sense — not the thought, not the action. The raw feeling.', type: 'textarea', optional: true },
   beliefs:         { label: 'Beliefs', q: 'What do you believe when this pattern is active?', hint: 'Write it in the first person. What feels true in this moment?', type: 'textarea' },
   burden:          { label: 'Underlying Emotional Burden', q: 'What is the underlying emotion at the root of this?', hint: 'This is the emotional wound the complex is built around.', type: 'select' },
-  period:          { label: 'Life Period', q: 'When in your life did this pattern first emerge?', hint: 'Optional. This places the complex in your timeline.', type: 'period', optional: true },
+  period:          { label: 'Life Period', q: 'When in your life did this pattern first emerge?', hint: 'Optional. Select all that apply.', type: 'period', optional: true },
   source:          { label: 'Source', q: 'Who or what was the source of this pattern?', hint: 'Optional. The person or origin this complex formed around.', type: 'sourceSelect', optional: true },
   rootComplex:     { label: 'Root Complex', q: 'Does this pattern trace back to an earlier complex?', hint: 'Optional. Select primary root from dropdown. Add secondary roots below.', type: 'rootSelect', optional: true },
   counter:         { label: 'Counter Belief', q: 'What else could also be true?', hint: 'Optional. Give this belief an honest opposing voice.', type: 'textarea', optional: true },
@@ -122,7 +125,7 @@ const RootComplexSelector = ({ value, onChange, availableRoots }) => {
     <div>
       <select style={styles.input} value={primary} onChange={e => setPrimary(e.target.value)}>
         <option value="">None / Unknown</option>
-        {availableRoots.map((c, i) => <option key={i} value={c.name}>{c.name}{c.period ? ' · ' + c.period : ''}</option>)}
+        {availableRoots.map((c, i) => <option key={i} value={c.name}>{c.name}{c.period ? ' · ' + getPeriodDisplay(c.period) : ''}</option>)}
       </select>
       {primary && availableRoots.filter(c => c.name !== primary).length > 0 && (
         <div style={{ marginTop: '10px' }}>
@@ -130,7 +133,7 @@ const RootComplexSelector = ({ value, onChange, availableRoots }) => {
           <select style={styles.input} value="" onChange={e => { if (e.target.value) toggleSecondary(e.target.value); }}>
             <option value="">Add secondary root...</option>
             {availableRoots.filter(c => c.name !== primary).map((c, i) => (
-              <option key={i} value={c.name}>{secondaries.includes(c.name) ? '✓ ' : ''}{c.name}{c.period ? ' · ' + c.period : ''}</option>
+              <option key={i} value={c.name}>{secondaries.includes(c.name) ? '✓ ' : ''}{c.name}{c.period ? ' · ' + getPeriodDisplay(c.period) : ''}</option>
             ))}
           </select>
           {secondaries.length > 0 && secondaries.map((name, i) => (
@@ -256,7 +259,11 @@ function GuidedBuilder({ onSave, complexes, prefillBehavior }) {
       {cfg.type === 'select' && <select style={styles.input} value={data[currentKey] || ''} onChange={e => setData({ ...data, [currentKey]: e.target.value })} autoFocus><option value="">-- Select the emotion --</option>{EMOTION_ORDER.map(e => <option key={e} value={e}>{e}</option>)}<option value="unsure">I'm not sure</option></select>}
       {cfg.type === 'period' && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-          {LIFE_PERIODS.map(p => <button key={p.label} style={{ background: data[currentKey] === p.label ? 'rgba(107,163,200,0.12)' : 'rgba(107,163,200,0.03)', border: '1px solid ' + (data[currentKey] === p.label ? 'rgba(107,163,200,0.6)' : 'rgba(107,163,200,0.15)'), borderRadius: '3px', padding: '12px 14px', textAlign: 'left', cursor: 'pointer' }} onClick={() => setData({ ...data, [currentKey]: data[currentKey] === p.label ? '' : p.label })}><div style={{ fontSize: '12px', fontWeight: '600', color: data[currentKey] === p.label ? '#D8E6F0' : '#8BAFC8' }}>{p.label}</div><div style={{ fontSize: '10px', color: '#5A7A94', marginTop: '2px' }}>{p.range}</div></button>)}
+          {LIFE_PERIODS.map(p => {
+            const periods = Array.isArray(data[currentKey]) ? data[currentKey] : (data[currentKey] ? [data[currentKey]] : []);
+            const isSelected = periods.includes(p.label);
+            return <button key={p.label} style={{ background: isSelected ? 'rgba(107,163,200,0.12)' : 'rgba(107,163,200,0.03)', border: '1px solid ' + (isSelected ? 'rgba(107,163,200,0.6)' : 'rgba(107,163,200,0.15)'), borderRadius: '3px', padding: '12px 14px', textAlign: 'left', cursor: 'pointer' }} onClick={() => { const current = Array.isArray(data[currentKey]) ? data[currentKey] : (data[currentKey] ? [data[currentKey]] : []); const updated = current.includes(p.label) ? current.filter(x => x !== p.label) : [...current, p.label]; const sorted = LIFE_PERIODS.filter(lp => updated.includes(lp.label)).map(lp => lp.label); setData({ ...data, [currentKey]: sorted }); }}><div style={{ fontSize: '12px', fontWeight: '600', color: isSelected ? '#D8E6F0' : '#8BAFC8' }}>{p.label}</div><div style={{ fontSize: '10px', color: '#5A7A94', marginTop: '2px' }}>{p.range}</div></button>;
+          })}
         </div>
       )}
       {cfg.type === 'sourceSelect' && <select style={styles.input} value={data[currentKey] || ''} onChange={e => setData({ ...data, [currentKey]: e.target.value })}><option value="">None / Unknown</option>{SOURCES.map(s => <option key={s} value={s}>{s}</option>)}</select>}
@@ -275,7 +282,7 @@ function ViewModal({ complex, onClose, onEdit }) {
   const c = complex;
   const hasCounter = c.counter && c.counter.trim();
   const hasCounterBehavior = c.counterBehavior && c.counterBehavior.trim();
-  const isInnerChild = c.period === 'Early Childhood' || c.period === 'Childhood';
+  const isInnerChild = Array.isArray(c.period) ? (c.period.includes('Early Childhood') || c.period.includes('Childhood')) : (c.period === 'Early Childhood' || c.period === 'Childhood');
   const W = 220; const CW = 180; const GAP = 16;
 
   const Arrow = ({ up, color }) => (
@@ -322,7 +329,7 @@ function ViewModal({ complex, onClose, onEdit }) {
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '6px', flexWrap: 'wrap' }}>
               {c.originalWound && <span style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '2px', textTransform: 'uppercase', color: '#C8A840', border: '1px dashed #C8A840', padding: '2px 7px', borderRadius: '2px' }}>Original Wound</span>}
               {c.status === 'resolved' && <span style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '2px', textTransform: 'uppercase', color: '#4AAE88', border: '1px solid rgba(74,174,136,0.4)', padding: '2px 7px', borderRadius: '2px' }}>Resolved</span>}
-              {c.period && <span style={{ fontSize: '10px', color: '#5A7A94', letterSpacing: '1px' }}>{c.period}</span>}
+              {c.period && <span style={{ fontSize: '10px', color: '#5A7A94', letterSpacing: '1px' }}>{getPeriodDisplay(c.period)}</span>}
               {c.source && <span style={{ fontSize: '10px', color: '#5A7A94', letterSpacing: '1px' }}>· {c.source}</span>}
             </div>
           </div>
@@ -371,9 +378,7 @@ function TreeView({ complexes, onViewComplex, onViewResolution, onSaveOrder, sav
   const [scale, setScale] = useState(1);
   const [panX, setPanX] = useState(20);
   const [panY, setPanY] = useState(20);
-  // groupOrder: { [source]: [rootName, rootName, ...] }
   const [groupOrder, setGroupOrder] = useState(savedOrder || {});
-  const [dragState, setDragState] = useState(null); // { source, name, startX, currentSlot }
   const isDragging = useRef(false);
   const dragStart = useRef({ x: 0, y: 0 });
   const panStart = useRef({ x: 20, y: 20 });
@@ -385,6 +390,7 @@ function TreeView({ complexes, onViewComplex, onViewResolution, onSaveOrder, sav
   const nameToIdx = {};
   complexes.forEach((c, i) => { nameToIdx[c.name] = i; });
 
+  // Global node positions for cross-group line drawing
   const allNodePositions = useRef({});
 
   const subtreeWidth = (node) => {
@@ -396,18 +402,19 @@ function TreeView({ complexes, onViewComplex, onViewResolution, onSaveOrder, sav
     return Math.max(NODE_W, total);
   };
 
-  const assignPositions = (node, x, y, groupOffset = 0) => {
+  const assignPositions = (node, x, y, groupOffsetX = 0) => {
     const sw = subtreeWidth(node);
     node.x = x + sw / 2 - NODE_W / 2;
     node.y = y;
-    allNodePositions.current[node.name] = { x: node.x + groupOffset, y: node.y };
+    // Store GLOBAL coordinates
+    allNodePositions.current[node.name] = { x: node.x + groupOffsetX, y: node.y };
     const extras = node.showResolution ? [{ isResolution: true }] : [];
     const all = [...node.children, ...extras];
     if (all.length > 0) {
       let cx = x;
       all.forEach(child => {
         if (child.isResolution) { child.x = cx; child.y = y + NODE_H + V_GAP; cx += RES_W + H_GAP; }
-        else { const csw = subtreeWidth(child); assignPositions(child, cx, y + NODE_H + V_GAP, groupOffset); cx += csw + H_GAP; }
+        else { const csw = subtreeWidth(child); assignPositions(child, cx, y + NODE_H + V_GAP, groupOffsetX); cx += csw + H_GAP; }
       });
     }
   };
@@ -448,12 +455,10 @@ function TreeView({ complexes, onViewComplex, onViewResolution, onSaveOrder, sav
   const namedSources = Object.keys(sourceGroups).filter(s => s !== '');
   const orderedSources = [...namedSources, ...(sourceGroups[''] && sourceGroups[''].length > 0 ? [''] : [])];
 
-  // Apply saved order to source groups
   const getOrderedGroupRoots = (source) => {
     const defaults = sourceGroups[source] || [];
     const saved = groupOrder[source];
     if (!saved) return defaults;
-    // Merge: saved order first (filtered to still-existing roots), then any new roots appended
     const existing = saved.filter(n => defaults.includes(n));
     const newOnes = defaults.filter(n => !saved.includes(n));
     return [...existing, ...newOnes];
@@ -461,15 +466,12 @@ function TreeView({ complexes, onViewComplex, onViewResolution, onSaveOrder, sav
 
   const renderedGroups = []; let globalX = 0;
   allNodePositions.current = {};
-
-  // Compute slot center positions per group for snapping
   const groupSlotCenters = {};
 
   orderedSources.forEach(source => {
     const groupRoots = getOrderedGroupRoots(source);
     const groupTrees = []; let localX = 0;
     const slotCenters = [];
-
     groupRoots.forEach((rootName, ri) => {
       const tree = buildNode(rootName, {}); if (!tree) return;
       const treeW = subtreeWidth(tree);
@@ -480,7 +482,6 @@ function TreeView({ complexes, onViewComplex, onViewResolution, onSaveOrder, sav
       localX += treeW + (ri < groupRoots.length - 1 ? H_GAP : 0);
       groupTrees.push({ tree, allNodes });
     });
-
     groupSlotCenters[source] = slotCenters;
     renderedGroups.push({ source, groupTrees, groupWidth: localX, offsetX: globalX });
     globalX += localX + GROUP_GAP;
@@ -510,68 +511,64 @@ function TreeView({ complexes, onViewComplex, onViewResolution, onSaveOrder, sav
     return () => { viewport.removeEventListener('mousedown', onMouseDown); window.removeEventListener('mousemove', onMouseMove); window.removeEventListener('mouseup', onMouseUp); viewport.removeEventListener('wheel', onWheel); };
   }, [panX, panY]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Root subtree drag-to-reorder
-  const startRootDrag = (e, source, rootName, currentX) => {
+  const startRootDrag = (e, source, rootName) => {
     e.stopPropagation(); e.preventDefault();
     const startMouseX = e.clientX;
     const slots = groupSlotCenters[source] || [];
     let currentOrder = getOrderedGroupRoots(source).slice();
-
     const onMove = (ev) => {
       const dx = (ev.clientX - startMouseX) / scale;
-      const movedCenterX = (allNodePositions.current[rootName] ? allNodePositions.current[rootName].x : currentX) + dx + NODE_W / 2;
-      // Find closest slot
-      let closestSlot = currentOrder.indexOf(rootName);
-      let closestDist = Infinity;
+      const pos = allNodePositions.current[rootName];
+      const movedCenterX = (pos ? pos.x : 0) + dx + NODE_W / 2;
+      let closestSlot = currentOrder.indexOf(rootName); let closestDist = Infinity;
       slots.forEach((s, i) => { const d = Math.abs(s.centerX - movedCenterX); if (d < closestDist) { closestDist = d; closestSlot = i; } });
-      // Reorder
-      const newOrder = currentOrder.filter(n => n !== rootName);
-      newOrder.splice(closestSlot, 0, rootName);
-      if (JSON.stringify(newOrder) !== JSON.stringify(currentOrder)) {
-        currentOrder = newOrder;
-        setGroupOrder(prev => ({ ...prev, [source]: newOrder }));
-      }
+      const newOrder = currentOrder.filter(n => n !== rootName); newOrder.splice(closestSlot, 0, rootName);
+      if (JSON.stringify(newOrder) !== JSON.stringify(currentOrder)) { currentOrder = newOrder; setGroupOrder(prev => ({ ...prev, [source]: newOrder })); }
     };
-
-    const onUp = () => {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
-      // Save
-      setGroupOrder(prev => { onSaveOrder({ ...prev }); return prev; });
-    };
-
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
+    const onUp = () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); setGroupOrder(prev => { onSaveOrder({ ...prev }); return prev; }); };
+    window.addEventListener('mousemove', onMove); window.addEventListener('mouseup', onUp);
   };
 
   if (complexes.length === 0) return <div style={{ textAlign: 'center', padding: '48px', fontFamily: 'Georgia, serif', fontStyle: 'italic', color: '#5A7A94' }}>No complexes yet. Build your first complex to begin mapping.</div>;
 
   const getResolutionPos = (node) => ({ x: node.x + NODE_W / 2 - RES_W / 2, y: node.y + NODE_H + V_GAP });
 
-  const buildLines = (node, lines, groupOffset = 0) => {
-    node.children.forEach(child => {
-      const px = node.x + NODE_W / 2; const py = LABEL_H + node.y + NODE_H;
-      const cx = child.x + NODE_W / 2; const cy = LABEL_H + child.y;
-      const my = py + (cy - py) / 2;
-      lines.push({ d: 'M' + px + ',' + py + ' L' + px + ',' + my + ' L' + cx + ',' + my + ' L' + cx + ',' + cy, dashed: false });
-      const childComplex = complexes[nameToIdx[child.name]];
-      if (childComplex) {
-        const childRoots = Array.isArray(childComplex.rootComplex) ? childComplex.rootComplex : [];
-        childRoots.slice(1).forEach(secRootName => {
-          const secPos = allNodePositions.current[secRootName];
-          if (secPos) {
-            const spx = secPos.x - groupOffset + NODE_W / 2; const spy = LABEL_H + secPos.y + NODE_H; const smy = spy + (cy - spy) / 2;
-            lines.push({ d: 'M' + spx + ',' + spy + ' L' + spx + ',' + smy + ' L' + cx + ',' + smy + ' L' + cx + ',' + cy, dashed: true });
-          }
-        });
+  // Build ALL lines in global coordinates
+  const buildAllLines = () => {
+    const lines = [];
+    const traverse = (node) => {
+      const nodeGlobalX = allNodePositions.current[node.name] ? allNodePositions.current[node.name].x : 0;
+      node.children.forEach(child => {
+        const childGlobalX = allNodePositions.current[child.name] ? allNodePositions.current[child.name].x : 0;
+        const px = nodeGlobalX + NODE_W / 2; const py = LABEL_H + node.y + NODE_H;
+        const cx = childGlobalX + NODE_W / 2; const cy = LABEL_H + child.y;
+        const my = py + (cy - py) / 2;
+        lines.push({ d: 'M' + px + ',' + py + ' L' + px + ',' + my + ' L' + cx + ',' + my + ' L' + cx + ',' + cy, dashed: false });
+        // Secondary roots
+        const childComplex = complexes[nameToIdx[child.name]];
+        if (childComplex) {
+          const childRoots = Array.isArray(childComplex.rootComplex) ? childComplex.rootComplex : [];
+          childRoots.slice(1).forEach(secRootName => {
+            const secPos = allNodePositions.current[secRootName];
+            if (secPos) {
+              const spx = secPos.x + NODE_W / 2; const spy = LABEL_H + secPos.y + NODE_H; const smy = spy + (cy - spy) / 2;
+              lines.push({ d: 'M' + spx + ',' + spy + ' L' + spx + ',' + smy + ' L' + cx + ',' + smy + ' L' + cx + ',' + cy, dashed: true });
+            }
+          });
+        }
+        traverse(child);
+      });
+      if (node.showResolution) {
+        const resGlobalX = nodeGlobalX + NODE_W / 2;
+        const py = LABEL_H + node.y + NODE_H; const cy = LABEL_H + node.y + NODE_H + V_GAP;
+        lines.push({ d: 'M' + resGlobalX + ',' + py + ' L' + resGlobalX + ',' + cy, dashed: true, isResolution: true });
       }
-      buildLines(child, lines, groupOffset);
-    });
-    if (node.showResolution) {
-      const resX = node.x + NODE_W / 2; const py = LABEL_H + node.y + NODE_H; const cy = LABEL_H + node.y + NODE_H + V_GAP;
-      lines.push({ d: 'M' + resX + ',' + py + ' L' + resX + ',' + cy, dashed: true, isResolution: true });
-    }
+    };
+    renderedGroups.forEach(group => group.groupTrees.forEach(({ tree }) => traverse(tree)));
+    return lines;
   };
+
+  const allLines = buildAllLines();
 
   const renderNodes = (node, gi, ti, source) => {
     const items = [];
@@ -584,7 +581,7 @@ function TreeView({ complexes, onViewComplex, onViewResolution, onSaveOrder, sav
     items.push(
       <div key={'n-' + gi + '-' + ti + '-' + node.name}
         data-root-handle={isRoot ? 'true' : undefined}
-        onMouseDown={isRoot ? (e) => startRootDrag(e, source, node.name, node.x) : undefined}
+        onMouseDown={isRoot ? (e) => startRootDrag(e, source, node.name) : undefined}
         onClick={(e) => { if (!e.defaultPrevented && c) onViewComplex(nameToIdx[node.name]); }}
         style={{ position: 'absolute', left: node.x, top: LABEL_H + node.y, width: NODE_W, height: NODE_H, border: '1px solid ' + (resolved ? 'rgba(74,174,136,0.5)' : colors.border), borderLeft: '3px solid ' + (resolved ? 'rgba(74,174,136,0.6)' : colors.border), background: resolved ? 'rgba(74,174,136,0.06)' : colors.bg, borderRadius: '3px', padding: '8px 12px', cursor: isRoot ? 'grab' : 'pointer', boxSizing: 'border-box', overflow: 'hidden', userSelect: 'none' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
@@ -595,7 +592,7 @@ function TreeView({ complexes, onViewComplex, onViewResolution, onSaveOrder, sav
           {isRoot && <span style={{ fontSize: '9px', color: 'rgba(107,163,200,0.3)', marginLeft: 'auto', flexShrink: 0 }}>⇄</span>}
         </div>
         {c && c.burden && <div style={{ fontSize: '8px', letterSpacing: '2px', textTransform: 'uppercase', color: resolved ? 'rgba(74,174,136,0.6)' : colors.dot, marginLeft: '13px' }}>{c.burden}</div>}
-        {c && c.period && <div style={{ fontSize: '8px', color: resolved ? 'rgba(74,174,136,0.4)' : 'rgba(107,163,200,0.4)', marginLeft: '13px', marginTop: '2px', letterSpacing: '1px' }}>{c.period}</div>}
+        {c && c.period && <div style={{ fontSize: '8px', color: resolved ? 'rgba(74,174,136,0.4)' : 'rgba(107,163,200,0.4)', marginLeft: '13px', marginTop: '2px', letterSpacing: '1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{getPeriodDisplay(c.period)}</div>}
       </div>
     );
 
@@ -632,15 +629,19 @@ function TreeView({ complexes, onViewComplex, onViewResolution, onSaveOrder, sav
       </div>
       <div ref={viewportRef} style={{ flex: 1, overflow: 'hidden', background: 'rgba(107,163,200,0.02)', cursor: 'grab', position: 'relative', borderTop: '1px solid rgba(107,163,200,0.1)' }}>
         <div ref={treeRef} style={{ position: 'absolute', transformOrigin: '0 0', transform: 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')', willChange: 'transform', width: totalW, height: totalH + LABEL_H + 20 }}>
+          {/* Single SVG spanning full canvas for all lines */}
+          <svg style={{ position: 'absolute', top: 0, left: 0, width: totalW, height: totalH + LABEL_H + 20, overflow: 'visible', pointerEvents: 'none' }}>
+            {allLines.map((l, i) => (
+              <path key={i} d={l.d} fill="none"
+                stroke={l.isResolution ? 'rgba(74,174,136,0.4)' : l.dashed ? 'rgba(107,163,200,0.25)' : 'rgba(107,163,200,0.3)'}
+                strokeWidth="1.5"
+                strokeDasharray={l.dashed ? '4,3' : 'none'} />
+            ))}
+          </svg>
+          {/* Group labels and nodes */}
           {renderedGroups.map((group, gi) => (
             <div key={gi} style={{ position: 'absolute', left: group.offsetX, top: 0, width: group.groupWidth, height: totalH + LABEL_H + 20 }}>
               {group.source && <div style={{ position: 'absolute', top: 0, left: 0, fontSize: '9px', fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase', color: 'rgba(107,163,200,0.4)', borderBottom: '1px solid rgba(107,163,200,0.1)', paddingBottom: '6px', width: '100%' }}>{group.source}</div>}
-              <svg style={{ position: 'absolute', top: 0, left: 0, width: totalW, height: totalH + LABEL_H + 20, overflow: 'visible' }}>
-                {group.groupTrees.map(({ tree }, ti) => {
-                  const lines = []; buildLines(tree, lines, group.offsetX);
-                  return lines.map((l, i) => <path key={ti + '-' + i} d={l.d} fill="none" stroke={l.isResolution ? 'rgba(74,174,136,0.4)' : l.dashed ? 'rgba(107,163,200,0.25)' : 'rgba(107,163,200,0.3)'} strokeWidth="1.5" strokeDasharray={l.dashed ? '4,3' : 'none'} />);
-                })}
-              </svg>
               {group.groupTrees.map(({ tree }, ti) => renderNodes(tree, gi, ti, group.source))}
             </div>
           ))}
@@ -650,51 +651,7 @@ function TreeView({ complexes, onViewComplex, onViewResolution, onSaveOrder, sav
   );
 }
 
-function BTFView({ complexes }) {
-  const active = complexes.filter(c => c.status !== 'resolved');
-  if (active.length === 0) return <div style={{ textAlign: 'center', padding: '48px', fontFamily: 'Georgia, serif', fontStyle: 'italic', color: '#5A7A94' }}>No active complexes yet. Build your first complex to begin.</div>;
-  const groups = {};
-  active.forEach(c => { const b = c.burden || 'Other'; if (!groups[b]) groups[b] = []; groups[b].push(c); });
-  const orderedBurdens = [...EMOTION_ORDER.filter(b => groups[b]), ...Object.keys(groups).filter(b => !EMOTION_ORDER.includes(b))];
-  return (
-    <div>
-      <div style={{ marginBottom: '32px' }}>
-        <div style={{ fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: '300', color: '#D8E6F0', marginBottom: '4px' }}>BTF Map</div>
-        <div style={{ fontSize: '10px', letterSpacing: '3px', textTransform: 'uppercase', color: '#5A7A94' }}>Beliefs · Thoughts · Feelings, extracted from {active.length} active complex{active.length === 1 ? '' : 'es'}</div>
-      </div>
-      {orderedBurdens.map(burden => {
-        const group = groups[burden]; if (!group) return null;
-        const colors = BTF_COLORS[burden] || DEFAULT_BTF;
-        return (
-          <div key={burden} style={{ marginBottom: '40px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', paddingBottom: '10px', borderBottom: '1px solid ' + colors.border }}>
-              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: colors.dot }} />
-              <div style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '4px', textTransform: 'uppercase', color: colors.label }}>{burden}</div>
-              <div style={{ fontSize: '10px', color: '#5A7A94' }}>{group.length} complex{group.length === 1 ? '' : 'es'}</div>
-            </div>
-            {group.map((c, i) => {
-              const hasContent = (c.beliefs && c.beliefs.trim()) || (c.thoughts && c.thoughts.trim()) || (c.feelings && c.feelings.trim());
-              if (!hasContent) return null;
-              return (
-                <div key={i} style={{ marginBottom: '20px', padding: '16px 20px', border: '1px solid ' + colors.border, borderRadius: '3px', background: colors.bg }}>
-                  <div style={{ fontSize: '12px', fontWeight: '600', color: '#D8E6F0', letterSpacing: '1px', marginBottom: '14px', paddingBottom: '10px', borderBottom: '1px solid rgba(107,163,200,0.1)' }}>{c.name}</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
-                    {['beliefs', 'thoughts', 'feelings'].map(field => (
-                      <div key={field}>
-                        <div style={{ fontSize: '8px', fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase', color: '#6BA3C8', marginBottom: '8px' }}>{field.charAt(0).toUpperCase() + field.slice(1)}</div>
-                        {c[field] && c[field].trim() ? <div style={{ fontSize: '13px', color: '#8BAFC8', fontFamily: 'Georgia, serif', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{c[field]}</div> : <div style={{ fontSize: '12px', color: '#5A7A94', fontStyle: 'italic' }}>—</div>}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
+
 
 function CPM() {
   const navigate = useNavigate();
@@ -712,7 +669,7 @@ function CPM() {
   const [viewIdx, setViewIdx] = useState(null);
   const [resolutionFormIdx, setResolutionFormIdx] = useState(null);
   const [resolutionViewComplexes, setResolutionViewComplexes] = useState(null);
-  const [form, setForm] = useState({ name: '', burden: '', beliefs: '', thoughts: '', feelings: '', behaviors: '', trigger: '', counter: '', counterBehavior: '', notes: '', period: '', source: '', rootComplex: [], status: 'active', originalWound: false });
+  const [form, setForm] = useState({ name: '', burden: '', beliefs: '', thoughts: '', feelings: '', behaviors: '', trigger: '', counter: '', counterBehavior: '', notes: '', period: [], source: '', rootComplex: [], status: 'active', originalWound: false });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -729,7 +686,7 @@ function CPM() {
       try {
         const orderRes = await axios.get(API + '/api/tree-order', { headers: { Authorization: 'Bearer ' + token } });
         if (orderRes.data) setTreeOrder(orderRes.data);
-      } catch (e) { /* endpoint may not exist yet */ }
+      } catch (e) { }
     } catch (err) { console.log(err); }
     finally { setLoading(false); }
   };
@@ -782,8 +739,14 @@ function CPM() {
 
   const openBuilder = (idx = null) => {
     setPrefillBehavior(null);
-    if (idx !== null) { setForm({ ...complexes[idx], rootComplex: complexes[idx].rootComplex || [], source: complexes[idx].source || '' }); setEditIdx(idx); setBuilderMode('custom'); }
-    else { setForm({ name: '', burden: '', beliefs: '', thoughts: '', feelings: '', behaviors: '', trigger: '', counter: '', counterBehavior: '', notes: '', period: '', source: '', rootComplex: [], status: 'active', originalWound: false }); setEditIdx(null); setBuilderMode('guided'); }
+    if (idx !== null) {
+      const c = complexes[idx];
+      setForm({ ...c, rootComplex: c.rootComplex || [], source: c.source || '', period: Array.isArray(c.period) ? c.period : (c.period ? [c.period] : []) });
+      setEditIdx(idx); setBuilderMode('custom');
+    } else {
+      setForm({ name: '', burden: '', beliefs: '', thoughts: '', feelings: '', behaviors: '', trigger: '', counter: '', counterBehavior: '', notes: '', period: [], source: '', rootComplex: [], status: 'active', originalWound: false });
+      setEditIdx(null); setBuilderMode('guided');
+    }
     setShowBuilder(true);
   };
 
@@ -800,7 +763,7 @@ function CPM() {
   });
 
   const availableRoots = complexes.filter((c, i) => i !== editIdx && c.status !== 'resolved');
-  const isInnerChildForm = form.period === 'Early Childhood' || form.period === 'Childhood';
+  const isInnerChildForm = Array.isArray(form.period) ? (form.period.includes('Early Childhood') || form.period.includes('Childhood')) : (form.period === 'Early Childhood' || form.period === 'Childhood');
 
   if (loading) return <div style={{ color: '#5A7A94', padding: '48px', textAlign: 'center' }}>Loading...</div>;
 
@@ -829,9 +792,13 @@ function CPM() {
               <div style={styles.formGroup}><label style={styles.label}>Behaviors <ArrowRight /></label><textarea style={styles.textarea} value={form.behaviors} onChange={e => setForm({ ...form, behaviors: e.target.value })} placeholder="How do you act while this complex is active?" rows={3} /></div>
               <div style={styles.formGroup}><label style={styles.label}>Trigger</label><input style={styles.input} value={form.trigger} onChange={e => setForm({ ...form, trigger: e.target.value })} placeholder="What activates this complex?" /></div>
               <div style={styles.formGroup}>
-                <label style={styles.label}>Life Period <span style={{ fontStyle: 'italic', fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: '6px' }}>optional</span></label>
+                <label style={styles.label}>Life Period <span style={{ fontStyle: 'italic', fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: '6px' }}>optional — select all that apply</span></label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                  {LIFE_PERIODS.map(p => <button key={p.label} style={{ background: form.period === p.label ? 'rgba(107,163,200,0.12)' : 'rgba(107,163,200,0.03)', border: '1px solid ' + (form.period === p.label ? 'rgba(107,163,200,0.6)' : 'rgba(107,163,200,0.15)'), borderRadius: '3px', padding: '10px 12px', textAlign: 'left', cursor: 'pointer' }} onClick={() => setForm({ ...form, period: form.period === p.label ? '' : p.label })}><div style={{ fontSize: '12px', fontWeight: '600', color: form.period === p.label ? '#D8E6F0' : '#8BAFC8' }}>{p.label}</div><div style={{ fontSize: '10px', color: '#5A7A94', marginTop: '2px' }}>{p.range}</div></button>)}
+                  {LIFE_PERIODS.map(p => {
+                    const periods = Array.isArray(form.period) ? form.period : (form.period ? [form.period] : []);
+                    const isSelected = periods.includes(p.label);
+                    return <button key={p.label} style={{ background: isSelected ? 'rgba(107,163,200,0.12)' : 'rgba(107,163,200,0.03)', border: '1px solid ' + (isSelected ? 'rgba(107,163,200,0.6)' : 'rgba(107,163,200,0.15)'), borderRadius: '3px', padding: '10px 12px', textAlign: 'left', cursor: 'pointer' }} onClick={() => { const current = Array.isArray(form.period) ? form.period : (form.period ? [form.period] : []); const updated = current.includes(p.label) ? current.filter(x => x !== p.label) : [...current, p.label]; const sorted = LIFE_PERIODS.filter(lp => updated.includes(lp.label)).map(lp => lp.label); setForm({ ...form, period: sorted }); }}><div style={{ fontSize: '12px', fontWeight: '600', color: isSelected ? '#D8E6F0' : '#8BAFC8' }}>{p.label}</div><div style={{ fontSize: '10px', color: '#5A7A94', marginTop: '2px' }}>{p.range}</div></button>;
+                  })}
                 </div>
               </div>
               <div style={styles.formGroup}>
@@ -879,7 +846,7 @@ function CPM() {
         <div style={styles.header}>
           <button style={styles.backBtn} onClick={() => navigate('/')}>← Home</button>
           <div style={{ display: 'flex', gap: 0, flex: 1, justifyContent: 'center' }}>
-            {[{ id: 'emotion', label: 'By Emotion' }, { id: 'tree', label: 'Tree View' }, { id: 'btf', label: 'BTF' }].map(t => (
+            {[{ id: 'emotion', label: 'By Emotion' }, { id: 'tree', label: 'Tree View' }].map(t => (
               <button key={t.id} style={{ ...styles.tabBtn, ...(tab === t.id ? styles.tabBtnActive : {}) }} onClick={() => setTab(t.id)}>{t.label}</button>
             ))}
           </div>
@@ -901,7 +868,7 @@ function CPM() {
       </div>
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: '32px 32px 80px', width: '100%' }}>
         <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid rgba(107,163,200,0.15)', marginBottom: '24px' }}>
-          {[{ id: 'emotion', label: 'By Emotion' }, { id: 'tree', label: 'Tree View' }, { id: 'btf', label: 'BTF' }].map(t => (
+          {[{ id: 'emotion', label: 'By Emotion' }, { id: 'tree', label: 'Tree View' }].map(t => (
             <button key={t.id} style={{ ...styles.tabBtn, ...(tab === t.id ? styles.tabBtnActive : {}) }} onClick={() => setTab(t.id)}>{t.label}</button>
           ))}
         </div>
@@ -933,7 +900,7 @@ function CPM() {
                             {c.status === 'resolved' && <span style={{ fontSize: '8px', fontWeight: '700', letterSpacing: '2px', textTransform: 'uppercase', color: '#4AAE88', border: '1px solid rgba(74,174,136,0.4)', padding: '2px 7px', borderRadius: '2px', whiteSpace: 'nowrap' }}>Resolved</span>}
                           </div>
                           <div style={{ ...styles.cardBurden, color: c.status === 'resolved' ? 'rgba(74,174,136,0.6)' : col.text }}>{c.burden}</div>
-                          {c.period && <div style={{ fontSize: '9px', color: '#5A7A94', marginBottom: '4px', letterSpacing: '1px' }}>{c.period}</div>}
+                          {c.period && <div style={{ fontSize: '9px', color: '#5A7A94', marginBottom: '4px', letterSpacing: '1px' }}>{getPeriodDisplay(c.period)}</div>}
                           {c.source && <div style={{ fontSize: '9px', color: '#5A7A94', marginBottom: '6px', letterSpacing: '1px' }}>{c.source}</div>}
                           <div style={styles.cardFooter}>
                             <button style={styles.smallBtn} onClick={e => { e.stopPropagation(); openBuilder(c._idx); }}>Edit</button>
@@ -949,7 +916,7 @@ function CPM() {
             )}
           </>
         )}
-        {tab === 'btf' && <BTFView complexes={complexes} />}
+        {null}
       </div>
     </div>
   );
