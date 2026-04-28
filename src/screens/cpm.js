@@ -277,7 +277,8 @@ function GuidedBuilder({ onSave, complexes, prefillBehavior }) {
   );
 }
 
-function ViewModal({ complex, onClose, onEdit }) {
+function ViewModal({ complex, dreams, onClose, onEdit }) {
+  const [viewingDream, setViewingDream] = React.useState(null);
   if (!complex) return null;
   const c = complex;
   const hasCounter = c.counter && c.counter.trim();
@@ -322,6 +323,31 @@ function ViewModal({ complex, onClose, onEdit }) {
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 200, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '40px 20px' }}>
+      {viewingDream && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 300, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '40px 20px' }}>
+          <div style={{ background: '#162534', border: '1px solid rgba(176,126,212,0.3)', borderRadius: '4px', width: '100%', maxWidth: '520px', padding: '32px', boxShadow: '0 0 40px rgba(0,0,0,0.6)' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <div style={{ fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: '300', color: '#D8E6F0' }}>{viewingDream.title || 'Untitled Dream'}</div>
+              <button style={{ background: 'none', border: 'none', color: '#5A7A94', cursor: 'pointer', fontSize: '18px' }} onClick={() => setViewingDream(null)}>✕</button>
+            </div>
+            {viewingDream.date && <div style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#5A7A94', marginBottom: '20px' }}>{new Date(viewingDream.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</div>}
+            {[
+              { key: 'narrative', label: 'Narrative' },
+              { key: 'people', label: 'Who Appeared' },
+              { key: 'symbols', label: 'Symbols & Recurring Themes' },
+              { key: 'reflection', label: 'Reflection' },
+            ].map(field => viewingDream[field.key] && viewingDream[field.key].trim() ? (
+              <div key={field.key} style={{ marginBottom: '20px' }}>
+                <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#5A7A94', marginBottom: '8px' }}>{field.label}</div>
+                <div style={{ fontSize: '13px', color: '#D8E6F0', fontFamily: 'Georgia, serif', lineHeight: 1.7, whiteSpace: 'pre-line' }}>{viewingDream[field.key]}</div>
+              </div>
+            ) : null)}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px' }}>
+              <button style={{ background: 'rgba(176,126,212,0.1)', border: '1px solid rgba(176,126,212,0.3)', borderRadius: '3px', padding: '10px 24px', color: '#B07ED4', fontSize: '11px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', cursor: 'pointer' }} onClick={() => setViewingDream(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
       <div style={{ background: '#162534', border: '1px solid rgba(107,163,200,0.3)', borderRadius: '4px', width: '100%', maxWidth: '560px', padding: '32px', boxShadow: '0 0 40px rgba(0,0,0,0.6)' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '8px' }}>
           <div>
@@ -363,6 +389,23 @@ function ViewModal({ complex, onClose, onEdit }) {
             <div style={{ fontSize: '13px', color: '#8BAFC8' }}>{Array.isArray(c.rootComplex) ? c.rootComplex.join(', ') : c.rootComplex}</div>
           </div>
         )}
+       {dreams && (() => {
+          const linkedDream = dreams.find(d => d.complexLink === c.name);
+          if (!linkedDream) return null;
+          return (
+            <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(107,163,200,0.1)' }}>
+              <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#B07ED4', marginBottom: '8px' }}>Linked Dream</div>
+              <div style={{ border: '1px solid rgba(176,126,212,0.2)', borderRadius: '3px', padding: '12px 16px', background: 'rgba(176,126,212,0.04)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} onClick={() => setViewingDream(linkedDream)}>
+                <div>
+                  <div style={{ fontSize: '14px', color: '#D8E6F0', fontFamily: 'Georgia, serif', marginBottom: '4px' }}>{linkedDream.title || 'Untitled Dream'}</div>
+                  <div style={{ fontSize: '10px', color: '#5A7A94', letterSpacing: '1px' }}>{linkedDream.date ? new Date(linkedDream.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}</div>
+                </div>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4 2 L9 6 L4 10" stroke="rgba(176,126,212,0.5)" strokeWidth="1.5" strokeLinecap="round" /></svg>
+              </div>
+            </div>
+          );
+        })()}
+        
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(107,163,200,0.15)' }}>
           <button style={styles.cancelBtn} onClick={onClose}>Close</button>
           <button style={styles.btn} onClick={onEdit}>Edit</button>
@@ -658,6 +701,7 @@ function CPM() {
   const location = useLocation();
   const token = localStorage.getItem('axis_token');
   const [complexes, setComplexes] = useState([]);
+  const [dreams, setDreams] = useState([]);
   const [treeOrder, setTreeOrder] = useState({});
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('emotion');
@@ -681,8 +725,12 @@ function CPM() {
 
   const loadComplexes = async () => {
     try {
-      const res = await axios.get(API + '/api/complexes', { headers: { Authorization: 'Bearer ' + token } });
-      setComplexes(res.data || []);
+      const [complexRes, dreamsRes] = await Promise.all([
+        axios.get(API + '/api/complexes', { headers: { Authorization: 'Bearer ' + token } }),
+        axios.get(API + '/api/dreams', { headers: { Authorization: 'Bearer ' + token } }),
+      ]);
+      setComplexes(complexRes.data || []);
+      setDreams(dreamsRes.data || []);
       try {
         const orderRes = await axios.get(API + '/api/tree-order', { headers: { Authorization: 'Bearer ' + token } });
         if (orderRes.data) setTreeOrder(orderRes.data);
@@ -840,7 +888,7 @@ function CPM() {
   if (tab === 'tree') {
     return (
       <div style={{ ...styles.container, height: '100vh' }}>
-        {viewIdx !== null && <ViewModal complex={complexes[viewIdx]} onClose={() => setViewIdx(null)} onEdit={() => { openBuilder(viewIdx); setViewIdx(null); }} />}
+        {viewIdx !== null && <ViewModal complex={complexes[viewIdx]} dreams={dreams} onClose={() => setViewIdx(null)} onEdit={() => { openBuilder(viewIdx); setViewIdx(null); }} />}
         {resolutionViewComplexes && <ResolutionModal resolvedComplexes={resolutionViewComplexes} onClose={() => setResolutionViewComplexes(null)} />}
         {resolutionFormIdx !== null && <ResolutionForm complex={complexes[resolutionFormIdx]} onSave={(data) => markResolved(resolutionFormIdx, data)} onCancel={() => setResolutionFormIdx(null)} />}
         <div style={styles.header}>
@@ -859,7 +907,7 @@ function CPM() {
 
   return (
     <div style={styles.container}>
-      {viewIdx !== null && <ViewModal complex={complexes[viewIdx]} onClose={() => setViewIdx(null)} onEdit={() => { openBuilder(viewIdx); setViewIdx(null); }} />}
+      {viewIdx !== null && <ViewModal complex={complexes[viewIdx]} dreams={dreams} onClose={() => setViewIdx(null)} onEdit={() => { openBuilder(viewIdx); setViewIdx(null); }} />}
       {resolutionFormIdx !== null && <ResolutionForm complex={complexes[resolutionFormIdx]} onSave={(data) => markResolved(resolutionFormIdx, data)} onCancel={() => setResolutionFormIdx(null)} />}
       <div style={styles.header}>
         <button style={styles.backBtn} onClick={() => navigate('/')}>← Home</button>
