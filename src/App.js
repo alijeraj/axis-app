@@ -80,7 +80,8 @@ function App() {
     setToken(null);
   };
 
-  if (showSplash) return <SplashScreen onDone={() => setShowSplash(false)} />;
+  const isAuthCallback = window.location.pathname === '/auth/callback';
+  if (showSplash && !isAuthCallback) return <SplashScreen onDone={() => setShowSplash(false)} />;
 
   return (
     <BrowserRouter>
