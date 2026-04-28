@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import Landing from './screens/landing';
 import Login from './screens/login';
 import Register from './screens/register';
@@ -15,10 +15,16 @@ import Yesterday from './screens/yesterday';
 import SelfPortrait from './screens/selfportrait';
 
 function GoogleCallback({ onLogin }) {
+  const navigate = useNavigate();
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
-    if (token) onLogin(token);
+    if (token) {
+      onLogin(token);
+      navigate('/');
+    } else {
+      navigate('/login');
+    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   return <div style={{ background: '#0d1b2a', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8BAFC8', fontFamily: 'Georgia, serif', fontSize: '18px' }}>Signing in...</div>;
 }
