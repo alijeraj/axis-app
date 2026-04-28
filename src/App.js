@@ -13,6 +13,16 @@ import Journal from './screens/journal';
 import Tutorial from './screens/tutorial';
 import Yesterday from './screens/yesterday';
 import SelfPortrait from './screens/selfportrait';
+import { useEffect } from 'react';
+
+function GoogleCallback({ onLogin }) {
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (token) onLogin(token);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  return <div style={{ background: '#0d1b2a', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8BAFC8', fontFamily: 'Georgia, serif', fontSize: '18px' }}>Signing in...</div>;
+}
 
 function SplashScreen({ onDone }) {
   const [phase, setPhase] = useState('logo'); // logo → tagline1 → tagline2 → hold → fadeout
@@ -100,6 +110,7 @@ function App() {
         <Route path="/tutorial" element={token ? <Tutorial /> : <Navigate to="/login" />} />
         <Route path="/yesterday" element={token ? <Yesterday /> : <Navigate to="/login" />} />
         <Route path="/selfportrait" element={token ? <SelfPortrait /> : <Navigate to="/login" />} />
+        <Route path="/auth/callback" element={<GoogleCallback onLogin={handleLogin} />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>
