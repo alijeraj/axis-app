@@ -9,20 +9,36 @@ function Login(props) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [unverified, setUnverified] = useState(false);
+  const [resendStatus, setResendStatus] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setUnverified(false);
+    setResendStatus('');
     try {
       const res = await axios.post(`${API}/auth/login`, { email, password });
       props.onLogin(res.data.token);
     } catch (err) {
-      console.log('Full error:', err);
-      console.log('Response:', err.response);
-      setError(err.response?.data?.error || 'Login failed');
+      if (err.response?.data?.error === 'unverified') {
+        setUnverified(true);
+      } else {
+        setError(err.response?.data?.error || 'Login failed');
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setResendStatus('sending');
+    try {
+      await axios.post(`${API}/auth/resend-verification`, { email });
+      setResendStatus('sent');
+    } catch (err) {
+      setResendStatus('error');
     }
   };
 
@@ -55,6 +71,21 @@ function Login(props) {
             />
           </div>
           {error && <div style={styles.error}>{error}</div>}
+          {unverified && (
+            <div style={styles.unverifiedBox}>
+              <div style={{ fontSize: '13px', color: '#D8E6F0', marginBottom: '10px', fontFamily: 'Georgia, serif' }}>
+                Please verify your email before logging in.
+              </div>
+              {resendStatus === '' && (
+                <button type="button" style={styles.resendBtn} onClick={handleResend}>
+                  Resend verification email
+                </button>
+              )}
+              {resendStatus === 'sending' && <div style={{ fontSize: '12px', color: '#8BAFC8' }}>Sending...</div>}
+              {resendStatus === 'sent' && <div style={{ fontSize: '12px', color: '#4AAE88' }}>✓ Verification email sent. Check your inbox.</div>}
+              {resendStatus === 'error' && <div style={{ fontSize: '12px', color: '#C87878' }}>Failed to send. Try again.</div>}
+            </div>
+          )}
           <button style={styles.btn} type="submit" disabled={loading}>
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
@@ -128,6 +159,25 @@ const styles = {
     color: 'var(--burdened)',
     fontSize: '12px',
     marginBottom: '16px',
+  },
+  unverifiedBox: {
+    background: 'rgba(142,196,224,0.06)',
+    border: '1px solid rgba(142,196,224,0.2)',
+    borderRadius: '3px',
+    padding: '16px',
+    marginBottom: '16px',
+  },
+  resendBtn: {
+    background: 'none',
+    border: '1px solid rgba(142,196,224,0.3)',
+    borderRadius: '3px',
+    padding: '8px 16px',
+    color: '#8EC4E0',
+    fontSize: '10px',
+    fontWeight: '600',
+    letterSpacing: '2px',
+    textTransform: 'uppercase',
+    cursor: 'pointer',
   },
   btn: {
     width: '100%',

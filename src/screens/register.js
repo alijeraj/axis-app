@@ -10,6 +10,7 @@ function Register(props) {
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,14 +21,36 @@ function Register(props) {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.post(`${API}/auth/register`, { email, password });
-      props.onLogin(res.data.token);
+      await axios.post(`${API}/auth/register`, { email, password });
+      setSuccess(true);
     } catch (err) {
       setError(err.response?.data?.error || 'Registration failed');
     } finally {
       setLoading(false);
     }
   };
+
+  if (success) {
+    return (
+      <div style={styles.container}>
+        <div style={styles.card}>
+          <div style={styles.logo}>AXIS</div>
+          <div style={{ textAlign: 'center', marginTop: '8px' }}>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: '300', color: '#D8E6F0', marginBottom: '16px' }}>Check your email</div>
+            <div style={{ fontSize: '13px', color: '#8BAFC8', lineHeight: 1.7, marginBottom: '24px' }}>
+              We sent a verification link to <strong style={{ color: '#D8E6F0' }}>{email}</strong>.<br />
+              Click the link to activate your account.
+            </div>
+            <div style={{ fontSize: '11px', color: '#5A7A94', lineHeight: 1.6 }}>
+              Didn't receive it? Check your spam folder or{' '}
+              <Link to="/login" style={{ color: '#8EC4E0', textDecoration: 'none' }}>go to login</Link>{' '}
+              to resend it.
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={styles.container}>

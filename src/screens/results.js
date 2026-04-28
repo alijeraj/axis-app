@@ -78,7 +78,6 @@ function Results() {
   const ism = entry.ism || {};
   const esm = entry.esm || {};
 
-  // Compute scores from raw dimension values
   const ismVals = Object.values(ism);
   const esmVals = Object.values(esm);
   const ismRaw = ismVals.reduce((a, b) => a + b, 0);
@@ -104,33 +103,29 @@ function Results() {
           <button style={styles.backBtn} onClick={() => navigate('/progress')}>← Progress</button>
         )}
         <span style={styles.screenTitle}>AX<span style={{ color: '#6BA3C8', fontWeight: 600 }}>IS</span></span>
-        <button style={{ ...styles.backBtn, marginLeft: 'auto' }} onClick={() => navigate('/')}>Home →</button>
+        <button style={styles.backBtn} onClick={() => navigate('/progress')}>View Progress →</button>
+        <button style={styles.backBtn} onClick={() => navigate('/')}>Home →</button>
       </div>
 
       <div style={styles.body}>
 
-        {/* Dashboard block */}
         <div style={styles.dashboardBlock}>
           <div style={styles.dateStr}>{dateStr}</div>
           <div style={styles.dashGrid}>
-            {/* OS */}
             <div>
               <div style={styles.osLabel}>Operating System</div>
               <div style={{ ...styles.osValue, color: osColor }}>{osLabel}</div>
             </div>
-            {/* ISM */}
             <div style={styles.scoreCol}>
               <div style={styles.scoreColLabel}>ISM</div>
               <div style={{ ...styles.scoreColNum, color: '#6BA3C8' }}>{ismPct}%</div>
               <div style={styles.scoreColSub}>{ismRaw} / 20</div>
             </div>
-            {/* ESM */}
             <div style={styles.scoreCol}>
               <div style={styles.scoreColLabel}>ESM</div>
               <div style={{ ...styles.scoreColNum, color: '#B088D4' }}>{esmPct}%</div>
               <div style={styles.scoreColSub}>{esmRaw} / 30</div>
             </div>
-            {/* AXIS */}
             <div style={styles.scoreCol}>
               <div style={styles.scoreColLabel}>AXIS Score</div>
               <div style={{ ...styles.scoreColNum, color: '#4EC9A0' }}>{totalPct}%</div>
@@ -139,7 +134,6 @@ function Results() {
           </div>
         </div>
 
-        {/* ISM Map */}
         <div style={styles.mapSection}>
           <div style={styles.mapDim}>Neurological Dimension</div>
           <div style={styles.mapHeader}>
@@ -154,7 +148,6 @@ function Results() {
               <span></span>
               <span></span>
             </div>
-            {/* OS row */}
             <div style={{ ...styles.mapRow, borderBottom: '2px solid rgba(107,163,200,0.2)', marginBottom: '4px', background: 'rgba(107,163,200,0.04)' }}>
               <span style={{ ...styles.mapLib, background: osActive === 'pf' ? 'rgba(107,163,200,0.25)' : 'rgba(107,163,200,0.04)', color: osActive === 'pf' ? '#D8E6F0' : '#5A7A94' }}>Prefrontal Cortex</span>
               <span style={{ ...styles.mapCenter, color: '#6BA3C8' }}>Operating System</span>
@@ -184,7 +177,6 @@ function Results() {
           </div>
         </div>
 
-        {/* ESM Map */}
         <div style={styles.mapSection}>
           <div style={styles.mapDim}>Emotional Dimension</div>
           <div style={styles.mapHeader}>
@@ -229,16 +221,9 @@ const styles = {
   container: { minHeight: '100vh', background: '#0d1b2a', display: 'flex', flexDirection: 'column' },
   header: { display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 32px', borderBottom: '1px solid rgba(107,163,200,0.15)', background: '#0f2236' },
   backBtn: { background: 'none', border: 'none', color: '#5A7A94', fontSize: '12px', fontWeight: '600', letterSpacing: '1px', cursor: 'pointer', padding: 0 },
-  screenTitle: { fontFamily: 'Georgia, serif', fontSize: '18px', fontWeight: '300', color: '#D8E6F0', letterSpacing: '2px' },
+  screenTitle: { fontFamily: 'Georgia, serif', fontSize: '18px', fontWeight: '300', color: '#D8E6F0', letterSpacing: '2px', textAlign: 'center' },
   body: { maxWidth: '960px', margin: '0 auto', padding: '48px 32px 80px', width: '100%' },
-  dashboardBlock: {
-    border: '1px solid rgba(107,163,200,0.6)',
-    borderRadius: '3px',
-    background: '#162534',
-    padding: '40px 48px',
-    marginBottom: '48px',
-    boxShadow: '0 0 24px rgba(107,163,200,0.15), 0 0 48px rgba(107,163,200,0.08), inset 0 1px 0 rgba(107,163,200,0.2)',
-  },
+  dashboardBlock: { border: '1px solid rgba(107,163,200,0.6)', borderRadius: '3px', background: '#162534', padding: '40px 48px', marginBottom: '48px', boxShadow: '0 0 24px rgba(107,163,200,0.15), 0 0 48px rgba(107,163,200,0.08), inset 0 1px 0 rgba(107,163,200,0.2)' },
   dateStr: { fontSize: '13px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8', marginBottom: '28px' },
   dashGrid: { display: 'grid', gridTemplateColumns: '1fr auto auto auto', alignItems: 'center', gap: '48px' },
   osLabel: { fontSize: '22px', fontWeight: '700', letterSpacing: '5px', textTransform: 'uppercase', color: '#6BA3C8', textShadow: '0 0 30px rgba(107,163,200,0.4)', marginBottom: '16px' },

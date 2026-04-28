@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Landing from './screens/landing';
 import Login from './screens/login';
@@ -14,8 +14,64 @@ import Tutorial from './screens/tutorial';
 import Yesterday from './screens/yesterday';
 import SelfPortrait from './screens/selfportrait';
 
+function SplashScreen({ onDone }) {
+  const [phase, setPhase] = useState('logo'); // logo → tagline1 → tagline2 → hold → fadeout
+  const [opacity, setOpacity] = useState(0);
+
+  useEffect(() => {
+    // Fade in logo
+    const t1 = setTimeout(() => setOpacity(1), 50);
+    // Show tagline 1
+    const t2 = setTimeout(() => setPhase('tagline1'), 1200);
+    // Show tagline 2
+    const t3 = setTimeout(() => setPhase('tagline2'), 2000);
+    // Start fade out
+    const t4 = setTimeout(() => { setPhase('fadeout'); setOpacity(0); }, 5200);
+    // Done
+    const t5 = setTimeout(() => onDone(), 6000);
+    return () => [t1, t2, t3, t4, t5].forEach(clearTimeout);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, background: '#ffffff', display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center', zIndex: 9999,
+      opacity, transition: phase === 'fadeout' ? 'opacity 0.8s ease' : 'opacity 0.8s ease',
+    }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '32px' }}>
+        {/* Logo */}
+        <div style={{ opacity: phase !== 'fadeout' ? 1 : 0, transition: 'opacity 0.8s ease' }}>
+          <img src="/introspection-logo.png" alt="Introspection" style={{ height: '200px', display: 'block' }} />
+        </div>
+
+        {/* Divider */}
+        <div style={{ width: '40px', height: '1px', background: '#c0c8d0', opacity: phase === 'tagline1' || phase === 'tagline2' || phase === 'hold' ? 1 : 0, transition: 'opacity 0.6s ease' }} />
+
+        {/* Tagline 1 */}
+        <div style={{
+          fontFamily: 'Georgia, serif', fontSize: '15px', fontStyle: 'italic', letterSpacing: '3px',
+          color: '#4a5568', opacity: phase === 'tagline1' || phase === 'tagline2' || phase === 'hold' ? 1 : 0,
+          transition: 'opacity 0.6s ease', textAlign: 'center',
+        }}>
+          The art of inner mapping
+        </div>
+
+        {/* Tagline 2 */}
+        <div style={{
+          fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: '300', letterSpacing: '1px',
+          color: '#1a202c', opacity: phase === 'tagline2' || phase === 'hold' ? 1 : 0,
+          transition: 'opacity 0.6s ease', textAlign: 'center',
+        }}>
+          Navigate your inner world.
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [token, setToken] = useState(localStorage.getItem('axis_token'));
+  const [showSplash, setShowSplash] = useState(true);
 
   const handleLogin = (newToken) => {
     localStorage.setItem('axis_token', newToken);
@@ -26,6 +82,8 @@ function App() {
     localStorage.removeItem('axis_token');
     setToken(null);
   };
+
+  if (showSplash) return <SplashScreen onDone={() => setShowSplash(false)} />;
 
   return (
     <BrowserRouter>

@@ -46,15 +46,15 @@ function ComplexViewModal({ complex, onClose }) {
 
   const Arrow = ({ up, color }) => (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '28px' }}>
-      {up && <div style={{ borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderBottom: `7px solid ${color || 'rgba(107,163,200,0.35)'}` }} />}
-      <div style={{ width: '2px', flex: 1, background: color || 'rgba(107,163,200,0.35)' }} />
-      {!up && <div style={{ borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderTop: `7px solid ${color || 'rgba(107,163,200,0.35)'}` }} />}
+      {up && <div style={{ borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderBottom: `7px solid ${color || 'rgba(142,196,224,0.35)'}` }} />}
+      <div style={{ width: '2px', flex: 1, background: color || 'rgba(142,196,224,0.35)' }} />
+      {!up && <div style={{ borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderTop: `7px solid ${color || 'rgba(142,196,224,0.35)'}` }} />}
     </div>
   );
 
   const FlowNode = ({ label, text, isBurden, isTrigger, isCounter }) => (
-    <div style={{ border: `1px solid ${isCounter ? 'rgba(74,174,136,0.3)' : isBurden ? 'rgba(176,90,90,0.35)' : isTrigger ? 'rgba(200,168,80,0.3)' : 'rgba(107,163,200,0.2)'}`, borderRadius: '3px', padding: '12px 14px', background: isCounter ? 'rgba(74,174,136,0.06)' : isBurden ? 'rgba(176,90,90,0.08)' : isTrigger ? 'rgba(200,168,80,0.06)' : 'rgba(107,163,200,0.04)', width: '100%', boxSizing: 'border-box' }}>
-      <div style={{ fontSize: '8px', fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase', color: isCounter ? '#4AAE88' : isBurden ? '#B05A5A' : isTrigger ? '#C8A840' : '#6BA3C8', marginBottom: '6px' }}>{label}</div>
+    <div style={{ border: `1px solid ${isCounter ? 'rgba(74,174,136,0.3)' : isBurden ? 'rgba(176,90,90,0.35)' : isTrigger ? 'rgba(200,168,80,0.3)' : 'rgba(142,196,224,0.2)'}`, borderRadius: '3px', padding: '12px 14px', background: isCounter ? 'rgba(74,174,136,0.06)' : isBurden ? 'rgba(176,90,90,0.08)' : isTrigger ? 'rgba(200,168,80,0.06)' : 'rgba(142,196,224,0.04)', width: '100%', boxSizing: 'border-box' }}>
+      <div style={{ fontSize: '8px', fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase', color: isCounter ? '#4AAE88' : isBurden ? '#C87878' : isTrigger ? '#C8A840' : '#8EC4E0', marginBottom: '6px' }}>{label}</div>
       <div style={{ fontSize: '13px', color: '#D8E6F0', fontFamily: 'Georgia, serif', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{text || ''}</div>
     </div>
   );
@@ -80,16 +80,16 @@ function ComplexViewModal({ complex, onClose }) {
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 400, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '40px 20px' }}>
-      <div style={{ background: '#162534', border: '1px solid rgba(107,163,200,0.3)', borderRadius: '4px', width: '100%', maxWidth: '560px', padding: '32px', boxShadow: '0 0 40px rgba(0,0,0,0.6)', margin: 'auto' }}>
+      <div style={{ background: '#162534', border: '1px solid rgba(142,196,224,0.3)', borderRadius: '4px', width: '100%', maxWidth: '560px', padding: '32px', boxShadow: '0 0 40px rgba(0,0,0,0.6)', margin: 'auto' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '8px' }}>
           <div>
             <div style={{ fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: '300', color: '#D8E6F0' }}>{c.name}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
-              <span style={{ fontSize: '8px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', padding: '3px 8px', borderRadius: '2px', color: c.status === 'resolved' ? '#4AAE88' : '#B05A5A', background: c.status === 'resolved' ? 'rgba(74,174,136,0.12)' : 'rgba(176,90,90,0.12)', border: c.status === 'resolved' ? '1px solid rgba(74,174,136,0.3)' : '1px solid rgba(176,90,90,0.3)' }}>{c.status || 'active'}</span>
+              <span style={{ fontSize: '8px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', padding: '3px 8px', borderRadius: '2px', color: c.status === 'resolved' ? '#4AAE88' : '#C87878', background: c.status === 'resolved' ? 'rgba(74,174,136,0.12)' : 'rgba(176,90,90,0.12)', border: c.status === 'resolved' ? '1px solid rgba(74,174,136,0.3)' : '1px solid rgba(176,90,90,0.3)' }}>{c.status || 'active'}</span>
               {c.originalWound && <span style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '2px', textTransform: 'uppercase', color: '#C8A840', border: '1px dashed #C8A840', padding: '2px 7px', borderRadius: '2px' }}>Original Wound</span>}
             </div>
           </div>
-          <button style={{ background: 'none', border: 'none', color: '#5A7A94', cursor: 'pointer', fontSize: '18px' }} onClick={onClose}>✕</button>
+          <button style={{ background: 'none', border: 'none', color: '#8BAFC8', cursor: 'pointer', fontSize: '18px' }} onClick={onClose}>✕</button>
         </div>
         <div style={{ overflowX: 'auto', paddingBottom: '8px', marginTop: '24px' }}>
           <Row main={<FlowNode label="Emotional Burden" text={c.burden || ''} isBurden />} counter={<div />} connector={<div />} />
@@ -104,8 +104,8 @@ function ComplexViewModal({ complex, onClose }) {
           <Row main={<FlowNode label="Triggers" text={c.trigger || ''} isTrigger />} connector={<div />} counter={<div />} />
           {c.notes && c.notes.trim() && <div style={{ marginTop: '20px', opacity: 0.7, width: W + GAP + CW }}><FlowNode label="Notes" text={c.notes} /></div>}
         </div>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(107,163,200,0.15)' }}>
-          <button style={{ background: 'rgba(107,163,200,0.15)', border: '1px solid rgba(107,163,200,0.4)', borderRadius: '3px', padding: '10px 24px', color: '#6BA3C8', fontSize: '11px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', cursor: 'pointer' }} onClick={onClose}>Close</button>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(142,196,224,0.15)' }}>
+          <button style={{ background: 'rgba(142,196,224,0.15)', border: '1px solid rgba(142,196,224,0.4)', borderRadius: '3px', padding: '10px 24px', color: '#8EC4E0', fontSize: '11px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', cursor: 'pointer' }} onClick={onClose}>Close</button>
         </div>
       </div>
     </div>
@@ -264,7 +264,7 @@ function CBM() {
     setLogNote('');
   };
 
-  if (loading) return <div style={{ color: '#5A7A94', padding: '48px', textAlign: 'center' }}>Loading...</div>;
+  if (loading) return <div style={{ color: '#8BAFC8', padding: '48px', textAlign: 'center' }}>Loading...</div>;
 
   if (showAdd) {
     return (
@@ -286,7 +286,7 @@ function CBM() {
               </select>
             </div>
             <div style={styles.formGroup}>
-              <label style={{ ...styles.label, color: '#4AAE88' }}>Alternative Behaviors <span style={{ color: '#5A7A94', fontWeight: 400 }}>— optional, add multiple</span></label>
+              <label style={{ ...styles.label, color: '#4AAE88' }}>Alternative Behaviors <span style={{ color: '#8BAFC8', fontWeight: 400 }}>— optional, add multiple</span></label>
               <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
                 <input style={{ ...styles.input, borderColor: 'rgba(74,174,136,0.25)', flex: 1 }} value={formAltInput} onChange={e => setFormAltInput(e.target.value)} placeholder="What could you do instead?" onKeyDown={e => { if (e.key === 'Enter' && formAltInput.trim()) { setForm({ ...form, alternatives: [...form.alternatives, formAltInput.trim()] }); setFormAltInput(''); } }} />
                 <button style={{ ...styles.btn, padding: '8px 16px', background: 'rgba(74,174,136,0.1)', border: '1px solid rgba(74,174,136,0.3)', color: '#4AAE88' }} onClick={() => { if (formAltInput.trim()) { setForm({ ...form, alternatives: [...form.alternatives, formAltInput.trim()] }); setFormAltInput(''); } }}>Add</button>
@@ -294,7 +294,7 @@ function CBM() {
               {form.alternatives.map((a, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 10px', background: 'rgba(74,174,136,0.06)', border: '1px solid rgba(74,174,136,0.2)', borderRadius: '3px', marginBottom: '4px' }}>
                   <span style={{ flex: 1, fontSize: '13px', color: '#4AAE88' }}>{a}</span>
-                  <button style={{ background: 'none', border: 'none', color: '#B05A5A', cursor: 'pointer', fontSize: '14px' }} onClick={() => setForm({ ...form, alternatives: form.alternatives.filter((_, j) => j !== i) })}>✕</button>
+                  <button style={{ background: 'none', border: 'none', color: '#C87878', cursor: 'pointer', fontSize: '14px' }} onClick={() => setForm({ ...form, alternatives: form.alternatives.filter((_, j) => j !== i) })}>✕</button>
                 </div>
               ))}
             </div>
@@ -318,25 +318,25 @@ function CBM() {
       )}
 
       {popup && (
-        <div style={{ position: 'fixed', top: popup.y, left: popup.x, background: '#162534', border: '1px solid rgba(107,163,200,0.2)', borderRadius: '3px', zIndex: 300, minWidth: '200px', boxShadow: '0 4px 24px rgba(0,0,0,0.4)' }} onClick={e => e.stopPropagation()}>
-          <button style={{ ...styles.popupBtn, color: '#6BA3C8' }} onClick={() => { setInsightData({ name: popup.name, level: popup.levelIdx, idx: popup.behaviorIdx }); setShowInsightModal(true); setPopup(null); }}>See Insight</button>
-          <button style={{ ...styles.popupBtn, borderTop: '1px solid rgba(107,163,200,0.1)' }} onClick={() => { const b = data.levels[popup.levelIdx].behaviors[popup.behaviorIdx]; setEditForm({ name: b.name, level: popup.levelIdx }); setEditTarget({ level: popup.levelIdx, idx: popup.behaviorIdx }); setShowEditModal(true); setPopup(null); }}>Edit</button>
-          <button style={{ ...styles.popupBtn, borderTop: '1px solid rgba(107,163,200,0.1)', color: '#4AAE88' }} onClick={() => { const b = data.levels[popup.levelIdx].behaviors[popup.behaviorIdx]; setAltTarget({ level: popup.levelIdx, idx: popup.behaviorIdx, name: popup.name }); setAltList(getAlternatives(b)); setAltInput(''); setShowAltModal(true); setPopup(null); }}>Alternatives</button>
-          <div style={{ borderTop: '1px solid rgba(107,163,200,0.1)' }}>
+        <div style={{ position: 'fixed', top: popup.y, left: popup.x, background: '#162534', border: '1px solid rgba(142,196,224,0.2)', borderRadius: '3px', zIndex: 300, minWidth: '200px', boxShadow: '0 4px 24px rgba(0,0,0,0.4)' }} onClick={e => e.stopPropagation()}>
+          <button style={{ ...styles.popupBtn, color: '#8EC4E0' }} onClick={() => { setInsightData({ name: popup.name, level: popup.levelIdx, idx: popup.behaviorIdx }); setShowInsightModal(true); setPopup(null); }}>See Insight</button>
+          <button style={{ ...styles.popupBtn, borderTop: '1px solid rgba(142,196,224,0.1)' }} onClick={() => { const b = data.levels[popup.levelIdx].behaviors[popup.behaviorIdx]; setEditForm({ name: b.name, level: popup.levelIdx }); setEditTarget({ level: popup.levelIdx, idx: popup.behaviorIdx }); setShowEditModal(true); setPopup(null); }}>Edit</button>
+          <button style={{ ...styles.popupBtn, borderTop: '1px solid rgba(142,196,224,0.1)', color: '#4AAE88' }} onClick={() => { const b = data.levels[popup.levelIdx].behaviors[popup.behaviorIdx]; setAltTarget({ level: popup.levelIdx, idx: popup.behaviorIdx, name: popup.name }); setAltList(getAlternatives(b)); setAltInput(''); setShowAltModal(true); setPopup(null); }}>Alternatives</button>
+          <div style={{ borderTop: '1px solid rgba(142,196,224,0.1)' }}>
             <button style={{ ...styles.popupBtn, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} onClick={e => { e.stopPropagation(); setPopup({ ...popup, showMove: !popup.showMove }); }}>
               Move to Level <span style={{ opacity: 0.5 }}>{popup.showMove ? '▲' : '▼'}</span>
             </button>
             {popup.showMove && (
-              <div style={{ borderTop: '1px solid rgba(107,163,200,0.1)' }}>
+              <div style={{ borderTop: '1px solid rgba(142,196,224,0.1)' }}>
                 {LEVEL_NAMES.map((name, i) => i !== popup.levelIdx ? (
-                  <button key={i} style={{ ...styles.popupBtn, paddingLeft: '28px', fontSize: '10px', color: '#5A7A94' }} onClick={() => { moveBehavior(popup.levelIdx, popup.behaviorIdx, i); setPopup(null); }}>{name} ({i + 1})</button>
+                  <button key={i} style={{ ...styles.popupBtn, paddingLeft: '28px', fontSize: '10px', color: '#8BAFC8' }} onClick={() => { moveBehavior(popup.levelIdx, popup.behaviorIdx, i); setPopup(null); }}>{name} ({i + 1})</button>
                 ) : null)}
               </div>
             )}
           </div>
-          <button style={{ ...styles.popupBtn, borderTop: '1px solid rgba(107,163,200,0.1)' }} onClick={() => { setLinkTarget({ level: popup.levelIdx, idx: popup.behaviorIdx, name: popup.name }); setSelectedComplex(data.levels[popup.levelIdx].behaviors[popup.behaviorIdx]?.complexLink || ''); setShowLinkModal(true); setPopup(null); }}>Link to Complex</button>
-          <button style={{ ...styles.popupBtn, borderTop: '1px solid rgba(107,163,200,0.1)' }} onClick={() => { setPopup(null); navigate('/cpm', { state: { buildFromBehavior: popup.name } }); }}>Build Complex</button>
-          <button style={{ ...styles.popupBtn, borderTop: '1px solid rgba(107,163,200,0.1)', color: '#B05A5A' }} onClick={() => { deleteBehavior(popup.levelIdx, popup.behaviorIdx); setPopup(null); }}>Delete</button>
+          <button style={{ ...styles.popupBtn, borderTop: '1px solid rgba(142,196,224,0.1)' }} onClick={() => { setLinkTarget({ level: popup.levelIdx, idx: popup.behaviorIdx, name: popup.name }); setSelectedComplex(data.levels[popup.levelIdx].behaviors[popup.behaviorIdx]?.complexLink || ''); setShowLinkModal(true); setPopup(null); }}>Link to Complex</button>
+          <button style={{ ...styles.popupBtn, borderTop: '1px solid rgba(142,196,224,0.1)' }} onClick={() => { setPopup(null); navigate('/cpm', { state: { buildFromBehavior: popup.name } }); }}>Build Complex</button>
+          <button style={{ ...styles.popupBtn, borderTop: '1px solid rgba(142,196,224,0.1)', color: '#C87878' }} onClick={() => { deleteBehavior(popup.levelIdx, popup.behaviorIdx); setPopup(null); }}>Delete</button>
         </div>
       )}
 
@@ -348,28 +348,28 @@ function CBM() {
               <button style={styles.modalClose} onClick={() => setShowLogModal(false)}>✕</button>
             </div>
             <div style={styles.modalBody}>
-              <div style={{ fontSize: '12px', color: '#5A7A94', marginBottom: '24px' }}>Select the highest level you reached. You can log multiple times today.</div>
-              <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#5A7A94', textAlign: 'center', opacity: 0.5, marginBottom: '6px' }}>Higher Dysregulation</div>
+              <div style={{ fontSize: '12px', color: '#8BAFC8', marginBottom: '24px' }}>Select the highest level you reached. You can log multiple times today.</div>
+              <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8', textAlign: 'center', opacity: 0.6, marginBottom: '6px' }}>Higher Dysregulation</div>
               {[4, 3, 2, 1, 0].map(i => {
                 const cfg = LOG_CONFIGS[i];
                 const behaviors = data.levels[i] ? data.levels[i].behaviors : [];
                 const behaviorNames = behaviors.map(b => b.name).join(', ');
                 const isSelected = selectedLogLevel === (i + 1);
                 return (
-                  <div key={i} style={{ border: `1px solid ${cfg.border}`, background: cfg.color, borderRadius: '3px', padding: '12px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px', outline: isSelected ? '2px solid rgba(107,163,200,0.8)' : 'none', boxShadow: isSelected ? '0 0 12px rgba(107,163,200,0.15)' : 'none' }} onClick={() => setSelectedLogLevel(i + 1)}>
+                  <div key={i} style={{ border: `1px solid ${cfg.border}`, background: cfg.color, borderRadius: '3px', padding: '12px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px', outline: isSelected ? '2px solid rgba(142,196,224,0.8)' : 'none', boxShadow: isSelected ? '0 0 12px rgba(142,196,224,0.15)' : 'none' }} onClick={() => setSelectedLogLevel(i + 1)}>
                     <div>
-                      <span style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)' }}>{cfg.label}</span>
-                      {behaviorNames && <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginTop: '3px' }}>{behaviorNames}</div>}
+                      <span style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)' }}>{cfg.label}</span>
+                      {behaviorNames && <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginTop: '3px' }}>{behaviorNames}</div>}
                     </div>
-                    <span style={{ fontSize: '11px', fontWeight: '600', color: 'rgba(255,255,255,0.4)' }}>{cfg.num}</span>
+                    <span style={{ fontSize: '11px', fontWeight: '600', color: 'rgba(255,255,255,0.5)' }}>{cfg.num}</span>
                   </div>
                 );
               })}
-              <div style={{ border: '1px solid rgba(107,163,200,0.2)', background: 'rgba(107,163,200,0.06)', borderRadius: '3px', padding: '12px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px', outline: selectedLogLevel === 0 ? '2px solid rgba(107,163,200,0.8)' : 'none' }} onClick={() => setSelectedLogLevel(0)}>
-                <span style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#5A7A94' }}>Regulated · None</span>
-                <span style={{ fontSize: '11px', fontWeight: '600', color: 'rgba(107,163,200,0.4)' }}>0</span>
+              <div style={{ border: '1px solid rgba(142,196,224,0.2)', background: 'rgba(142,196,224,0.06)', borderRadius: '3px', padding: '12px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px', outline: selectedLogLevel === 0 ? '2px solid rgba(142,196,224,0.8)' : 'none' }} onClick={() => setSelectedLogLevel(0)}>
+                <span style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#8BAFC8' }}>Regulated · None</span>
+                <span style={{ fontSize: '11px', fontWeight: '600', color: 'rgba(142,196,224,0.5)' }}>0</span>
               </div>
-              <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#5A7A94', textAlign: 'center', opacity: 0.5, marginTop: '6px', marginBottom: '20px' }}>Lower Dysregulation</div>
+              <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8', textAlign: 'center', opacity: 0.6, marginTop: '6px', marginBottom: '20px' }}>Lower Dysregulation</div>
               <div style={styles.formGroup}>
                 <label style={styles.label}>Note (optional)</label>
                 <input style={styles.input} value={logNote} onChange={e => setLogNote(e.target.value)} placeholder="What happened? What triggered it?" />
@@ -416,21 +416,21 @@ function CBM() {
             <div style={styles.modalHeader}>
               <div>
                 <div style={styles.modalTitle}>Alternatives</div>
-                <div style={{ fontSize: '12px', color: '#5A7A94', marginTop: '4px' }}>{altTarget?.name}</div>
+                <div style={{ fontSize: '12px', color: '#8BAFC8', marginTop: '4px' }}>{altTarget?.name}</div>
               </div>
               <button style={styles.modalClose} onClick={() => setShowAltModal(false)}>✕</button>
             </div>
             <div style={styles.modalBody}>
-              <div style={{ fontSize: '12px', color: '#5A7A94', marginBottom: '16px' }}>What could you do instead? Add one or more alternatives.</div>
+              <div style={{ fontSize: '12px', color: '#8BAFC8', marginBottom: '16px' }}>What could you do instead? Add one or more alternatives.</div>
               <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
                 <input style={{ ...styles.input, borderColor: 'rgba(74,174,136,0.25)', flex: 1 }} value={altInput} onChange={e => setAltInput(e.target.value)} placeholder="Add an alternative..." onKeyDown={e => { if (e.key === 'Enter' && altInput.trim()) { setAltList([...altList, altInput.trim()]); setAltInput(''); } }} autoFocus />
                 <button style={{ ...styles.btn, padding: '8px 16px', background: 'rgba(74,174,136,0.1)', border: '1px solid rgba(74,174,136,0.3)', color: '#4AAE88' }} onClick={() => { if (altInput.trim()) { setAltList([...altList, altInput.trim()]); setAltInput(''); } }}>Add</button>
               </div>
-              {altList.length === 0 && <div style={{ fontSize: '12px', color: '#5A7A94', fontStyle: 'italic', padding: '12px 0' }}>No alternatives yet.</div>}
+              {altList.length === 0 && <div style={{ fontSize: '12px', color: '#8BAFC8', fontStyle: 'italic', padding: '12px 0' }}>No alternatives yet.</div>}
               {altList.map((a, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', background: 'rgba(74,174,136,0.06)', border: '1px solid rgba(74,174,136,0.2)', borderRadius: '3px', marginBottom: '6px' }}>
                   <span style={{ flex: 1, fontSize: '13px', color: '#4AAE88', fontFamily: 'Georgia, serif' }}>{a}</span>
-                  <button style={{ background: 'none', border: 'none', color: '#B05A5A', cursor: 'pointer', fontSize: '14px' }} onClick={() => setAltList(altList.filter((_, j) => j !== i))}>✕</button>
+                  <button style={{ background: 'none', border: 'none', color: '#C87878', cursor: 'pointer', fontSize: '14px' }} onClick={() => setAltList(altList.filter((_, j) => j !== i))}>✕</button>
                 </div>
               ))}
             </div>
@@ -458,7 +458,7 @@ function CBM() {
                 const BURDEN_COLORS = { Fear: '#8B5A3C', Guilt: '#B4A03C', Shame: '#C87832', Anger: '#B05A5A', Envy: '#825AB4', Grief: '#A07882' };
                 return (
                   <>
-                    <div style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase', color: '#6BA3C8', marginBottom: '4px' }}>{LEVEL_NAMES[insightData.level]}</div>
+                    <div style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase', color: '#8EC4E0', marginBottom: '4px' }}>{LEVEL_NAMES[insightData.level]}</div>
                     <div style={{ fontFamily: 'Georgia, serif', fontSize: '20px', fontWeight: '300', color: '#D8E6F0', marginBottom: alternatives.length > 0 ? '12px' : '28px' }}>{insightData.name}</div>
                     {alternatives.length > 0 && (
                       <div style={{ padding: '12px 16px', border: '1px solid rgba(74,174,136,0.3)', borderRadius: '3px', background: 'rgba(74,174,136,0.06)', marginBottom: '24px' }}>
@@ -469,33 +469,33 @@ function CBM() {
                       </div>
                     )}
                     {!complexLink ? (
-                      <div style={{ padding: '20px', border: '1px solid rgba(107,163,200,0.15)', borderRadius: '3px', background: 'rgba(107,163,200,0.04)', textAlign: 'center' }}>
-                        <div style={{ fontSize: '13px', color: '#5A7A94', fontFamily: 'Georgia, serif', fontStyle: 'italic', marginBottom: '12px' }}>No complex linked to this behavior yet.</div>
-                        <div style={{ fontSize: '11px', color: '#5A7A94' }}>Use <strong>Link to Complex</strong> to connect this behavior to its pattern.</div>
+                      <div style={{ padding: '20px', border: '1px solid rgba(142,196,224,0.15)', borderRadius: '3px', background: 'rgba(142,196,224,0.04)', textAlign: 'center' }}>
+                        <div style={{ fontSize: '13px', color: '#8BAFC8', fontFamily: 'Georgia, serif', fontStyle: 'italic', marginBottom: '12px' }}>No complex linked to this behavior yet.</div>
+                        <div style={{ fontSize: '11px', color: '#8BAFC8' }}>Use <strong>Link to Complex</strong> to connect this behavior to its pattern.</div>
                       </div>
                     ) : (
                       <>
-                        <div style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase', color: '#5A7A94', marginBottom: '12px' }}>Linked Complex</div>
+                        <div style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8', marginBottom: '12px' }}>Linked Complex</div>
                         {complex ? (
                           <>
-                            <div style={{ cursor: 'pointer', padding: '14px 16px', border: '1px solid rgba(107,163,200,0.2)', borderRadius: '3px', background: 'rgba(107,163,200,0.04)', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} onClick={() => { setShowInsightModal(false); setViewComplex(complex); setShowComplexModal(true); }}>
+                            <div style={{ cursor: 'pointer', padding: '14px 16px', border: '1px solid rgba(142,196,224,0.2)', borderRadius: '3px', background: 'rgba(142,196,224,0.04)', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} onClick={() => { setShowInsightModal(false); setViewComplex(complex); setShowComplexModal(true); }}>
                               <div>
                                 <div style={{ fontSize: '15px', fontWeight: '600', color: '#D8E6F0', marginBottom: '4px' }}>{complex.name}</div>
-                                {complex.burden && <div style={{ fontSize: '9px', letterSpacing: '2px', textTransform: 'uppercase', color: BURDEN_COLORS[complex.burden] || '#6BA3C8' }}>{complex.burden}</div>}
+                                {complex.burden && <div style={{ fontSize: '9px', letterSpacing: '2px', textTransform: 'uppercase', color: BURDEN_COLORS[complex.burden] || '#8EC4E0' }}>{complex.burden}</div>}
                               </div>
-                              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4 2 L9 6 L4 10" stroke="rgba(107,163,200,0.5)" strokeWidth="1.5" strokeLinecap="round" /></svg>
+                              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4 2 L9 6 L4 10" stroke="rgba(142,196,224,0.5)" strokeWidth="1.5" strokeLinecap="round" /></svg>
                             </div>
                             {complex.counterBehavior && <div style={{ padding: '14px 16px', border: '1px solid rgba(74,174,136,0.25)', borderRadius: '3px', background: 'rgba(74,174,136,0.05)', marginBottom: '12px' }}>
                               <div style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase', color: '#4AAE88', marginBottom: '8px' }}>Counter Behavior</div>
-                              <div style={{ fontSize: '14px', color: '#8BAFC8', fontFamily: 'Georgia, serif', lineHeight: 1.7 }}>{complex.counterBehavior}</div>
+                              <div style={{ fontSize: '14px', color: '#A0C4D8', fontFamily: 'Georgia, serif', lineHeight: 1.7 }}>{complex.counterBehavior}</div>
                             </div>}
                             {complex.counter && <div style={{ padding: '14px 16px', border: '1px solid rgba(74,174,136,0.15)', borderRadius: '3px', background: 'rgba(74,174,136,0.03)' }}>
                               <div style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase', color: '#4AAE88', marginBottom: '8px' }}>Counter Belief</div>
-                              <div style={{ fontSize: '14px', color: '#8BAFC8', fontFamily: 'Georgia, serif', lineHeight: 1.7 }}>{complex.counter}</div>
+                              <div style={{ fontSize: '14px', color: '#A0C4D8', fontFamily: 'Georgia, serif', lineHeight: 1.7 }}>{complex.counter}</div>
                             </div>}
                           </>
                         ) : (
-                          <div style={{ fontSize: '14px', color: '#6BA3C8', fontFamily: 'Georgia, serif' }}>{complexLink}</div>
+                          <div style={{ fontSize: '14px', color: '#8EC4E0', fontFamily: 'Georgia, serif' }}>{complexLink}</div>
                         )}
                       </>
                     )}
@@ -518,7 +518,7 @@ function CBM() {
               <button style={styles.modalClose} onClick={() => setShowLinkModal(false)}>✕</button>
             </div>
             <div style={styles.modalBody}>
-              <div style={{ fontSize: '13px', color: '#5A7A94', marginBottom: '20px' }}>Link <strong style={{ color: '#D8E6F0' }}>{linkTarget?.name}</strong> to a complex pattern.</div>
+              <div style={{ fontSize: '13px', color: '#8BAFC8', marginBottom: '20px' }}>Link <strong style={{ color: '#D8E6F0' }}>{linkTarget?.name}</strong> to a complex pattern.</div>
               <div style={styles.formGroup}>
                 <label style={styles.label}>Select Complex</label>
                 <select style={styles.input} value={selectedComplex} onChange={e => setSelectedComplex(e.target.value)}>
@@ -535,12 +535,11 @@ function CBM() {
         </div>
       )}
 
-      {/* Header */}
       <div style={styles.header}>
         <button style={styles.backBtn} onClick={() => navigate('/')}>← Home</button>
         <span style={styles.toolbarTitle}>Compulsive Behavior Map</span>
-        <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#5A7A94', marginRight: '8px' }} onClick={() => navigate('/progress')}>View Progress →</button>
-        <button style={{ ...styles.btn, marginRight: '8px', background: 'rgba(255,200,80,0.08)', border: '1px solid rgba(255,200,80,0.25)', color: 'rgba(255,200,80,0.8)' }} onClick={() => navigate('/yesterday')}>Yesterday</button>
+        <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#8BAFC8', marginRight: '8px' }} onClick={() => navigate('/progress')}>View Progress →</button>
+        <button style={{ ...styles.btn, marginRight: '8px', background: 'rgba(255,200,80,0.08)', border: '1px solid rgba(255,200,80,0.25)', color: 'rgba(255,200,80,0.9)' }} onClick={() => navigate('/yesterday')}>Yesterday</button>
         <button style={{ ...styles.btn, marginRight: '8px' }} onClick={() => setShowLogModal(true)}>Set Resistance</button>
         <button style={styles.btn} onClick={() => setShowAdd(true)}>+ Add Behavior</button>
       </div>
@@ -550,32 +549,32 @@ function CBM() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', marginBottom: '8px' }}>
           {recentLogs.length === 0 ? (
             <>
-              <span style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#5A7A94' }}>Resistance Line:</span>
-              <span style={{ fontSize: '11px', color: '#5A7A94', fontStyle: 'italic' }}>Will appear after your first log entry</span>
+              <span style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8' }}>Resistance Line:</span>
+              <span style={{ fontSize: '11px', color: '#8BAFC8', fontStyle: 'italic' }}>Will appear after your first log entry</span>
             </>
           ) : (
             <>
-              <div style={{ width: '10px', height: '2px', background: 'rgba(255,200,80,0.7)' }} />
-              <span style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: 'rgba(255,200,80,0.8)' }}>Resistance Line</span>
-              <span style={{ fontSize: '11px', color: 'rgba(255,200,80,0.6)', letterSpacing: '1px' }}>
+              <div style={{ width: '10px', height: '2px', background: 'rgba(255,200,80,0.8)' }} />
+              <span style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: 'rgba(255,200,80,0.9)' }}>Resistance Line</span>
+              <span style={{ fontSize: '11px', color: 'rgba(255,200,80,0.75)', letterSpacing: '1px' }}>
                 {resistance !== null ? `${resistance.toFixed(1)} (${LEVEL_NAMES[Math.min(Math.round(resistance) - 1, 4)] || 'None'}, 28-day rolling avg)` : '--'}
               </span>
             </>
           )}
         </div>
 
-        <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid rgba(107,163,200,0.15)', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid rgba(142,196,224,0.15)', marginBottom: '20px' }}>
           <button style={{ ...styles.tabBtn, ...(view === 'dysregulated' ? styles.tabBtnActive : {}) }} onClick={() => setView('dysregulated')}>Dysregulated</button>
           <button style={{ ...styles.tabBtn, ...(view === 'regulated' ? { ...styles.tabBtnActive, color: '#4AAE88', borderBottomColor: '#4AAE88' } : {}) }} onClick={() => setView('regulated')}>Regulated Self</button>
         </div>
 
         {view === 'regulated' && !hasAlternatives ? (
-          <div style={{ textAlign: 'center', padding: '40px 24px', fontFamily: 'Georgia, serif', fontStyle: 'italic', color: '#5A7A94' }}>
+          <div style={{ textAlign: 'center', padding: '40px 24px', fontFamily: 'Georgia, serif', fontStyle: 'italic', color: '#8BAFC8' }}>
             Add alternative behaviors to your compulsive behaviors to build your regulated self map.
           </div>
         ) : (
           <>
-            <div style={{ textAlign: 'center', fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: view === 'regulated' ? '#4AAE88' : '#5A7A94', marginBottom: '12px', opacity: 0.5 }}>
+            <div style={{ textAlign: 'center', fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: view === 'regulated' ? '#4AAE88' : '#8BAFC8', marginBottom: '12px', opacity: 0.7 }}>
               {view === 'regulated' ? 'Higher Regulation' : 'Higher Dysregulation'}
             </div>
             <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', maxWidth: '700px', margin: '0 auto' }}>
@@ -587,28 +586,28 @@ function CBM() {
                 return (
                   <React.Fragment key={i}>
                     <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '2px', minHeight: '72px', width: cfg.width, background: cfg.color, border: `1px solid ${cfg.border}` }}>
-                      <span style={{ position: 'absolute', left: '-80px', fontSize: '9px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: isReg ? '#4AAE88' : '#5A7A94', whiteSpace: 'nowrap' }}>{cfg.label}</span>
+                      <span style={{ position: 'absolute', left: '-80px', fontSize: '9px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: isReg ? '#4AAE88' : '#8BAFC8', whiteSpace: 'nowrap' }}>{cfg.label}</span>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center', alignItems: 'center', minHeight: '40px', padding: '12px 24px' }}>
                         {isReg ? (
                           alternatives.length === 0
-                            ? <span style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', pointerEvents: 'none' }}>Level {i + 1}</span>
+                            ? <span style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', pointerEvents: 'none' }}>Level {i + 1}</span>
                             : alternatives.map((a, ai) => (
                               <span key={ai} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '5px 10px', borderRadius: '2px', fontSize: '11px', fontWeight: '500', border: `1px solid ${cfg.border}`, background: 'rgba(74,174,136,0.08)', color: '#4AAE88', margin: '3px' }}>{a}</span>
                             ))
                         ) : (
                           behaviors.length === 0
-                            ? <span style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', pointerEvents: 'none' }}>Level {i + 1}</span>
+                            ? <span style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', pointerEvents: 'none' }}>Level {i + 1}</span>
                             : behaviors.map((b, bi) => (
-                              <span key={bi} style={{ fontSize: '11px', fontWeight: '500', letterSpacing: '1px', padding: '5px 14px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.85)', background: 'rgba(0,0,0,0.15)', cursor: 'default', position: 'relative' }}
+                              <span key={bi} style={{ fontSize: '11px', fontWeight: '500', letterSpacing: '1px', padding: '5px 14px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.9)', background: 'rgba(0,0,0,0.15)', cursor: 'default', position: 'relative' }}
                                 onClick={e => { e.stopPropagation(); const rect = e.currentTarget.getBoundingClientRect(); setPopup({ levelIdx: i, behaviorIdx: bi, name: b.name, y: rect.bottom + 6, x: rect.left, showMove: false }); }}>
                                 {b.name}
-                                {b.complexLink && <span style={{ fontSize: '8px', opacity: 0.6, marginLeft: '4px' }}>⟡</span>}
-                                {getAlternatives(b).length > 0 && <span style={{ fontSize: '8px', opacity: 0.6, marginLeft: '4px', color: '#4AAE88' }}>✓</span>}
+                                {b.complexLink && <span style={{ fontSize: '8px', opacity: 0.7, marginLeft: '4px' }}>⟡</span>}
+                                {getAlternatives(b).length > 0 && <span style={{ fontSize: '8px', opacity: 0.7, marginLeft: '4px', color: '#4AAE88' }}>✓</span>}
                               </span>
                             ))
                         )}
                       </div>
-                      <span style={{ position: 'absolute', right: '-40px', fontSize: '11px', fontWeight: '600', color: isReg ? 'rgba(74,174,136,0.4)' : 'rgba(255,255,255,0.4)' }}>{i + 1}</span>
+                      <span style={{ position: 'absolute', right: '-40px', fontSize: '11px', fontWeight: '600', color: isReg ? 'rgba(74,174,136,0.5)' : 'rgba(255,255,255,0.5)' }}>{i + 1}</span>
                     </div>
                     {i > 0 && <div style={{ width: cfg.width, height: '3px', background: `linear-gradient(to bottom, ${cfg.border}, transparent)` }} />}
                   </React.Fragment>
@@ -617,13 +616,13 @@ function CBM() {
             </div>
 
             {view === 'dysregulated' && (
-              <div style={{ textAlign: 'center', fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#5A7A94', marginTop: '12px', opacity: 0.5 }}>
+              <div style={{ textAlign: 'center', fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8', marginTop: '12px', opacity: 0.7 }}>
                 Lower Dysregulation
               </div>
             )}
 
             {view === 'dysregulated' && todayCeiling !== null && (
-              <div style={{ marginTop: '16px', fontSize: '11px', color: '#5A7A94', letterSpacing: '1px', textAlign: 'center' }}>
+              <div style={{ marginTop: '16px', fontSize: '11px', color: '#8BAFC8', letterSpacing: '1px', textAlign: 'center' }}>
                 Today: <span style={{ color: '#D8E6F0' }}>Level {todayCeiling} ({LEVEL_NAMES[Math.min(todayCeiling - 1, 4)] || 'Regulated'})</span>
               </div>
             )}
@@ -636,24 +635,24 @@ function CBM() {
 
 const styles = {
   container: { minHeight: '100vh', background: '#0d1b2a', display: 'flex', flexDirection: 'column' },
-  header: { display: 'flex', alignItems: 'center', gap: '8px', padding: '16px 32px', borderBottom: '1px solid rgba(107,163,200,0.15)', background: '#0f2236' },
-  backBtn: { background: 'none', border: 'none', color: '#5A7A94', fontSize: '12px', fontWeight: '600', letterSpacing: '1px', cursor: 'pointer', padding: 0, marginRight: '8px' },
-  toolbarTitle: { fontSize: '11px', fontWeight: '600', letterSpacing: '4px', textTransform: 'uppercase', color: '#5A7A94', flex: 1, textAlign: 'center' },
-  btn: { background: 'rgba(107,163,200,0.15)', border: '1px solid rgba(107,163,200,0.4)', borderRadius: '3px', padding: '8px 16px', color: '#6BA3C8', fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', cursor: 'pointer', whiteSpace: 'nowrap' },
-  tabBtn: { background: 'none', border: 'none', borderBottom: '2px solid transparent', padding: '10px 20px', color: '#5A7A94', fontSize: '10px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', cursor: 'pointer', marginBottom: '-1px' },
-  tabBtnActive: { color: '#D8E6F0', borderBottomColor: '#6BA3C8' },
+  header: { display: 'flex', alignItems: 'center', gap: '8px', padding: '16px 32px', borderBottom: '1px solid rgba(142,196,224,0.15)', background: '#0f2236' },
+  backBtn: { background: 'none', border: 'none', color: '#8BAFC8', fontSize: '12px', fontWeight: '600', letterSpacing: '1px', cursor: 'pointer', padding: 0, marginRight: '8px' },
+  toolbarTitle: { fontSize: '11px', fontWeight: '600', letterSpacing: '4px', textTransform: 'uppercase', color: '#8BAFC8', flex: 1, textAlign: 'center' },
+  btn: { background: 'rgba(142,196,224,0.15)', border: '1px solid rgba(142,196,224,0.4)', borderRadius: '3px', padding: '8px 16px', color: '#8EC4E0', fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', cursor: 'pointer', whiteSpace: 'nowrap' },
+  tabBtn: { background: 'none', border: 'none', borderBottom: '2px solid transparent', padding: '10px 20px', color: '#8BAFC8', fontSize: '10px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', cursor: 'pointer', marginBottom: '-1px' },
+  tabBtnActive: { color: '#D8E6F0', borderBottomColor: '#8EC4E0' },
   popupBtn: { display: 'block', width: '100%', background: 'none', border: 'none', padding: '10px 16px', color: '#D8E6F0', fontSize: '12px', cursor: 'pointer', textAlign: 'left' },
-  card: { background: '#162534', border: '1px solid rgba(107,163,200,0.15)', borderRadius: '4px', padding: '32px' },
+  card: { background: '#162534', border: '1px solid rgba(142,196,224,0.15)', borderRadius: '4px', padding: '32px' },
   formGroup: { marginBottom: '20px' },
-  label: { display: 'block', fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#5A7A94', marginBottom: '8px' },
-  input: { width: '100%', background: '#0f2236', border: '1px solid rgba(107,163,200,0.2)', borderRadius: '3px', padding: '10px 14px', color: '#D8E6F0', fontSize: '14px', outline: 'none', boxSizing: 'border-box' },
+  label: { display: 'block', fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#8BAFC8', marginBottom: '8px' },
+  input: { width: '100%', background: '#0f2236', border: '1px solid rgba(142,196,224,0.2)', borderRadius: '3px', padding: '10px 14px', color: '#D8E6F0', fontSize: '14px', outline: 'none', boxSizing: 'border-box' },
   formFooter: { display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' },
-  cancelBtn: { background: 'none', border: '1px solid rgba(107,163,200,0.2)', borderRadius: '3px', padding: '10px 20px', color: '#5A7A94', fontSize: '11px', cursor: 'pointer' },
+  cancelBtn: { background: 'none', border: '1px solid rgba(142,196,224,0.2)', borderRadius: '3px', padding: '10px 20px', color: '#8BAFC8', fontSize: '11px', cursor: 'pointer' },
   modalOverlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  modal: { background: '#162534', border: '1px solid rgba(107,163,200,0.3)', borderRadius: '4px', width: '100%', maxWidth: '480px', padding: 0, boxShadow: '0 0 40px rgba(0,0,0,0.6)', maxHeight: '90vh', overflowY: 'auto' },
+  modal: { background: '#162534', border: '1px solid rgba(142,196,224,0.3)', borderRadius: '4px', width: '100%', maxWidth: '480px', padding: 0, boxShadow: '0 0 40px rgba(0,0,0,0.6)', maxHeight: '90vh', overflowY: 'auto' },
   modalHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px 28px 16px' },
   modalTitle: { fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: '300', color: '#D8E6F0' },
-  modalClose: { background: 'none', border: 'none', color: '#5A7A94', cursor: 'pointer', fontSize: '18px' },
+  modalClose: { background: 'none', border: 'none', color: '#8BAFC8', cursor: 'pointer', fontSize: '18px' },
   modalBody: { padding: '0 28px 16px' },
   modalFooter: { display: 'flex', gap: '12px', padding: '16px 28px 24px', justifyContent: 'flex-end' },
 };

@@ -75,26 +75,44 @@ const ESM_DIMS = [
 function ScoreSlider({ value, onChange }) {
   const trackRef = React.useRef(null);
   const isDragging = React.useRef(false);
+  const onChangeRef = React.useRef(onChange);
+  const [visualPct, setVisualPct] = React.useState(null);
+  React.useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
 
-  const displayPct = ((-value + 5) / 10) * 100;
-  const handleLeft = `${displayPct}%`;
-  const color = value > 0 ? '#4AAE88' : value < 0 ? '#B05A5A' : '#6BA3C8';
-  const borderColor = value > 0 ? '#4AAE88' : value < 0 ? '#B05A5A' : '#6BA3C8';
-  const glow = value > 0 ? 'rgba(74,174,136,0.5)' : value < 0 ? 'rgba(176,90,90,0.5)' : 'rgba(107,163,200,0.4)';
-
-  const applyPct = (clientX) => {
+  const pctFromClient = (clientX) => {
     const track = trackRef.current;
-    if (!track) return;
+    if (!track) return null;
     const rect = track.getBoundingClientRect();
     let p = (clientX - rect.left) / rect.width;
-    p = Math.max(0, Math.min(1, p));
-    const raw = Math.round(5 - p * 10);
-    onChange(raw);
+    return Math.max(0, Math.min(1, p));
   };
 
+  const valueFromPct = (p) => Math.round(5 - p * 10);
+  const pctFromValue = (v) => ((-v + 5) / 10);
+
+  const displayPct = visualPct !== null ? visualPct : pctFromValue(value);
+  const displayValue = visualPct !== null ? valueFromPct(visualPct) : value;
+
+  const color = displayValue > 0 ? '#4AAE88' : displayValue < 0 ? '#B05A5A' : '#8EC4E0';
+  const borderColor = displayValue > 0 ? '#4AAE88' : displayValue < 0 ? '#B05A5A' : '#8EC4E0';
+  const glow = displayValue > 0 ? 'rgba(74,174,136,0.5)' : displayValue < 0 ? 'rgba(176,90,90,0.5)' : 'rgba(142,196,224,0.4)';
+
   React.useEffect(() => {
-    const onMove = (e) => { if (isDragging.current) applyPct(e.touches ? e.touches[0].clientX : e.clientX); };
-    const onUp = () => { isDragging.current = false; };
+    const onMove = (e) => {
+      if (!isDragging.current) return;
+      e.preventDefault();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const p = pctFromClient(clientX);
+      if (p !== null) {
+        setVisualPct(p);
+        onChangeRef.current(valueFromPct(p));
+      }
+    };
+    const onUp = () => {
+      if (!isDragging.current) return;
+      isDragging.current = false;
+      setVisualPct(null);
+    };
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
     window.addEventListener('touchmove', onMove, { passive: false });
@@ -107,26 +125,28 @@ function ScoreSlider({ value, onChange }) {
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const fillStyle = value === 0
-    ? { left: '45%', width: '10%', background: 'rgba(107,163,200,0.2)' }
-    : value > 0
-      ? { left: `${displayPct}%`, width: `${100 - displayPct}%`, background: 'rgba(74,174,136,0.5)' }
-      : { left: '0%', width: `${displayPct}%`, background: 'rgba(176,90,90,0.5)' };
+  const handleLeft = `${displayPct * 100}%`;
+
+  const fillStyle = displayValue === 0
+    ? { left: '45%', width: '10%', background: 'rgba(142,196,224,0.2)' }
+    : displayValue > 0
+      ? { left: `${displayPct * 100}%`, width: `${100 - displayPct * 100}%`, background: 'rgba(74,174,136,0.5)' }
+      : { left: '0%', width: `${displayPct * 100}%`, background: 'rgba(176,90,90,0.5)' };
 
   return (
     <div style={{ padding: '8px 16px', minWidth: '180px' }}>
       <div
         ref={trackRef}
-        style={{ position: 'relative', height: '10px', background: 'linear-gradient(to right, rgba(74,174,136,0.4), rgba(107,163,200,0.15) 50%, rgba(176,90,90,0.4))', borderRadius: '5px', cursor: 'pointer', border: '1px solid rgba(107,163,200,0.2)', margin: '8px 0' }}
-        onMouseDown={(e) => { isDragging.current = true; applyPct(e.clientX); e.preventDefault(); }}
-        onTouchStart={(e) => { isDragging.current = true; applyPct(e.touches[0].clientX); }}
-        onClick={(e) => applyPct(e.clientX)}
+        style={{ position: 'relative', height: '10px', background: 'linear-gradient(to right, rgba(74,174,136,0.4), rgba(142,196,224,0.15) 50%, rgba(176,90,90,0.4))', borderRadius: '5px', cursor: 'pointer', border: '1px solid rgba(142,196,224,0.25)', margin: '8px 0' }}
+        onMouseDown={(e) => { isDragging.current = true; const p = pctFromClient(e.clientX); if (p !== null) { setVisualPct(p); onChangeRef.current(valueFromPct(p)); } e.preventDefault(); }}
+        onTouchStart={(e) => { isDragging.current = true; const p = pctFromClient(e.touches[0].clientX); if (p !== null) { setVisualPct(p); onChangeRef.current(valueFromPct(p)); } }}
+        onClick={(e) => { const p = pctFromClient(e.clientX); if (p !== null) { onChangeRef.current(valueFromPct(p)); } }}
       >
         <div style={{ position: 'absolute', top: 0, bottom: 0, borderRadius: '5px', pointerEvents: 'none', ...fillStyle }} />
-        <div style={{ position: 'absolute', top: '50%', left: handleLeft, transform: 'translate(-50%, -50%)', width: '22px', height: '22px', borderRadius: '50%', background: '#1a2d3d', border: `2.5px solid ${borderColor}`, boxShadow: `0 0 8px ${glow}`, cursor: 'grab', zIndex: 2, pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: '50%', left: handleLeft, transform: 'translate(-50%, -50%)', width: '22px', height: '22px', borderRadius: '50%', background: '#1a2d3d', border: `2.5px solid ${borderColor}`, boxShadow: `0 0 8px ${glow}`, cursor: 'grab', zIndex: 2, pointerEvents: 'none', transition: isDragging.current ? 'none' : 'left 0.1s ease' }} />
       </div>
       <div style={{ textAlign: 'center', fontFamily: 'Georgia, serif', fontSize: '28px', fontWeight: '300', color, marginTop: '8px', lineHeight: 1 }}>
-        {value > 0 ? '+' : ''}{value}
+        {displayValue > 0 ? '+' : ''}{displayValue}
       </div>
     </div>
   );
@@ -330,21 +350,21 @@ function Scan() {
                   <span style={styles.scanLib}>{dim.liberated}</span>
                   <span style={styles.scanVs}>vs</span>
                   <span style={styles.scanBur}>{dim.burdened}</span>
-                  <ScoreSlider value={ism[dim.id]} onChange={v => setIsm({ ...ism, [dim.id]: v })} />
+                  <ScoreSlider value={ism[dim.id]} onChange={v => setIsm(prev => ({ ...prev, [dim.id]: v }))} />
                 </div>
               ))}
             </div>
 
             <div style={{ ...styles.dimHeader, marginTop: '48px' }}>
-              <span style={{ ...styles.badge, color: '#B088D4', background: 'rgba(176,136,212,0.1)' }}>ESM</span>
+              <span style={{ ...styles.badge, color: '#C49FDA', background: 'rgba(176,136,212,0.15)' }}>ESM</span>
               <span style={styles.dimTitle}>Emotional Spectrum Map</span>
               <span style={styles.dimSub}>Emotional Dimension</span>
             </div>
             <div style={styles.esmHeaders}>
               <span style={styles.esmHeaderCell}>Dimension</span>
-              <span style={{ ...styles.esmHeaderCell, color: '#4AAE88', background: 'rgba(74,174,136,0.06)' }}>Liberated</span>
+              <span style={{ ...styles.esmHeaderCell, color: '#4AAE88', background: 'rgba(74,174,136,0.08)' }}>Liberated</span>
               <span style={styles.esmHeaderCell}></span>
-              <span style={{ ...styles.esmHeaderCell, color: '#B05A5A', background: 'rgba(176,90,90,0.06)' }}>Burden</span>
+              <span style={{ ...styles.esmHeaderCell, color: '#C87878', background: 'rgba(176,90,90,0.08)' }}>Burden</span>
               <span style={styles.esmHeaderCell}>Fundamental Right / Score</span>
             </div>
             <div style={styles.scanTable}>
@@ -355,7 +375,7 @@ function Scan() {
                   <span style={styles.scanVs}>vs</span>
                   <span style={styles.scanBur}>{dim.burdened}</span>
                   <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <ScoreSlider value={esm[dim.id]} onChange={v => setEsm({ ...esm, [dim.id]: v })} />
+                    <ScoreSlider value={esm[dim.id]} onChange={v => setEsm(prev => ({ ...prev, [dim.id]: v }))} />
                     <span style={styles.esmRight}>{dim.right}</span>
                   </div>
                 </div>
@@ -384,37 +404,37 @@ function Scan() {
 const styles = {
   container: { minHeight: '100vh', background: '#0d1b2a', display: 'flex', flexDirection: 'column' },
   header: { display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 32px', borderBottom: '1px solid rgba(107,163,200,0.15)', background: '#0f2236' },
-  backBtn: { background: 'none', border: 'none', color: '#5A7A94', fontSize: '12px', fontWeight: '600', letterSpacing: '1px', cursor: 'pointer', padding: 0 },
+  backBtn: { background: 'none', border: 'none', color: '#8BAFC8', fontSize: '12px', fontWeight: '600', letterSpacing: '1px', cursor: 'pointer', padding: 0 },
   screenTitle: { fontFamily: 'Georgia, serif', fontSize: '18px', fontWeight: '300', color: '#D8E6F0', letterSpacing: '2px' },
   body: { maxWidth: '960px', margin: '0 auto', padding: '40px 32px 80px', width: '100%' },
-  modeBar: { display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '40px', padding: '16px 20px', border: '1px solid rgba(107,163,200,0.15)', background: '#0f2236' },
-  modePill: { fontFamily: '-apple-system, sans-serif', fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', padding: '8px 20px', border: '1px solid rgba(107,163,200,0.2)', background: 'none', color: '#5A7A94', cursor: 'pointer', borderRadius: '2px' },
-  modePillActive: { borderColor: '#6BA3C8', background: 'rgba(107,163,200,0.1)', color: '#D8E6F0' },
-  dimHeader: { display: 'flex', alignItems: 'baseline', gap: '16px', marginBottom: '16px', paddingBottom: '12px', borderBottom: '2px solid rgba(107,163,200,0.25)' },
-  badge: { fontSize: '11px', fontWeight: '600', letterSpacing: '3px', color: '#6BA3C8', background: 'rgba(107,163,200,0.1)', padding: '5px 12px', borderRadius: '2px' },
+  modeBar: { display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '40px', padding: '16px 20px', border: '1px solid rgba(107,163,200,0.2)', background: '#0f2236' },
+  modePill: { fontFamily: '-apple-system, sans-serif', fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', padding: '8px 20px', border: '1px solid rgba(107,163,200,0.3)', background: 'none', color: '#8BAFC8', cursor: 'pointer', borderRadius: '2px' },
+  modePillActive: { borderColor: '#8EC4E0', background: 'rgba(142,196,224,0.12)', color: '#D8E6F0' },
+  dimHeader: { display: 'flex', alignItems: 'baseline', gap: '16px', marginBottom: '16px', paddingBottom: '12px', borderBottom: '2px solid rgba(142,196,224,0.3)' },
+  badge: { fontSize: '11px', fontWeight: '600', letterSpacing: '3px', color: '#8EC4E0', background: 'rgba(142,196,224,0.12)', padding: '5px 12px', borderRadius: '2px' },
   dimTitle: { fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: '300', color: '#D8E6F0' },
-  dimSub: { fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#5A7A94', marginLeft: 'auto' },
-  scanTable: { borderTop: '1px solid rgba(107,163,200,0.15)' },
-  scanRow: { display: 'grid', gridTemplateColumns: '140px 160px 32px 160px 1fr', alignItems: 'center', borderBottom: '1px solid rgba(107,163,200,0.1)', minHeight: '52px' },
-  scanLabel: { fontSize: '11px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#8BAFC8', padding: '14px 12px 14px 0' },
-  scanLib: { fontSize: '13px', fontWeight: '500', color: '#4AAE88', background: 'rgba(74,174,136,0.08)', padding: '14px', borderLeft: '2px solid rgba(74,174,136,0.2)' },
-  scanVs: { fontSize: '9px', fontWeight: '600', letterSpacing: '2px', color: '#5A7A94', textAlign: 'center' },
-  scanBur: { fontSize: '13px', fontWeight: '600', color: '#B05A5A', background: 'rgba(176,90,90,0.08)', padding: '14px', borderRight: '2px solid rgba(176,90,90,0.2)' },
-  esmHeaders: { display: 'grid', gridTemplateColumns: '140px 160px 32px 160px 1fr', paddingBottom: '8px', marginBottom: '4px', borderBottom: '2px solid rgba(107,163,200,0.25)' },
-  esmHeaderCell: { fontSize: '9px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#5A7A94', padding: '0 8px' },
-  esmRight: { fontSize: '11px', fontStyle: 'italic', color: '#5A7A94', paddingLeft: '8px' },
-  logRow: { marginTop: '40px', display: 'flex', alignItems: 'center', gap: '16px', paddingTop: '24px', borderTop: '1px solid rgba(107,163,200,0.15)' },
-  primaryBtn: { background: 'rgba(107,163,200,0.15)', border: '1px solid rgba(107,163,200,0.4)', borderRadius: '3px', padding: '14px 32px', color: '#6BA3C8', fontSize: '11px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', cursor: 'pointer' },
-  secondaryBtn: { background: 'none', border: '1px solid rgba(107,163,200,0.3)', borderRadius: '3px', padding: '14px 24px', color: '#6BA3C8', fontSize: '11px', fontWeight: '600', letterSpacing: '2px', cursor: 'pointer' },
+  dimSub: { fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#8BAFC8', marginLeft: 'auto' },
+  scanTable: { borderTop: '1px solid rgba(142,196,224,0.15)' },
+  scanRow: { display: 'grid', gridTemplateColumns: '140px 160px 32px 160px 1fr', alignItems: 'center', borderBottom: '1px solid rgba(142,196,224,0.1)', minHeight: '52px' },
+  scanLabel: { fontSize: '11px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#A0C4D8', padding: '14px 12px 14px 0' },
+  scanLib: { fontSize: '13px', fontWeight: '500', color: '#4AAE88', background: 'rgba(74,174,136,0.1)', padding: '14px', borderLeft: '2px solid rgba(74,174,136,0.3)' },
+  scanVs: { fontSize: '9px', fontWeight: '600', letterSpacing: '2px', color: '#8BAFC8', textAlign: 'center' },
+  scanBur: { fontSize: '13px', fontWeight: '600', color: '#C87878', background: 'rgba(176,90,90,0.1)', padding: '14px', borderRight: '2px solid rgba(176,90,90,0.3)' },
+  esmHeaders: { display: 'grid', gridTemplateColumns: '140px 160px 32px 160px 1fr', paddingBottom: '8px', marginBottom: '4px', borderBottom: '2px solid rgba(142,196,224,0.3)' },
+  esmHeaderCell: { fontSize: '9px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#8BAFC8', padding: '0 8px' },
+  esmRight: { fontSize: '11px', fontStyle: 'italic', color: '#8BAFC8', paddingLeft: '8px' },
+  logRow: { marginTop: '40px', display: 'flex', alignItems: 'center', gap: '16px', paddingTop: '24px', borderTop: '1px solid rgba(142,196,224,0.15)' },
+  primaryBtn: { background: 'rgba(142,196,224,0.15)', border: '1px solid rgba(142,196,224,0.4)', borderRadius: '3px', padding: '14px 32px', color: '#8EC4E0', fontSize: '11px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', cursor: 'pointer' },
+  secondaryBtn: { background: 'none', border: '1px solid rgba(142,196,224,0.3)', borderRadius: '3px', padding: '14px 24px', color: '#8EC4E0', fontSize: '11px', fontWeight: '600', letterSpacing: '2px', cursor: 'pointer' },
   logSuccess: { fontSize: '12px', color: '#4AAE88', letterSpacing: '2px' },
-  error: { color: '#B05A5A', fontSize: '12px' },
-  qWrap: { background: '#162534', border: '1px solid rgba(107,163,200,0.15)', borderRadius: '3px', padding: '40px', maxWidth: '600px' },
-  qProgress: { fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#5A7A94', marginBottom: '20px' },
-  qDimHeader: { display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid rgba(107,163,200,0.15)' },
-  qDimLabel: { fontSize: '11px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#8BAFC8', minWidth: '100px' },
+  error: { color: '#C87878', fontSize: '12px' },
+  qWrap: { background: '#162534', border: '1px solid rgba(142,196,224,0.2)', borderRadius: '3px', padding: '40px', maxWidth: '600px' },
+  qProgress: { fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8', marginBottom: '20px' },
+  qDimHeader: { display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid rgba(142,196,224,0.2)' },
+  qDimLabel: { fontSize: '11px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#A0C4D8', minWidth: '100px' },
   qDimLib: { fontSize: '13px', color: '#4AAE88' },
-  qVs: { fontSize: '9px', color: '#5A7A94' },
-  qDimBur: { fontSize: '13px', color: '#B05A5A' },
+  qVs: { fontSize: '9px', color: '#8BAFC8' },
+  qDimBur: { fontSize: '13px', color: '#C87878' },
   qText: { fontFamily: 'Georgia, serif', fontSize: '18px', fontWeight: '300', color: '#D8E6F0', lineHeight: 1.6, marginBottom: '32px' },
   qSlider: { display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px' },
   qNav: { display: 'flex', alignItems: 'center', gap: '12px', marginTop: '24px' },

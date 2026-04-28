@@ -57,7 +57,6 @@ function Progress() {
     };
   };
 
-  // Period entries
   const days = view === '7d' ? 7 : view === '4w' ? 28 : 365;
   const label = view === '7d' ? '7 Days' : view === '4w' ? '28 Days' : '12 Months';
   const periodEntries = [];
@@ -74,9 +73,8 @@ function Progress() {
   const avgAXIS = n ? Math.round(periodEntries.reduce((a, e) => a + e.entry.totalPct, 0) / n) : null;
   const avgISMRaw = n ? Math.round(periodEntries.reduce((a, e) => a + (e.entry.ismRaw || 0), 0) / n) : 0;
   const osTendency = avgISMRaw > 2 ? 'Prefrontal Dominant' : avgISMRaw < -2 ? 'Limbic Dominant' : 'Balanced';
-  const osColor = avgISMRaw > 2 ? '#4AAE88' : avgISMRaw < -2 ? '#B05A5A' : '#5A7A94';
+  const osColor = avgISMRaw > 2 ? '#4AAE88' : avgISMRaw < -2 ? '#C87878' : '#8BAFC8';
 
-  // Streak
   let streak = 0;
   const checkDate = new Date(today);
   while (true) {
@@ -85,7 +83,6 @@ function Progress() {
     else break;
   }
 
-  // Personal best
   let bestScore = 0; let bestKey = null;
   keys.forEach(k => {
     const e = getEntryPct(entries[k]);
@@ -99,7 +96,6 @@ function Progress() {
 
   const hasTodayEntry = !!entries[todayKey];
 
-  // ISM/ESM Chart data
   const getChartData = () => {
     if (view === '7d') {
       const data = [];
@@ -148,7 +144,6 @@ function Progress() {
     }
   };
 
-  // CBM chart data
   const dk = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 
   const getCBMDailyCeilings = (v) => {
@@ -215,7 +210,7 @@ function Progress() {
     const cW = W - PAD.left - PAD.right;
     const cH = H - PAD.top - PAD.bottom;
     const hasData = chartData.some(d => d.entry);
-    if (!hasData) return <div style={{ color: '#5A7A94', padding: '40px', textAlign: 'center', fontStyle: 'italic', fontSize: '13px' }}>No entries yet.</div>;
+    if (!hasData) return <div style={{ color: '#8BAFC8', padding: '40px', textAlign: 'center', fontStyle: 'italic', fontSize: '13px' }}>No entries yet.</div>;
 
     const xPos = (i) => PAD.left + (i / (chartData.length - 1 || 1)) * cW;
     const yPos = (pct) => PAD.top + cH - (pct / 100) * cH;
@@ -223,8 +218,8 @@ function Progress() {
     const grid = [];
     for (let g = 0; g <= 4; g++) {
       const y = PAD.top + (g / 4) * cH;
-      grid.push(<line key={`g${g}`} x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="rgba(107,163,200,0.1)" strokeWidth="1" />);
-      grid.push(<text key={`gt${g}`} x={PAD.left - 6} y={y + 4} fill="rgba(107,163,200,0.4)" fontSize="9" textAnchor="end">{100 - g * 25}</text>);
+      grid.push(<line key={`g${g}`} x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="rgba(142,196,224,0.12)" strokeWidth="1" />);
+      grid.push(<text key={`gt${g}`} x={PAD.left - 6} y={y + 4} fill="rgba(142,196,224,0.5)" fontSize="9" textAnchor="end">{100 - g * 25}</text>);
     }
 
     const buildPath = (key) => {
@@ -236,13 +231,13 @@ function Progress() {
     return (
       <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: H }}>
         {grid}
-        {chartData.map((d, i) => <text key={i} x={xPos(i)} y={H - 6} fill="rgba(107,163,200,0.5)" fontSize="9" textAnchor="middle">{d.label}</text>)}
-        {buildPath('ismPct') && <path d={buildPath('ismPct')} fill="none" stroke="#6BA3C8" strokeWidth="2.5" opacity="0.9" />}
-        {buildPath('esmPct') && <path d={buildPath('esmPct')} fill="none" stroke="#B088D4" strokeWidth="2.5" opacity="0.9" />}
+        {chartData.map((d, i) => <text key={i} x={xPos(i)} y={H - 6} fill="rgba(142,196,224,0.6)" fontSize="9" textAnchor="middle">{d.label}</text>)}
+        {buildPath('ismPct') && <path d={buildPath('ismPct')} fill="none" stroke="#8EC4E0" strokeWidth="2.5" opacity="0.9" />}
+        {buildPath('esmPct') && <path d={buildPath('esmPct')} fill="none" stroke="#C49FDA" strokeWidth="2.5" opacity="0.9" />}
         {buildPath('totalPct') && <path d={buildPath('totalPct')} fill="none" stroke="#4EC9A0" strokeWidth="2.5" opacity="0.9" />}
         {chartData.map((d, i) => d.entry ? [
-          <circle key={`ism${i}`} cx={xPos(i)} cy={yPos(d.entry.ismPct)} r="4" fill="#6BA3C8" stroke="#0d1b2a" strokeWidth="2" />,
-          <circle key={`esm${i}`} cx={xPos(i)} cy={yPos(d.entry.esmPct)} r="4" fill="#B088D4" stroke="#0d1b2a" strokeWidth="2" />,
+          <circle key={`ism${i}`} cx={xPos(i)} cy={yPos(d.entry.ismPct)} r="4" fill="#8EC4E0" stroke="#0d1b2a" strokeWidth="2" />,
+          <circle key={`esm${i}`} cx={xPos(i)} cy={yPos(d.entry.esmPct)} r="4" fill="#C49FDA" stroke="#0d1b2a" strokeWidth="2" />,
           <circle key={`tot${i}`} cx={xPos(i)} cy={yPos(d.entry.totalPct)} r="4" fill="#4EC9A0" stroke="#0d1b2a" strokeWidth="2" />,
         ] : null)}
       </svg>
@@ -251,13 +246,13 @@ function Progress() {
 
   const renderCBMChart = () => {
     if (!cbmLog.length) return (
-      <div style={{ textAlign: 'center', padding: '60px', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', color: '#5A7A94' }}>
+      <div style={{ textAlign: 'center', padding: '60px', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8' }}>
         No resistance logs yet. Use Set Resistance on the Compulsive Behavior Map.
       </div>
     );
 
     const hasData = cbmCeilings.some(d => d.ceiling !== null);
-    if (!hasData) return <div style={{ textAlign: 'center', padding: '60px', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', color: '#5A7A94' }}>No logs in this period.</div>;
+    if (!hasData) return <div style={{ textAlign: 'center', padding: '60px', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8' }}>No logs in this period.</div>;
 
     const W = 600; const H = 220;
     const PAD = { top: 24, right: 48, bottom: 32, left: 48 };
@@ -273,18 +268,18 @@ function Progress() {
       <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: H, overflow: 'visible' }}>
         {[0, 1, 2, 3, 4, 5].map(i => (
           <g key={i}>
-            <line x1={PAD.left} y1={yPos(i)} x2={W - PAD.right} y2={yPos(i)} stroke="rgba(107,163,200,0.08)" strokeWidth="1" />
-            <text x={PAD.left - 8} y={yPos(i) + 4} textAnchor="end" fontSize="9" fill="rgba(107,163,200,0.4)">{CBM_LEVEL_NAMES[i]}</text>
+            <line x1={PAD.left} y1={yPos(i)} x2={W - PAD.right} y2={yPos(i)} stroke="rgba(142,196,224,0.1)" strokeWidth="1" />
+            <text x={PAD.left - 8} y={yPos(i) + 4} textAnchor="end" fontSize="9" fill="rgba(142,196,224,0.5)">{CBM_LEVEL_NAMES[i]}</text>
           </g>
         ))}
-        {cbmCeilings.map((d, i) => <text key={i} x={xPos(i)} y={H - 6} textAnchor="middle" fontSize="9" fill="rgba(107,163,200,0.45)">{d.label}</text>)}
+        {cbmCeilings.map((d, i) => <text key={i} x={xPos(i)} y={H - 6} textAnchor="middle" fontSize="9" fill="rgba(142,196,224,0.55)">{d.label}</text>)}
         {cbmResistance !== null && (
           <>
-            <line x1={PAD.left} y1={yPos(cbmResistance)} x2={W - PAD.right} y2={yPos(cbmResistance)} stroke="rgba(255,200,80,0.55)" strokeWidth="1.5" strokeDasharray="6,3" />
-            <text x={W - PAD.right + 6} y={yPos(cbmResistance) + 4} fontSize="9" fill="rgba(255,200,80,0.7)" fontWeight="600">R</text>
+            <line x1={PAD.left} y1={yPos(cbmResistance)} x2={W - PAD.right} y2={yPos(cbmResistance)} stroke="rgba(255,200,80,0.65)" strokeWidth="1.5" strokeDasharray="6,3" />
+            <text x={W - PAD.right + 6} y={yPos(cbmResistance) + 4} fontSize="9" fill="rgba(255,200,80,0.8)" fontWeight="600">R</text>
           </>
         )}
-        {pathPoints.length > 1 && <path d={'M' + pathPoints.map(p => `${p.x},${p.y}`).join(' L')} fill="none" stroke="rgba(176,144,216,0.55)" strokeWidth="2" />}
+        {pathPoints.length > 1 && <path d={'M' + pathPoints.map(p => `${p.x},${p.y}`).join(' L')} fill="none" stroke="rgba(176,144,216,0.65)" strokeWidth="2" />}
         {pathPoints.map((p, i) => {
           const aboveR = cbmResistance !== null && p.d.ceiling > cbmResistance;
           return <circle key={i} cx={p.x} cy={p.y} r={aboveR ? 5 : 4} fill={aboveR ? 'rgba(200,106,106,0.9)' : 'rgba(176,144,216,0.9)'} stroke="#0d1b2a" strokeWidth="1.5" />;
@@ -293,7 +288,6 @@ function Progress() {
     );
   };
 
-  // Calendar
   const monthName = new Date(calYear, calMonth, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   const firstDay = new Date(calYear, calMonth, 1).getDay();
   const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
@@ -309,7 +303,7 @@ function Progress() {
     setSelectedEntry(e);
   };
 
-  if (loading) return <div style={{ color: '#5A7A94', padding: '48px', textAlign: 'center' }}>Loading...</div>;
+  if (loading) return <div style={{ color: '#8BAFC8', padding: '48px', textAlign: 'center' }}>Loading...</div>;
 
   return (
     <div style={styles.container}>
@@ -320,7 +314,6 @@ function Progress() {
 
       <div style={styles.body}>
 
-        {/* Dashboard block */}
         {n === 0 && !streak ? (
           <div style={styles.emptyBlock}>No entries yet. Complete your first scan to see progress.</div>
         ) : (
@@ -329,16 +322,16 @@ function Progress() {
               <div>
                 <div style={styles.osLabel}>Operating System</div>
                 <div style={{ fontFamily: 'Georgia, serif', fontSize: '32px', fontWeight: '300', color: osColor }}>{osTendency}</div>
-                <div style={{ fontSize: '11px', color: '#5A7A94', marginTop: '6px' }}>{label} tendency</div>
+                <div style={{ fontSize: '11px', color: '#8BAFC8', marginTop: '6px' }}>{label} tendency</div>
               </div>
-              <div style={{ ...styles.scoreCol, borderLeft: '3px solid #6BA3C8' }}>
-                <div style={{ ...styles.scoreColLabel, color: '#6BA3C8' }}>ISM</div>
-                <div style={{ ...styles.scoreColNum, color: '#6BA3C8' }}>{avgISM !== null ? avgISM + '%' : '--'}</div>
+              <div style={{ ...styles.scoreCol, borderLeft: '3px solid #8EC4E0' }}>
+                <div style={{ ...styles.scoreColLabel, color: '#8EC4E0' }}>ISM</div>
+                <div style={{ ...styles.scoreColNum, color: '#8EC4E0' }}>{avgISM !== null ? avgISM + '%' : '--'}</div>
                 <div style={styles.scoreColSub}>avg</div>
               </div>
-              <div style={{ ...styles.scoreCol, borderLeft: '3px solid #B088D4' }}>
-                <div style={{ ...styles.scoreColLabel, color: '#B088D4' }}>ESM</div>
-                <div style={{ ...styles.scoreColNum, color: '#B088D4' }}>{avgESM !== null ? avgESM + '%' : '--'}</div>
+              <div style={{ ...styles.scoreCol, borderLeft: '3px solid #C49FDA' }}>
+                <div style={{ ...styles.scoreColLabel, color: '#C49FDA' }}>ESM</div>
+                <div style={{ ...styles.scoreColNum, color: '#C49FDA' }}>{avgESM !== null ? avgESM + '%' : '--'}</div>
                 <div style={styles.scoreColSub}>avg</div>
               </div>
               <div style={{ ...styles.scoreCol, borderLeft: '3px solid #4EC9A0' }}>
@@ -358,15 +351,15 @@ function Progress() {
               {streak > 0 && (
                 <div style={{ textAlign: 'center' }}>
                   <div style={styles.statLabel}>Streak</div>
-                  <div style={{ fontFamily: 'Georgia, serif', fontSize: '42px', fontWeight: '300', color: '#6BA3C8', lineHeight: 1 }}>{streak}</div>
-                  <div style={{ fontSize: '11px', color: '#5A7A94', marginTop: '6px' }}>{streak === 1 ? 'consecutive day' : 'consecutive days'}</div>
+                  <div style={{ fontFamily: 'Georgia, serif', fontSize: '42px', fontWeight: '300', color: '#8EC4E0', lineHeight: 1 }}>{streak}</div>
+                  <div style={{ fontSize: '11px', color: '#8BAFC8', marginTop: '6px' }}>{streak === 1 ? 'consecutive day' : 'consecutive days'}</div>
                 </div>
               )}
               {bestKey && (
                 <div style={{ textAlign: 'center' }}>
                   <div style={styles.statLabel}>Personal Best</div>
                   <div style={{ fontFamily: 'Georgia, serif', fontSize: '42px', fontWeight: '300', color: '#4AAE88', lineHeight: 1 }}>{bestScore}%</div>
-                  <div style={{ fontSize: '11px', color: '#5A7A94', marginTop: '6px' }}>{bestDate}</div>
+                  <div style={{ fontSize: '11px', color: '#8BAFC8', marginTop: '6px' }}>{bestDate}</div>
                 </div>
               )}
               {hasTodayEntry && (
@@ -378,13 +371,12 @@ function Progress() {
           </div>
         )}
 
-        {/* Chart + Calendar layout */}
         <div style={styles.trackLayout}>
           <div>
             <div style={styles.graphTop}>
               <div style={styles.legend}>
-                <div style={styles.legendItem}><div style={{ ...styles.legendDot, background: '#6BA3C8' }} /><span>ISM</span></div>
-                <div style={styles.legendItem}><div style={{ ...styles.legendDot, background: '#B088D4' }} /><span>ESM</span></div>
+                <div style={styles.legendItem}><div style={{ ...styles.legendDot, background: '#8EC4E0' }} /><span>ISM</span></div>
+                <div style={styles.legendItem}><div style={{ ...styles.legendDot, background: '#C49FDA' }} /><span>ESM</span></div>
                 <div style={styles.legendItem}><div style={{ ...styles.legendDot, background: '#4EC9A0' }} /><span>AXIS</span></div>
               </div>
               <div style={styles.viewTabs}>
@@ -425,8 +417,8 @@ function Progress() {
               <div style={styles.entryDetail}>
                 <div style={styles.entryDetailDate}>{selectedDateStr}</div>
                 <div style={styles.entryDetailScores}>
-                  <div style={styles.entryDetailScore}><div style={styles.entryDetailLabel}>ISM</div><div style={{ ...styles.entryDetailValue, color: '#6BA3C8' }}>{selectedEntry.ismPct}%</div></div>
-                  <div style={styles.entryDetailScore}><div style={styles.entryDetailLabel}>ESM</div><div style={{ ...styles.entryDetailValue, color: '#B088D4' }}>{selectedEntry.esmPct}%</div></div>
+                  <div style={styles.entryDetailScore}><div style={styles.entryDetailLabel}>ISM</div><div style={{ ...styles.entryDetailValue, color: '#8EC4E0' }}>{selectedEntry.ismPct}%</div></div>
+                  <div style={styles.entryDetailScore}><div style={styles.entryDetailLabel}>ESM</div><div style={{ ...styles.entryDetailValue, color: '#C49FDA' }}>{selectedEntry.esmPct}%</div></div>
                   <div style={styles.entryDetailScore}><div style={styles.entryDetailLabel}>AXIS</div><div style={{ ...styles.entryDetailValue, color: '#4EC9A0' }}>{selectedEntry.totalPct}%</div></div>
                 </div>
               </div>
@@ -434,16 +426,15 @@ function Progress() {
           </div>
         </div>
 
-        {/* CBM Chart */}
-        <div style={{ marginTop: '48px', paddingTop: '36px', borderTop: '1px solid rgba(107,163,200,0.12)' }}>
+        <div style={{ marginTop: '48px', paddingTop: '36px', borderTop: '1px solid rgba(142,196,224,0.12)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <div style={{ fontSize: '11px', fontWeight: '600', letterSpacing: '4px', textTransform: 'uppercase', color: '#5A7A94' }}>Compulsive Behavior Log</div>
+              <div style={{ fontSize: '11px', fontWeight: '600', letterSpacing: '4px', textTransform: 'uppercase', color: '#8BAFC8' }}>Compulsive Behavior Log</div>
               {cbmResistance !== null && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <div style={{ width: '8px', height: '8px', background: 'rgba(255,200,80,0.8)', borderRadius: '50%' }} />
-                  <span style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(255,200,80,0.8)' }}>Resistance: {cbmResistance.toFixed(1)} ({CBM_LEVEL_NAMES[Math.min(Math.round(cbmResistance), 5)]})</span>
-                  <span style={{ fontSize: '10px', color: '#5A7A94', marginLeft: '4px' }}>rolling avg</span>
+                  <div style={{ width: '8px', height: '8px', background: 'rgba(255,200,80,0.85)', borderRadius: '50%' }} />
+                  <span style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(255,200,80,0.9)' }}>Resistance: {cbmResistance.toFixed(1)} ({CBM_LEVEL_NAMES[Math.min(Math.round(cbmResistance), 5)]})</span>
+                  <span style={{ fontSize: '10px', color: '#8BAFC8', marginLeft: '4px' }}>rolling avg</span>
                 </div>
               )}
             </div>
@@ -465,44 +456,44 @@ function Progress() {
 
 const styles = {
   container: { minHeight: '100vh', background: '#0d1b2a', display: 'flex', flexDirection: 'column' },
-  header: { display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 32px', borderBottom: '1px solid rgba(107,163,200,0.15)', background: '#0f2236' },
-  backBtn: { background: 'none', border: 'none', color: '#5A7A94', fontSize: '12px', fontWeight: '600', letterSpacing: '1px', cursor: 'pointer', padding: 0 },
+  header: { display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 32px', borderBottom: '1px solid rgba(142,196,224,0.15)', background: '#0f2236' },
+  backBtn: { background: 'none', border: 'none', color: '#8BAFC8', fontSize: '12px', fontWeight: '600', letterSpacing: '1px', cursor: 'pointer', padding: 0 },
   screenTitle: { fontFamily: 'Georgia, serif', fontSize: '18px', fontWeight: '300', color: '#D8E6F0', letterSpacing: '2px' },
   body: { maxWidth: '1100px', margin: '0 auto', padding: '40px 32px 80px', width: '100%' },
-  emptyBlock: { border: '1px solid rgba(107,163,200,0.2)', borderRadius: '3px', background: '#162534', padding: '40px', marginBottom: '32px', textAlign: 'center', fontSize: '13px', letterSpacing: '3px', textTransform: 'uppercase', color: '#5A7A94' },
-  dashBlock: { border: '1px solid rgba(107,163,200,0.6)', borderRadius: '3px', background: '#162534', padding: '36px 48px', marginBottom: '32px', boxShadow: '0 0 24px rgba(107,163,200,0.15), 0 0 48px rgba(107,163,200,0.08), inset 0 1px 0 rgba(107,163,200,0.2)' },
-  dashRow1: { display: 'grid', gridTemplateColumns: '1fr auto auto auto', alignItems: 'center', gap: '40px', paddingBottom: '28px', borderBottom: '1px solid rgba(107,163,200,0.15)' },
-  osLabel: { fontSize: '11px', fontWeight: '600', letterSpacing: '4px', textTransform: 'uppercase', color: '#6BA3C8', marginBottom: '8px', textShadow: '0 0 20px rgba(107,163,200,0.4)' },
+  emptyBlock: { border: '1px solid rgba(142,196,224,0.2)', borderRadius: '3px', background: '#162534', padding: '40px', marginBottom: '32px', textAlign: 'center', fontSize: '13px', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8' },
+  dashBlock: { border: '1px solid rgba(142,196,224,0.6)', borderRadius: '3px', background: '#162534', padding: '36px 48px', marginBottom: '32px', boxShadow: '0 0 24px rgba(142,196,224,0.15), 0 0 48px rgba(142,196,224,0.08), inset 0 1px 0 rgba(142,196,224,0.2)' },
+  dashRow1: { display: 'grid', gridTemplateColumns: '1fr auto auto auto', alignItems: 'center', gap: '40px', paddingBottom: '28px', borderBottom: '1px solid rgba(142,196,224,0.15)' },
+  osLabel: { fontSize: '11px', fontWeight: '600', letterSpacing: '4px', textTransform: 'uppercase', color: '#8EC4E0', marginBottom: '8px', textShadow: '0 0 20px rgba(142,196,224,0.4)' },
   scoreCol: { textAlign: 'center', padding: '0 24px' },
   scoreColLabel: { fontSize: '11px', fontWeight: '600', letterSpacing: '4px', textTransform: 'uppercase', marginBottom: '8px' },
   scoreColNum: { fontFamily: 'Georgia, serif', fontSize: '40px', fontWeight: '300', lineHeight: 1 },
-  scoreColSub: { fontSize: '11px', color: '#5A7A94', marginTop: '6px' },
+  scoreColSub: { fontSize: '11px', color: '#8BAFC8', marginTop: '6px' },
   dashRow2: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '28px' },
-  statLabel: { fontSize: '11px', fontWeight: '600', letterSpacing: '4px', textTransform: 'uppercase', color: '#5A7A94', marginBottom: '6px' },
-  entryBadge: { fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', padding: '3px 10px', borderRadius: '10px', background: 'rgba(107,163,200,0.1)', border: '1px solid rgba(107,163,200,0.25)', color: '#6BA3C8' },
-  viewResultsBtn: { fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', padding: '10px 20px', border: '1px solid rgba(107,163,200,0.4)', background: 'none', color: '#6BA3C8', cursor: 'pointer', borderRadius: '2px' },
+  statLabel: { fontSize: '11px', fontWeight: '600', letterSpacing: '4px', textTransform: 'uppercase', color: '#8BAFC8', marginBottom: '6px' },
+  entryBadge: { fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', padding: '3px 10px', borderRadius: '10px', background: 'rgba(142,196,224,0.1)', border: '1px solid rgba(142,196,224,0.25)', color: '#8EC4E0' },
+  viewResultsBtn: { fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', padding: '10px 20px', border: '1px solid rgba(142,196,224,0.4)', background: 'none', color: '#8EC4E0', cursor: 'pointer', borderRadius: '2px' },
   trackLayout: { display: 'grid', gridTemplateColumns: '1fr 280px', gap: '40px', alignItems: 'start' },
   graphTop: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' },
   legend: { display: 'flex', alignItems: 'center', gap: '20px' },
-  legendItem: { display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#5A7A94' },
+  legendItem: { display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#8BAFC8' },
   legendDot: { width: '8px', height: '8px', borderRadius: '50%' },
   viewTabs: { display: 'flex', gap: '2px' },
-  viewTab: { fontSize: '9px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', padding: '6px 12px', border: '1px solid rgba(107,163,200,0.2)', background: 'none', color: '#5A7A94', cursor: 'pointer', borderRadius: '2px' },
-  viewTabActive: { background: '#1a3a5c', color: 'white', borderColor: '#1a3a5c' },
+  viewTab: { fontSize: '9px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', padding: '6px 12px', border: '1px solid rgba(142,196,224,0.2)', background: 'none', color: '#8BAFC8', cursor: 'pointer', borderRadius: '2px' },
+  viewTabActive: { background: '#1a3a5c', color: '#D8E6F0', borderColor: '#1a3a5c' },
   calHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' },
   calMonth: { fontSize: '13px', fontWeight: '600', letterSpacing: '2px', color: '#D8E6F0' },
-  calBtn: { background: 'none', border: '1px solid rgba(107,163,200,0.2)', color: '#5A7A94', cursor: 'pointer', padding: '4px 10px', fontSize: '16px', borderRadius: '2px' },
+  calBtn: { background: 'none', border: '1px solid rgba(142,196,224,0.2)', color: '#8BAFC8', cursor: 'pointer', padding: '4px 10px', fontSize: '16px', borderRadius: '2px' },
   calGrid: { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '3px' },
-  calDayLabel: { fontSize: '9px', fontWeight: '600', letterSpacing: '1px', textTransform: 'uppercase', color: '#5A7A94', textAlign: 'center', padding: '4px 0 8px' },
-  calDay: { aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '500', color: '#5A7A94', borderRadius: '2px' },
-  calDayToday: { fontWeight: '700', color: '#6BA3C8', border: '1.5px solid #6BA3C8' },
-  calDayHasEntry: { background: '#1a3a5c', color: 'white', fontWeight: '600', cursor: 'pointer' },
-  calDayTodayEntry: { background: '#6BA3C8', border: 'none', color: 'white' },
-  entryDetail: { marginTop: '14px', padding: '16px', background: '#162534', borderLeft: '2px solid #6BA3C8' },
-  entryDetailDate: { fontSize: '9px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#5A7A94', marginBottom: '10px' },
+  calDayLabel: { fontSize: '9px', fontWeight: '600', letterSpacing: '1px', textTransform: 'uppercase', color: '#8BAFC8', textAlign: 'center', padding: '4px 0 8px' },
+  calDay: { aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '500', color: '#8BAFC8', borderRadius: '2px' },
+  calDayToday: { fontWeight: '700', color: '#8EC4E0', border: '1.5px solid #8EC4E0' },
+  calDayHasEntry: { background: '#1a3a5c', color: '#D8E6F0', fontWeight: '600', cursor: 'pointer' },
+  calDayTodayEntry: { background: '#8EC4E0', border: 'none', color: '#0d1b2a' },
+  entryDetail: { marginTop: '14px', padding: '16px', background: '#162534', borderLeft: '2px solid #8EC4E0' },
+  entryDetailDate: { fontSize: '9px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#8BAFC8', marginBottom: '10px' },
   entryDetailScores: { display: 'flex', gap: '20px' },
   entryDetailScore: { textAlign: 'center' },
-  entryDetailLabel: { fontSize: '8px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#5A7A94', marginBottom: '2px' },
+  entryDetailLabel: { fontSize: '8px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#8BAFC8', marginBottom: '2px' },
   entryDetailValue: { fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: '300' },
 };
 
