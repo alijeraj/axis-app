@@ -229,11 +229,33 @@ function Journal() {
               </div>
             ))}
             <div style={styles.formGroup}>
-              <label style={styles.label}>Link to Complex <span style={{ color: '#8BAFC8', fontWeight: 400 }}>— optional</span></label>
-              <select style={styles.input} value={dreamForm.complexLink || ''} onChange={e => setDreamForm({ ...dreamForm, complexLink: e.target.value })}>
-                <option value="">-- No link --</option>
-                {complexes.map((c, i) => <option key={i} value={c.name}>{c.name}</option>)}
-              </select>
+              <label style={styles.label}>Link to Complexes <span style={{ color: '#8BAFC8', fontWeight: 400 }}>— optional</span></label>
+              {(() => {
+                const selected = Array.isArray(dreamForm.complexLinks) ? dreamForm.complexLinks : (dreamForm.complexLink ? [dreamForm.complexLink] : []);
+                const available = complexes.filter(c => !selected.includes(c.name));
+                const toggleComplex = (name) => {
+                  const updated = selected.includes(name) ? selected.filter(n => n !== name) : [...selected, name];
+                  setDreamForm({ ...dreamForm, complexLinks: updated, complexLink: undefined });
+                };
+                return (
+                  <>
+                    <select style={styles.input} value="" onChange={e => { if (e.target.value) toggleComplex(e.target.value); }}>
+                      <option value="">{selected.length === 0 ? '-- Add a complex --' : '-- Add another complex --'}</option>
+                      {available.map((c, i) => <option key={i} value={c.name}>{c.name}</option>)}
+                    </select>
+                    {selected.length > 0 && (
+                      <div style={{ marginTop: '10px' }}>
+                        {selected.map((name, i) => (
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'rgba(74,174,136,0.06)', border: '1px solid rgba(74,174,136,0.25)', borderRadius: '3px', marginTop: '6px' }}>
+                            <span style={{ fontSize: '13px', color: '#4AAE88', fontFamily: 'Georgia, serif' }}>{name}</span>
+                            <button type="button" style={{ background: 'none', border: 'none', color: '#8BAFC8', cursor: 'pointer', fontSize: '14px', padding: '0 4px' }} onClick={() => toggleComplex(name)}>✕</button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </div>
             <div style={styles.formFooter}>
               <button style={styles.cancelBtn} onClick={() => setShowDreamForm(false)}>Cancel</button>
@@ -301,18 +323,24 @@ function Journal() {
                   <div style={{ fontSize: '14px', color: field.color || '#D8E6F0', lineHeight: 1.7, whiteSpace: 'pre-line' }}>{viewDream[field.key]}</div>
                 </div>
               ) : null)}
-              {viewDream.complexLink && (() => {
-                const complex = complexes.find(c => c.name === viewDream.complexLink);
+              {(() => {
+                const links = Array.isArray(viewDream.complexLinks) ? viewDream.complexLinks : (viewDream.complexLink ? [viewDream.complexLink] : []);
+                if (links.length === 0) return null;
                 return (
                   <div style={{ marginBottom: '20px' }}>
-                    <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8', marginBottom: '8px' }}>Linked Complex</div>
-                    <div
-                      style={{ border: '1px solid rgba(74,174,136,0.25)', borderRadius: '3px', padding: '12px 16px', background: 'rgba(74,174,136,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: complex ? 'pointer' : 'default' }}
-                      onClick={() => { if (complex) { setViewDreamIdx(null); setViewComplex(complex); } }}
-                    >
-                      <div style={{ fontSize: '14px', color: '#4AAE88', fontFamily: 'Georgia, serif' }}>{viewDream.complexLink}</div>
-                      {complex && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4 2 L9 6 L4 10" stroke="rgba(74,174,136,0.5)" strokeWidth="1.5" strokeLinecap="round" /></svg>}
-                    </div>
+                    <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8', marginBottom: '8px' }}>Linked Complex{links.length > 1 ? 'es' : ''}</div>
+                    {links.map((linkName, i) => {
+                      const complex = complexes.find(c => c.name === linkName);
+                      return (
+                        <div key={i}
+                          style={{ border: '1px solid rgba(74,174,136,0.25)', borderRadius: '3px', padding: '12px 16px', background: 'rgba(74,174,136,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: complex ? 'pointer' : 'default', marginBottom: i < links.length - 1 ? '8px' : 0 }}
+                          onClick={() => { if (complex) { setViewDreamIdx(null); setViewComplex(complex); } }}
+                        >
+                          <div style={{ fontSize: '14px', color: '#4AAE88', fontFamily: 'Georgia, serif' }}>{linkName}</div>
+                          {complex && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4 2 L9 6 L4 10" stroke="rgba(74,174,136,0.5)" strokeWidth="1.5" strokeLinecap="round" /></svg>}
+                        </div>
+                      );
+                    })}
                   </div>
                 );
               })()}

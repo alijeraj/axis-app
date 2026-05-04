@@ -388,18 +388,24 @@ function ViewModal({ complex, dreams, onClose, onEdit }) {
           </div>
         )}
         {dreams && (() => {
-          const linkedDream = dreams.find(d => d.complexLink === c.name);
-          if (!linkedDream) return null;
+          const linkedDreams = dreams.filter(d => {
+            const links = Array.isArray(d.complexLinks) ? d.complexLinks : (d.complexLink ? [d.complexLink] : []);
+            return links.includes(c.name);
+          });
+          if (linkedDreams.length === 0) return null;
+          const sorted = linkedDreams.slice().sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
           return (
             <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(142,196,224,0.1)' }}>
-              <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#B07ED4', marginBottom: '8px' }}>Linked Dream</div>
-              <div style={{ border: '1px solid rgba(176,126,212,0.2)', borderRadius: '3px', padding: '12px 16px', background: 'rgba(176,126,212,0.04)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} onClick={() => setViewingDream(linkedDream)}>
-                <div>
-                  <div style={{ fontSize: '14px', color: '#D8E6F0', fontFamily: 'Georgia, serif', marginBottom: '4px' }}>{linkedDream.title || 'Untitled Dream'}</div>
-                  <div style={{ fontSize: '10px', color: '#8BAFC8', letterSpacing: '1px' }}>{linkedDream.date ? new Date(linkedDream.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}</div>
+              <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#B07ED4', marginBottom: '8px' }}>Linked Dream{sorted.length > 1 ? 's' : ''} ({sorted.length})</div>
+              {sorted.map((linkedDream, i) => (
+                <div key={i} style={{ border: '1px solid rgba(176,126,212,0.2)', borderRadius: '3px', padding: '12px 16px', background: 'rgba(176,126,212,0.04)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: i < sorted.length - 1 ? '8px' : 0 }} onClick={() => setViewingDream(linkedDream)}>
+                  <div>
+                    <div style={{ fontSize: '14px', color: '#D8E6F0', fontFamily: 'Georgia, serif', marginBottom: '4px' }}>{linkedDream.title || 'Untitled Dream'}</div>
+                    <div style={{ fontSize: '10px', color: '#8BAFC8', letterSpacing: '1px' }}>{linkedDream.date ? new Date(linkedDream.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}</div>
+                  </div>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4 2 L9 6 L4 10" stroke="rgba(176,126,212,0.5)" strokeWidth="1.5" strokeLinecap="round" /></svg>
                 </div>
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4 2 L9 6 L4 10" stroke="rgba(176,126,212,0.5)" strokeWidth="1.5" strokeLinecap="round" /></svg>
-              </div>
+              ))}
             </div>
           );
         })()}
