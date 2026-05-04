@@ -104,7 +104,7 @@ function People() {
     <div style={styles.container}>
       <div style={styles.header}>
         <button style={styles.backBtn} onClick={() => navigate('/')}>← Home</button>
-        <span style={styles.screenTitle}>Constellation</span>
+        <span style={styles.screenTitle}>Relational Map</span>
         <button style={styles.btn} onClick={() => openForm()}>+ Add Person</button>
       </div>
 

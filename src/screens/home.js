@@ -49,6 +49,28 @@ function Home(props) {
       )
     },
     {
+      id: 'people', label: 'Relational\nMap',
+      svg: (
+        <svg width="64" height="64" viewBox="0 0 80 80" fill="none">
+          <line x1="40" y1="22" x2="20" y2="44" stroke="#8EC4E0" strokeWidth="1.5" opacity="0.55"/>
+          <line x1="40" y1="22" x2="40" y2="44" stroke="#8EC4E0" strokeWidth="1.5" opacity="0.55"/>
+          <line x1="40" y1="22" x2="60" y2="44" stroke="#8EC4E0" strokeWidth="1.5" opacity="0.55"/>
+          <line x1="20" y1="44" x2="12" y2="64" stroke="#8EC4E0" strokeWidth="1.2" opacity="0.4"/>
+          <line x1="20" y1="44" x2="28" y2="64" stroke="#8EC4E0" strokeWidth="1.2" opacity="0.4"/>
+          <line x1="60" y1="44" x2="52" y2="64" stroke="#8EC4E0" strokeWidth="1.2" opacity="0.4"/>
+          <line x1="60" y1="44" x2="68" y2="64" stroke="#8EC4E0" strokeWidth="1.2" opacity="0.4"/>
+          <circle cx="40" cy="18" r="6" stroke="#8EC4E0" strokeWidth="2" fill="rgba(142,196,224,0.2)" opacity="1"/>
+          <circle cx="20" cy="44" r="4.5" stroke="#8EC4E0" strokeWidth="1.5" fill="rgba(142,196,224,0.15)" opacity="0.85"/>
+          <circle cx="40" cy="44" r="4.5" stroke="#8EC4E0" strokeWidth="1.5" fill="rgba(142,196,224,0.15)" opacity="0.85"/>
+          <circle cx="60" cy="44" r="4.5" stroke="#8EC4E0" strokeWidth="1.5" fill="rgba(142,196,224,0.15)" opacity="0.85"/>
+          <circle cx="12" cy="66" r="3.5" stroke="#8EC4E0" strokeWidth="1.2" fill="rgba(142,196,224,0.1)" opacity="0.7"/>
+          <circle cx="28" cy="66" r="3.5" stroke="#8EC4E0" strokeWidth="1.2" fill="rgba(142,196,224,0.1)" opacity="0.7"/>
+          <circle cx="52" cy="66" r="3.5" stroke="#8EC4E0" strokeWidth="1.2" fill="rgba(142,196,224,0.1)" opacity="0.7"/>
+          <circle cx="68" cy="66" r="3.5" stroke="#8EC4E0" strokeWidth="1.2" fill="rgba(142,196,224,0.1)" opacity="0.7"/>
+        </svg>
+      )
+    },
+    {
       id: 'progress', label: 'View\nProgress',
       svg: (
         <svg width="64" height="64" viewBox="0 0 80 80" fill="none">
@@ -88,26 +110,7 @@ function Home(props) {
         </svg>
       )
     },
-    {
-      id: 'people', label: 'Constel-\nlation',
-      svg: (
-        <svg width="64" height="64" viewBox="0 0 80 80" fill="none">
-          <line x1="20" y1="22" x2="40" y2="14" stroke="#8EC4E0" strokeWidth="1" opacity="0.4"/>
-          <line x1="40" y1="14" x2="62" y2="26" stroke="#8EC4E0" strokeWidth="1" opacity="0.4"/>
-          <line x1="20" y1="22" x2="28" y2="48" stroke="#8EC4E0" strokeWidth="1" opacity="0.4"/>
-          <line x1="62" y1="26" x2="56" y2="52" stroke="#8EC4E0" strokeWidth="1" opacity="0.4"/>
-          <line x1="28" y1="48" x2="56" y2="52" stroke="#8EC4E0" strokeWidth="1" opacity="0.4"/>
-          <line x1="28" y1="48" x2="42" y2="68" stroke="#8EC4E0" strokeWidth="1" opacity="0.4"/>
-          <line x1="56" y1="52" x2="42" y2="68" stroke="#8EC4E0" strokeWidth="1" opacity="0.4"/>
-          <circle cx="40" cy="14" r="3.5" fill="#8EC4E0" opacity="0.95"/>
-          <circle cx="20" cy="22" r="3" fill="#8EC4E0" opacity="0.85"/>
-          <circle cx="62" cy="26" r="3" fill="#8EC4E0" opacity="0.85"/>
-          <circle cx="28" cy="48" r="2.5" fill="#8EC4E0" opacity="0.75"/>
-          <circle cx="56" cy="52" r="2.5" fill="#8EC4E0" opacity="0.75"/>
-          <circle cx="42" cy="68" r="2" fill="#8EC4E0" opacity="0.65"/>
-        </svg>
-      )
-    },
+    
     {
       id: 'tutorial', label: 'App\nTutorial',
       svg: (
