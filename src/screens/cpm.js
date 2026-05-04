@@ -146,6 +146,48 @@ const RootComplexSelector = ({ value, onChange, availableRoots }) => {
   );
 };
 
+function PersonPicker({ value, onChange, people, onAddPerson }) {
+  const [adding, setAdding] = React.useState(false);
+  const [newName, setNewName] = React.useState('');
+  const sortedPeople = people.slice().sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+  const handleAdd = async () => {
+    const trimmed = newName.trim();
+    if (!trimmed) return;
+    await onAddPerson(trimmed);
+    onChange(trimmed);
+    setNewName('');
+    setAdding(false);
+  };
+
+  if (adding) {
+    return (
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <input
+          style={{ ...styles.input, flex: 1 }}
+          value={newName}
+          onChange={e => setNewName(e.target.value)}
+          placeholder="Name of the person..."
+          autoFocus
+          onKeyDown={e => { if (e.key === 'Enter') handleAdd(); if (e.key === 'Escape') { setAdding(false); setNewName(''); } }}
+        />
+        <button type="button" style={styles.btn} onClick={handleAdd}>Add</button>
+        <button type="button" style={styles.cancelBtn} onClick={() => { setAdding(false); setNewName(''); }}>Cancel</button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', gap: '8px' }}>
+      <select style={{ ...styles.input, flex: 1 }} value={value} onChange={e => onChange(e.target.value)}>
+        <option value="">None / Unknown</option>
+        {sortedPeople.map((p, i) => <option key={i} value={p.name}>{p.name}</option>)}
+      </select>
+      <button type="button" style={styles.cancelBtn} onClick={() => setAdding(true)}>+ New</button>
+    </div>
+  );
+}
+
 function ResolutionModal({ resolvedComplexes, onClose }) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 300, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '40px 20px' }}>
@@ -355,6 +397,7 @@ function ViewModal({ complex, dreams, onClose, onEdit }) {
               {c.status === 'resolved' && <span style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '2px', textTransform: 'uppercase', color: '#4AAE88', border: '1px solid rgba(74,174,136,0.4)', padding: '2px 7px', borderRadius: '2px' }}>Resolved</span>}
               {c.period && <span style={{ fontSize: '10px', color: '#8BAFC8', letterSpacing: '1px' }}>{getPeriodDisplay(c.period)}</span>}
               {c.source && <span style={{ fontSize: '10px', color: '#8BAFC8', letterSpacing: '1px' }}>· {c.source}</span>}
+              {c.person && <span style={{ fontSize: '10px', color: '#8EC4E0', letterSpacing: '1px' }}>· {c.person}</span>}
             </div>
           </div>
           <button style={{ background: 'none', border: 'none', color: '#8BAFC8', cursor: 'pointer', fontSize: '18px' }} onClick={onClose}>✕</button>
@@ -695,6 +738,7 @@ function CPM() {
   const token = localStorage.getItem('axis_token');
   const [complexes, setComplexes] = useState([]);
   const [dreams, setDreams] = useState([]);
+  const [people, setPeople] = useState([]);
   const [treeOrder, setTreeOrder] = useState({});
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('emotion');
@@ -718,18 +762,29 @@ function CPM() {
 
   const loadComplexes = async () => {
     try {
-      const [complexRes, dreamsRes] = await Promise.all([
+      const [complexRes, dreamsRes, peopleRes] = await Promise.all([
         axios.get(API + '/api/complexes', { headers: { Authorization: 'Bearer ' + token } }),
         axios.get(API + '/api/dreams', { headers: { Authorization: 'Bearer ' + token } }),
+        axios.get(API + '/api/people', { headers: { Authorization: 'Bearer ' + token } }),
       ]);
       setComplexes(complexRes.data || []);
       setDreams(dreamsRes.data || []);
+      setPeople(peopleRes.data || []);
       try {
         const orderRes = await axios.get(API + '/api/tree-order', { headers: { Authorization: 'Bearer ' + token } });
         if (orderRes.data) setTreeOrder(orderRes.data);
       } catch (e) { }
     } catch (err) { console.log(err); }
     finally { setLoading(false); }
+  };
+
+  const savePerson = async (name) => {
+    if (!name || !name.trim()) return;
+    const trimmed = name.trim();
+    if (people.find(p => p.name === trimmed)) return;
+    const updated = [...people, { name: trimmed }];
+    await axios.post(API + '/api/people', { data: updated }, { headers: { Authorization: 'Bearer ' + token } });
+    setPeople(updated);
   };
 
   const saveTreeOrder = async (order) => {
@@ -845,6 +900,10 @@ function CPM() {
               <div style={styles.formGroup}>
                 <label style={styles.label}>Source <span style={{ fontStyle: 'italic', fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: '6px' }}>optional</span></label>
                 <select style={styles.input} value={form.source || ''} onChange={e => setForm({ ...form, source: e.target.value })}><option value="">None / Unknown</option>{SOURCES.map(s => <option key={s} value={s}>{s}</option>)}</select>
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Person <span style={{ fontStyle: 'italic', fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: '6px' }}>optional — who is this complex about?</span></label>
+                <PersonPicker value={form.person || ''} onChange={(name) => setForm({ ...form, person: name })} people={people} onAddPerson={savePerson} />
               </div>
               <div style={{ ...styles.woundToggle, ...(form.originalWound ? styles.woundActive : {}) }} onClick={() => setForm({ ...form, originalWound: !form.originalWound })}>
                 <div style={{ ...styles.woundDot, ...(form.originalWound ? styles.woundDotActive : {}) }} />
