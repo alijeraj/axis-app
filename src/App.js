@@ -12,7 +12,6 @@ import Results from './screens/results';
 import Journal from './screens/journal';
 import Tutorial from './screens/tutorial';
 import Yesterday from './screens/yesterday';
-import SelfPortrait from './screens/selfportrait';
 import People from './screens/people';
 
 function GoogleCallback({ onLogin }) {
@@ -104,7 +103,6 @@ function App() {
         <Route path="/journal" element={token ? <Journal /> : <Navigate to="/login" />} />
         <Route path="/tutorial" element={token ? <Tutorial /> : <Navigate to="/login" />} />
         <Route path="/yesterday" element={token ? <Yesterday /> : <Navigate to="/login" />} />
-        <Route path="/selfportrait" element={token ? <SelfPortrait /> : <Navigate to="/login" />} />
         <Route path="/people" element={token ? <People /> : <Navigate to="/login" />} />
         <Route path="/auth/callback" element={<GoogleCallback onLogin={handleLogin} />} />
         <Route path="*" element={<Navigate to="/" />} />

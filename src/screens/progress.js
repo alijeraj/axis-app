@@ -9,11 +9,16 @@ const CBM_LEVEL_NAMES = ['None', 'Mild', 'Low', 'Moderate', 'Intense', 'Severe']
 function Progress() {
   const navigate = useNavigate();
   const token = localStorage.getItem('axis_token');
+  const initialView = (() => {
+    const params = new URLSearchParams(window.location.search);
+    const v = params.get('view');
+    return ['7d', '4w', '12m'].includes(v) ? v : '7d';
+  })();
   const [entries, setEntries] = useState({});
   const [cbmLog, setCbmLog] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState('7d');
-  const [cbmView, setCbmView] = useState('7d');
+  const [view, setView] = useState(initialView);
+  const [cbmView, setCbmView] = useState(initialView);
   const [calYear, setCalYear] = useState(new Date().getFullYear());
   const [calMonth, setCalMonth] = useState(new Date().getMonth());
   const [selectedEntry, setSelectedEntry] = useState(null);

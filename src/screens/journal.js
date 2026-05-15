@@ -86,14 +86,17 @@ function Journal() {
   const [dreams, setDreams] = useState([]);
   const [freeEntries, setFreeEntries] = useState([]);
   const [complexes, setComplexes] = useState([]);
+  const [people, setPeople] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [showDreamForm, setShowDreamForm] = useState(false);
   const [editDreamIdx, setEditDreamIdx] = useState(null);
-  const [dreamForm, setDreamForm] = useState({ title: '', narrative: '', people: '', symbols: '', reflection: '', complexLink: '', date: new Date().toISOString() });
+  const [dreamForm, setDreamForm] = useState({ title: '', narrative: '', people: [], symbols: '', reflection: '', complexLink: '', date: new Date().toISOString() });
 
   const [viewDreamIdx, setViewDreamIdx] = useState(null);
   const [viewComplex, setViewComplex] = useState(null);
+  const [filterType, setFilterType] = useState(null);
+  const [filterValue, setFilterValue] = useState('');
 
   const [showFreeForm, setShowFreeForm] = useState(false);
   const [editFreeIdx, setEditFreeIdx] = useState(null);
@@ -105,19 +108,30 @@ function Journal() {
 
   const loadData = async () => {
     try {
-      const [dreamsRes, journalRes, complexRes] = await Promise.all([
+      const [dreamsRes, journalRes, complexRes, peopleRes] = await Promise.all([
         axios.get(`${API}/api/dreams`, { headers: { Authorization: `Bearer ${token}` } }),
         axios.get(`${API}/api/journal`, { headers: { Authorization: `Bearer ${token}` } }),
         axios.get(`${API}/api/complexes`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API}/api/people`, { headers: { Authorization: `Bearer ${token}` } }),
       ]);
       setDreams(dreamsRes.data || []);
       setFreeEntries(journalRes.data || []);
       setComplexes(complexRes.data || []);
+      setPeople(peopleRes.data || []);
     } catch (err) {
       console.log(err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const savePerson = async (name) => {
+    if (!name || !name.trim()) return;
+    const trimmed = name.trim();
+    if (people.find(p => p.name === trimmed)) return;
+    const updated = [...people, { name: trimmed }];
+    await axios.post(`${API}/api/people`, { data: updated }, { headers: { Authorization: `Bearer ${token}` } });
+    setPeople(updated);
   };
 
   const saveDreams = async (updated) => {
@@ -132,10 +146,17 @@ function Journal() {
 
   const openDreamForm = (idx = null) => {
     if (idx !== null) {
-      setDreamForm({ ...dreams[idx] });
+      const dream = { ...dreams[idx] };
+      if (typeof dream.people === 'string') {
+        dream.people = [];
+      }
+      if (!Array.isArray(dream.people)) {
+        dream.people = [];
+      }
+      setDreamForm(dream);
       setEditDreamIdx(idx);
     } else {
-      setDreamForm({ title: '', narrative: '', people: '', symbols: '', reflection: '', complexLink: '', date: new Date().toISOString() });
+      setDreamForm({ title: '', narrative: '', people: [], symbols: '', reflection: '', complexLink: '', date: new Date().toISOString() });
       setEditDreamIdx(null);
     }
     setShowDreamForm(true);
@@ -217,17 +238,71 @@ function Journal() {
               <label style={styles.label}>Title</label>
               <input style={styles.input} value={dreamForm.title} onChange={e => setDreamForm({ ...dreamForm, title: e.target.value })} placeholder="Give this dream a name..." autoFocus />
             </div>
-            {[
-              { key: 'narrative', label: 'Narrative', placeholder: 'What happened in the dream?' },
-              { key: 'people', label: 'Who Appeared', placeholder: 'Who appeared?' },
-              { key: 'symbols', label: 'Symbols & Recurring Themes', placeholder: 'What symbols or images stood out?' },
-              { key: 'reflection', label: 'Reflection', placeholder: 'What does this dream mean to you?' },
-            ].map(field => (
-              <div key={field.key} style={styles.formGroup}>
-                <label style={styles.label}>{field.label}</label>
-                <textarea style={styles.textarea} value={dreamForm[field.key] || ''} onChange={e => setDreamForm({ ...dreamForm, [field.key]: e.target.value })} placeholder={field.placeholder} rows={3} />
-              </div>
-            ))}
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Year <span style={{ color: '#8BAFC8', fontWeight: 400 }}>— optional</span></label>
+              <select style={styles.input} value={dreamForm.year || ''} onChange={e => setDreamForm({ ...dreamForm, year: e.target.value })}>
+                <option value="">-- Unknown --</option>
+                {(() => {
+                  const currentYear = new Date().getFullYear();
+                  const years = [];
+                  for (let y = currentYear; y >= 2015; y--) years.push(y);
+                  return years.map(y => <option key={y} value={y}>{y}</option>);
+                })()}
+              </select>
+            </div>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Narrative</label>
+              <textarea style={styles.textarea} value={dreamForm.narrative || ''} onChange={e => setDreamForm({ ...dreamForm, narrative: e.target.value })} placeholder="What happened in the dream?" rows={3} />
+            </div>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Who Appeared / Who is it about?</label>
+              {(() => {
+                const selected = Array.isArray(dreamForm.people) ? dreamForm.people : [];
+                const available = people.filter(p => !selected.includes(p.name));
+                const togglePerson = (name) => {
+                  const updated = selected.includes(name) ? selected.filter(n => n !== name) : [...selected, name];
+                  setDreamForm({ ...dreamForm, people: updated });
+                };
+                const handleAddNew = async () => {
+                  const name = window.prompt('Add a new person to your Relational Map:');
+                  if (!name || !name.trim()) return;
+                  const trimmed = name.trim();
+                  await savePerson(trimmed);
+                  if (!selected.includes(trimmed)) {
+                    setDreamForm({ ...dreamForm, people: [...selected, trimmed] });
+                  }
+                };
+                return (
+                  <>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <select style={{ ...styles.input, flex: 1 }} value="" onChange={e => { if (e.target.value) togglePerson(e.target.value); }}>
+                        <option value="">{selected.length === 0 ? '-- Add a person --' : '-- Add another person --'}</option>
+                        {available.map((p, i) => <option key={i} value={p.name}>{p.name}</option>)}
+                      </select>
+                      <button type="button" style={styles.cancelBtn} onClick={handleAddNew}>+ New</button>
+                    </div>
+                    {selected.length > 0 && (
+                      <div style={{ marginTop: '10px' }}>
+                        {selected.map((name, i) => (
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'rgba(142,196,224,0.06)', border: '1px solid rgba(142,196,224,0.25)', borderRadius: '3px', marginTop: '6px' }}>
+                            <span style={{ fontSize: '13px', color: '#A0C4D8', fontFamily: 'Georgia, serif' }}>{name}</span>
+                            <button type="button" style={{ background: 'none', border: 'none', color: '#8BAFC8', cursor: 'pointer', fontSize: '14px', padding: '0 4px' }} onClick={() => togglePerson(name)}>✕</button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Symbols & Recurring Themes</label>
+              <textarea style={styles.textarea} value={dreamForm.symbols || ''} onChange={e => setDreamForm({ ...dreamForm, symbols: e.target.value })} placeholder="What symbols or images stood out?" rows={3} />
+            </div>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Reflection</label>
+              <textarea style={styles.textarea} value={dreamForm.reflection || ''} onChange={e => setDreamForm({ ...dreamForm, reflection: e.target.value })} placeholder="What does this dream mean to you?" rows={3} />
+            </div>
             <div style={styles.formGroup}>
               <label style={styles.label}>Link to Complexes <span style={{ color: '#8BAFC8', fontWeight: 400 }}>— optional</span></label>
               {(() => {
@@ -311,18 +386,52 @@ function Journal() {
               <button style={styles.modalClose} onClick={() => setViewDreamIdx(null)}>✕</button>
             </div>
             <div style={styles.modalBody}>
+              {viewDream.year && <div style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8EC4E0', marginBottom: '8px' }}>{viewDream.year}</div>}
               {viewDream.date && <div style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8', marginBottom: '20px' }}>{new Date(viewDream.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</div>}
-              {[
-                { key: 'narrative', label: 'Narrative' },
-                { key: 'people', label: 'Who Appeared' },
-                { key: 'symbols', label: 'Symbols & Recurring Themes' },
-                { key: 'reflection', label: 'Reflection', color: '#8EC4E0' },
-              ].map(field => viewDream[field.key] && viewDream[field.key].trim() ? (
-                <div key={field.key} style={{ marginBottom: '20px' }}>
-                  <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8', marginBottom: '8px' }}>{field.label}</div>
-                  <div style={{ fontSize: '14px', color: field.color || '#D8E6F0', lineHeight: 1.7, whiteSpace: 'pre-line' }}>{viewDream[field.key]}</div>
+              {viewDream.narrative && viewDream.narrative.trim() && (
+                <div style={{ marginBottom: '20px' }}>
+                  <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8', marginBottom: '8px' }}>Narrative</div>
+                  <div style={{ fontSize: '14px', color: '#D8E6F0', lineHeight: 1.7, whiteSpace: 'pre-line' }}>{viewDream.narrative}</div>
                 </div>
-              ) : null)}
+              )}
+              {(() => {
+                const ppl = viewDream.people;
+                if (!ppl) return null;
+                if (Array.isArray(ppl)) {
+                  if (ppl.length === 0) return null;
+                  return (
+                    <div style={{ marginBottom: '20px' }}>
+                      <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8', marginBottom: '8px' }}>Who Appeared / Who is it about?</div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        {ppl.map((name, i) => (
+                          <span key={i} style={{ fontSize: '12px', color: '#A0C4D8', fontFamily: 'Georgia, serif', padding: '4px 10px', background: 'rgba(142,196,224,0.08)', border: '1px solid rgba(142,196,224,0.25)', borderRadius: '3px' }}>{name}</span>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                }
+                if (typeof ppl === 'string' && ppl.trim()) {
+                  return (
+                    <div style={{ marginBottom: '20px' }}>
+                      <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8', marginBottom: '8px' }}>Who Appeared / Who is it about?</div>
+                      <div style={{ fontSize: '14px', color: '#D8E6F0', lineHeight: 1.7, whiteSpace: 'pre-line' }}>{ppl}</div>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+              {viewDream.symbols && viewDream.symbols.trim() && (
+                <div style={{ marginBottom: '20px' }}>
+                  <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8', marginBottom: '8px' }}>Symbols & Recurring Themes</div>
+                  <div style={{ fontSize: '14px', color: '#D8E6F0', lineHeight: 1.7, whiteSpace: 'pre-line' }}>{viewDream.symbols}</div>
+                </div>
+              )}
+              {viewDream.reflection && viewDream.reflection.trim() && (
+                <div style={{ marginBottom: '20px' }}>
+                  <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8', marginBottom: '8px' }}>Reflection</div>
+                  <div style={{ fontSize: '14px', color: '#8EC4E0', lineHeight: 1.7, whiteSpace: 'pre-line' }}>{viewDream.reflection}</div>
+                </div>
+              )}
               {(() => {
                 const links = Array.isArray(viewDream.complexLinks) ? viewDream.complexLinks : (viewDream.complexLink ? [viewDream.complexLink] : []);
                 if (links.length === 0) return null;
@@ -373,25 +482,123 @@ function Journal() {
               <div style={{ fontSize: '13px', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '12px' }}>No dreams recorded yet</div>
               <div style={{ fontSize: '13px', color: '#8BAFC8', lineHeight: 1.6, fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>Click "+ Record Dream" to begin.<br />Your dreams hold language worth listening to.</div>
             </div>
-          ) : (
-            <div style={styles.dreamGrid}>
-              {dreams.slice().reverse().map((d, i) => {
-                const realIdx = dreams.length - 1 - i;
-                const dateStr = d.date ? new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
-                return (
-                  <div key={realIdx} style={styles.dreamCard} onClick={(e) => { if (!e.target.closest('button')) setViewDreamIdx(realIdx); }}>
-                    <div style={{ fontFamily: 'Georgia, serif', fontSize: '16px', fontWeight: '300', color: '#D8E6F0', lineHeight: 1.4, marginBottom: '8px' }}>{d.title || 'Untitled Dream'}</div>
-                    {d.narrative && <div style={{ fontSize: '13px', color: '#8BAFC8', lineHeight: 1.6, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{d.narrative}</div>}
-                    <div style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#8BAFC8', opacity: 0.7, marginTop: '10px' }}>{dateStr}</div>
-                    <div style={styles.cardFooter}>
-                      <button style={styles.smallBtn} onClick={e => { e.stopPropagation(); openDreamForm(realIdx); }}>Edit</button>
-                      <button style={{ ...styles.smallBtn, color: '#C87878', borderColor: 'rgba(176,90,90,0.3)', marginLeft: 'auto' }} onClick={e => { e.stopPropagation(); deleteDream(realIdx); }}>Delete</button>
+          ) : (() => {
+            const filteredDreams = dreams.filter((d) => {
+              if (filterType === 'person' && filterValue) {
+                const ppl = Array.isArray(d.people) ? d.people : [];
+                return ppl.includes(filterValue);
+              }
+              if (filterType === 'complex' && filterValue) {
+                const links = Array.isArray(d.complexLinks) ? d.complexLinks : (d.complexLink ? [d.complexLink] : []);
+                return links.includes(filterValue);
+              }
+              return true;
+            });
+            const groups = {};
+            filteredDreams.forEach((d) => {
+              const realIdx = dreams.indexOf(d);
+              const yearKey = d.year ? String(d.year) : 'Undated';
+              if (!groups[yearKey]) groups[yearKey] = [];
+              groups[yearKey].push({ dream: d, realIdx });
+            });
+            const yearKeys = Object.keys(groups).sort((a, b) => {
+              if (a === 'Undated') return -1;
+              if (b === 'Undated') return 1;
+              return parseInt(b) - parseInt(a);
+            });
+            yearKeys.forEach(k => groups[k].reverse());
+            const sortedPeople = people.slice().sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+            const sortedComplexes = complexes.slice().sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+            return (
+              <div>
+                <div style={styles.filterBar}>
+                  <div style={styles.filterGroup}>
+                    <label style={styles.filterLabel}>Filter by person</label>
+                    <select
+                      style={styles.filterSelect}
+                      value={filterType === 'person' ? filterValue : ''}
+                      onChange={e => {
+                        if (e.target.value) { setFilterType('person'); setFilterValue(e.target.value); }
+                        else { setFilterType(null); setFilterValue(''); }
+                      }}
+                    >
+                      <option value="">All</option>
+                      {sortedPeople.map((p, i) => <option key={i} value={p.name}>{p.name}</option>)}
+                    </select>
+                  </div>
+                  <div style={styles.filterGroup}>
+                    <label style={styles.filterLabel}>Filter by complex</label>
+                    <select
+                      style={styles.filterSelect}
+                      value={filterType === 'complex' ? filterValue : ''}
+                      onChange={e => {
+                        if (e.target.value) { setFilterType('complex'); setFilterValue(e.target.value); }
+                        else { setFilterType(null); setFilterValue(''); }
+                      }}
+                    >
+                      <option value="">All</option>
+                      {sortedComplexes.map((c, i) => <option key={i} value={c.name}>{c.name}</option>)}
+                    </select>
+                  </div>
+                  {filterType && (
+                    <button style={styles.filterClear} onClick={() => { setFilterType(null); setFilterValue(''); }}>
+                      Clear filter
+                    </button>
+                  )}
+                  {filterType && (
+                    <span style={styles.filterCount}>
+                      {filteredDreams.length} match{filteredDreams.length === 1 ? '' : 'es'}
+                    </span>
+                  )}
+                </div>
+                {filteredDreams.length === 0 && filterType && (
+                  <div style={{ textAlign: 'center', padding: '60px 40px', color: '#8BAFC8', fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '14px' }}>
+                    No dreams match this filter.
+                  </div>
+                )}
+                {yearKeys.map(yearKey => (
+                  <div key={yearKey} style={{ marginBottom: '48px' }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '16px', marginBottom: '20px', paddingBottom: '12px', borderBottom: '1px solid rgba(142,196,224,0.15)' }}>
+                      <div style={{
+                        fontFamily: 'Georgia, serif',
+                        fontSize: yearKey === 'Undated' ? '20px' : '26px',
+                        fontWeight: '300',
+                        color: '#8BAFC8',
+                        letterSpacing: '2px',
+                        fontStyle: yearKey === 'Undated' ? 'italic' : 'normal',
+                      }}>{yearKey}</div>
+                      <span style={{ fontSize: '10px', color: '#8BAFC8', letterSpacing: '2px', textTransform: 'uppercase' }}>{groups[yearKey].length} dream{groups[yearKey].length > 1 ? 's' : ''}</span>
+                    </div>
+                    <div style={styles.dreamList}>
+                      {groups[yearKey].map(({ dream: d, realIdx }, rowI) => {
+                        const ppl = Array.isArray(d.people) ? d.people : [];
+                        return (
+                          <div
+                            key={realIdx}
+                            style={{ ...styles.dreamRow, borderTop: rowI === 0 ? 'none' : '1px solid rgba(142,196,224,0.06)' }}
+                            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(142,196,224,0.03)'; e.currentTarget.querySelector('.row-actions').style.opacity = '1'; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.querySelector('.row-actions').style.opacity = '0'; }}
+                            onClick={(e) => { if (!e.target.closest('button')) setViewDreamIdx(realIdx); }}
+                          >
+                            <div style={styles.dreamRowTitle}>
+                              {d.title || 'Untitled Dream'}
+                            </div>
+                            <div style={styles.dreamRowPeople}>
+                              {ppl.length > 0 ? ppl.join(' · ') : ''}
+                            </div>
+                            <div className="row-actions" style={styles.dreamRowActions}>
+                              <button style={styles.smallBtn} onClick={e => { e.stopPropagation(); openDreamForm(realIdx); }}>Edit</button>
+                              <button style={{ ...styles.smallBtn, color: '#C87878', borderColor: 'rgba(176,90,90,0.3)' }} onClick={e => { e.stopPropagation(); deleteDream(realIdx); }}>Delete</button>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          )
+                ))}
+              </div>
+            );
+          })()
         )}
 
         {tab === 'free' && (
@@ -442,6 +649,17 @@ const styles = {
   tabBtnActive: { color: '#8EC4E0', borderBottomColor: '#8EC4E0' },
   dreamGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' },
   dreamCard: { background: '#162534', border: '1px solid rgba(142,196,224,0.2)', borderRadius: '3px', padding: '20px', cursor: 'pointer', transition: 'border-color 0.2s' },
+  filterBar: { display: 'flex', alignItems: 'flex-end', gap: '20px', marginBottom: '32px', paddingBottom: '20px', borderBottom: '1px solid rgba(142,196,224,0.1)', flexWrap: 'wrap' },
+  filterGroup: { display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '200px' },
+  filterLabel: { fontSize: '9px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#8BAFC8' },
+  filterSelect: { background: '#0f2236', border: '1px solid rgba(142,196,224,0.2)', borderRadius: '3px', padding: '8px 12px', color: '#D8E6F0', fontSize: '13px', outline: 'none', cursor: 'pointer', minWidth: '200px' },
+  filterClear: { background: 'none', border: 'none', color: '#8EC4E0', fontSize: '11px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', cursor: 'pointer', padding: '8px 0' },
+  filterCount: { fontSize: '11px', color: '#8BAFC8', letterSpacing: '1px', marginLeft: 'auto', alignSelf: 'center' },
+  dreamList: { display: 'grid', gridTemplateColumns: '1fr' },
+  dreamRow: { display: 'grid', gridTemplateColumns: '2fr 1.5fr 110px', alignItems: 'center', gap: '32px', padding: '11px 12px', cursor: 'pointer', transition: 'background 0.15s', background: 'transparent' },
+  dreamRowTitle: { fontFamily: 'Georgia, serif', fontSize: '14px', fontWeight: '300', color: '#D8E6F0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '0.3px' },
+  dreamRowPeople: { fontSize: '12px', color: '#A0C4D8', fontFamily: 'Georgia, serif', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '0.3px' },
+  dreamRowActions: { display: 'flex', gap: '6px', justifyContent: 'flex-end', opacity: 0, transition: 'opacity 0.15s' },
   freeCard: { background: '#162534', border: '1px solid rgba(142,196,224,0.2)', borderRadius: '3px', padding: '24px 28px', marginBottom: '12px', cursor: 'pointer', transition: 'border-color 0.2s' },
   cardFooter: { display: 'flex', gap: '6px', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(142,196,224,0.08)' },
   smallBtn: { background: 'none', border: '1px solid rgba(142,196,224,0.2)', borderRadius: '2px', padding: '4px 10px', color: '#8BAFC8', fontSize: '10px', cursor: 'pointer' },

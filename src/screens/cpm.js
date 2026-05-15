@@ -7,10 +7,12 @@ const API = 'https://axis-backend-production-5e9b.up.railway.app';
 const EMOTION_ORDER = ['Fear', 'Guilt', 'Shame', 'Anger', 'Envy', 'Grief'];
 
 const SOURCES = [
-  'Mother', 'Father', 'Stepmother', 'Stepfather', 'Both Parents',
+  'Mother', 'Father', 'Stepmother', 'Stepfather',
   'Grandmother', 'Grandfather', 'Brother', 'Sister',
   'Romantic Partner', 'Teacher', 'Boss', 'Custom'
 ];
+
+const SOURCE_ORDER = SOURCES.reduce((acc, s, i) => { acc[s] = i; return acc; }, {});
 
 const LIFE_PERIODS = [
   { label: 'Early Childhood', range: '0–7', order: 1 },
@@ -93,6 +95,36 @@ const ENTRY_POINTS = [
   { id: 'behaviors', label: 'Behavior',  desc: 'I can see how I am acting or reacting right now.' },
   { id: 'beliefs',   label: 'Belief',    desc: 'I am aware of a deep rooted belief I carry.' },
 ];
+
+
+
+function CollapsibleSection({ label, color, defaultOpen, children }) {
+  const [open, setOpen] = React.useState(defaultOpen);
+  return (
+    <div style={{ marginTop: '20px' }}>
+      <div
+        onClick={() => setOpen(!open)}
+        style={{
+          fontSize: '9px',
+          fontWeight: '600',
+          letterSpacing: '3px',
+          textTransform: 'uppercase',
+          color: color,
+          marginBottom: '8px',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          userSelect: 'none',
+        }}
+      >
+        <span style={{ fontSize: '10px', display: 'inline-block', transition: 'transform 0.15s', transform: open ? 'rotate(90deg)' : 'rotate(0deg)' }}>▶</span>
+        {label}
+      </div>
+      {open && <div>{children}</div>}
+    </div>
+  );
+}
 
 const ConcentricSquare = ({ size = 48, color = 'rgba(74,174,136,0.9)' }) => {
   const s = size;
@@ -317,8 +349,9 @@ function GuidedBuilder({ onSave, complexes, prefillBehavior }) {
   );
 }
 
-function ViewModal({ complex, dreams, onClose, onEdit }) {
+function ViewModal({ complex, dreams, people, complexes, onClose, onEdit }) {
   const [viewingDream, setViewingDream] = React.useState(null);
+  const [viewingPerson, setViewingPerson] = React.useState(null);
   if (!complex) return null;
   const c = complex;
   const hasCounter = c.counter && c.counter.trim();
@@ -363,6 +396,72 @@ function ViewModal({ complex, dreams, onClose, onEdit }) {
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 200, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '40px 20px' }}>
+      {viewingPerson && (() => {
+        const personComplexes = (complexes || []).filter(cx => cx.person === viewingPerson.name);
+        const personDreams = (dreams || []).filter(d => {
+          const ppl = Array.isArray(d.people) ? d.people : [];
+          return ppl.includes(viewingPerson.name);
+        });
+        const sortedPersonDreams = personDreams.slice().sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+        const cur = viewingPerson.currentPartner || viewingPerson.partner || null;
+        const past = Array.isArray(viewingPerson.pastPartners) ? viewingPerson.pastPartners : [];
+        return (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 300, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '40px 20px' }}>
+            <div style={{ background: '#162534', border: '1px solid rgba(142,196,224,0.3)', borderRadius: '4px', width: '100%', maxWidth: '520px', padding: '32px', boxShadow: '0 0 40px rgba(0,0,0,0.6)' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <div>
+                  <div style={{ fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: '300', color: '#D8E6F0' }}>
+                    {viewingPerson.name}
+                    {viewingPerson.isSelf && <span style={{ color: '#C8A840', marginLeft: '8px', fontSize: '14px' }}>◉</span>}
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '6px', flexWrap: 'wrap' }}>
+                    {viewingPerson.level && <span style={{ fontSize: '10px', color: '#8BAFC8', letterSpacing: '1px' }}>Level {viewingPerson.level}</span>}
+                    {viewingPerson.familyOrigin && viewingPerson.familyOrigin !== 'none' && <span style={{ fontSize: '10px', color: '#8BAFC8', letterSpacing: '1px', textTransform: 'uppercase' }}>· {viewingPerson.familyOrigin}</span>}
+                    {cur && <span style={{ fontSize: '10px', color: '#C8A840', letterSpacing: '1px' }}>· ↔ {cur}</span>}
+                    {past.length > 0 && <span style={{ fontSize: '10px', color: '#8BAFC8', letterSpacing: '1px', fontStyle: 'italic' }}>· past: {past.join(', ')}</span>}
+                  </div>
+                  {viewingPerson.pattern && <div style={{ fontSize: '13px', color: '#A0C4D8', fontStyle: 'italic', marginTop: '10px' }}>{viewingPerson.pattern}</div>}
+                </div>
+                <button style={{ background: 'none', border: 'none', color: '#8BAFC8', cursor: 'pointer', fontSize: '18px' }} onClick={() => setViewingPerson(null)}>✕</button>
+              </div>
+              {personComplexes.length > 0 && (
+                <CollapsibleSection
+                  label={`Complexes (${personComplexes.length})`}
+                  color="#8BAFC8"
+                  defaultOpen={true}
+                >
+                  {personComplexes.map((cx, i) => (
+                    <div key={i} style={{ border: '1px solid rgba(74,174,136,0.2)', borderRadius: '3px', padding: '10px 14px', background: 'rgba(74,174,136,0.04)', marginBottom: '6px' }}>
+                      <div style={{ fontSize: '13px', color: '#D8E6F0', fontFamily: 'Georgia, serif' }}>{cx.name}</div>
+                      {cx.burden && <div style={{ fontSize: '9px', color: '#8BAFC8', letterSpacing: '1px', marginTop: '2px', textTransform: 'uppercase' }}>{cx.burden}</div>}
+                    </div>
+                  ))}
+                </CollapsibleSection>
+              )}
+              {sortedPersonDreams.length > 0 && (
+                <CollapsibleSection
+                  label={`Dreams (${sortedPersonDreams.length})`}
+                  color="#B07ED4"
+                  defaultOpen={false}
+                >
+                  {sortedPersonDreams.map((d, i) => (
+                    <div key={i} onClick={() => { setViewingPerson(null); setViewingDream(d); }} style={{ border: '1px solid rgba(176,126,212,0.2)', borderRadius: '3px', padding: '10px 14px', background: 'rgba(176,126,212,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', marginBottom: '6px' }}>
+                      <div>
+                        <div style={{ fontSize: '13px', color: '#D8E6F0', fontFamily: 'Georgia, serif' }}>{d.title || 'Untitled Dream'}</div>
+                        {d.year && <div style={{ fontSize: '9px', color: '#8BAFC8', letterSpacing: '1px', marginTop: '2px' }}>{d.year}</div>}
+                      </div>
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4 2 L9 6 L4 10" stroke="rgba(176,126,212,0.5)" strokeWidth="1.5" strokeLinecap="round" /></svg>
+                    </div>
+                  ))}
+                </CollapsibleSection>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(142,196,224,0.15)' }}>
+                <button style={{ background: 'rgba(142,196,224,0.15)', border: '1px solid rgba(142,196,224,0.4)', borderRadius: '3px', padding: '10px 20px', color: '#8EC4E0', fontSize: '11px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', cursor: 'pointer' }} onClick={() => setViewingPerson(null)}>Close</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
       {viewingDream && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 300, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '40px 20px' }}>
           <div style={{ background: '#162534', border: '1px solid rgba(176,126,212,0.3)', borderRadius: '4px', width: '100%', maxWidth: '520px', padding: '32px', boxShadow: '0 0 40px rgba(0,0,0,0.6)' }}>
@@ -376,12 +475,18 @@ function ViewModal({ complex, dreams, onClose, onEdit }) {
               { key: 'people', label: 'Who Appeared' },
               { key: 'symbols', label: 'Symbols & Recurring Themes' },
               { key: 'reflection', label: 'Reflection' },
-            ].map(field => viewingDream[field.key] && viewingDream[field.key].trim() ? (
-              <div key={field.key} style={{ marginBottom: '20px' }}>
-                <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8', marginBottom: '8px' }}>{field.label}</div>
-                <div style={{ fontSize: '13px', color: '#D8E6F0', fontFamily: 'Georgia, serif', lineHeight: 1.7, whiteSpace: 'pre-line' }}>{viewingDream[field.key]}</div>
-              </div>
-            ) : null)}
+            ].map(field => {
+              const val = viewingDream[field.key];
+              if (!val) return null;
+              const display = Array.isArray(val) ? val.join(', ') : val;
+              if (!display || (typeof display === 'string' && !display.trim())) return null;
+              return (
+                <div key={field.key} style={{ marginBottom: '20px' }}>
+                  <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8', marginBottom: '8px' }}>{field.label}</div>
+                  <div style={{ fontSize: '13px', color: '#D8E6F0', fontFamily: 'Georgia, serif', lineHeight: 1.7, whiteSpace: 'pre-line' }}>{display}</div>
+                </div>
+              );
+            })}
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px' }}>
               <button style={{ background: 'rgba(176,126,212,0.1)', border: '1px solid rgba(176,126,212,0.3)', borderRadius: '3px', padding: '10px 24px', color: '#B07ED4', fontSize: '11px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', cursor: 'pointer' }} onClick={() => setViewingDream(null)}>Close</button>
             </div>
@@ -397,7 +502,6 @@ function ViewModal({ complex, dreams, onClose, onEdit }) {
               {c.status === 'resolved' && <span style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '2px', textTransform: 'uppercase', color: '#4AAE88', border: '1px solid rgba(74,174,136,0.4)', padding: '2px 7px', borderRadius: '2px' }}>Resolved</span>}
               {c.period && <span style={{ fontSize: '10px', color: '#8BAFC8', letterSpacing: '1px' }}>{getPeriodDisplay(c.period)}</span>}
               {c.source && <span style={{ fontSize: '10px', color: '#8BAFC8', letterSpacing: '1px' }}>· {c.source}</span>}
-              {c.person && <span style={{ fontSize: '10px', color: '#8EC4E0', letterSpacing: '1px' }}>· {c.person}</span>}
             </div>
           </div>
           <button style={{ background: 'none', border: 'none', color: '#8BAFC8', cursor: 'pointer', fontSize: '18px' }} onClick={onClose}>✕</button>
@@ -430,6 +534,28 @@ function ViewModal({ complex, dreams, onClose, onEdit }) {
             <div style={{ fontSize: '13px', color: '#A0C4D8' }}>{Array.isArray(c.rootComplex) ? c.rootComplex.join(', ') : c.rootComplex}</div>
           </div>
         )}
+        {c.person && people && (() => {
+          const personObj = people.find(p => p.name === c.person);
+          if (!personObj) return null;
+          return (
+            <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(142,196,224,0.1)' }}>
+              <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8EC4E0', marginBottom: '8px' }}>Linked Person</div>
+              <div
+                onClick={() => setViewingPerson(personObj)}
+                style={{ border: '1px solid rgba(142,196,224,0.25)', borderRadius: '3px', padding: '12px 16px', background: 'rgba(142,196,224,0.05)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+              >
+                <div>
+                  <div style={{ fontSize: '14px', color: '#D8E6F0', fontFamily: 'Georgia, serif', marginBottom: '4px' }}>
+                    {personObj.name}
+                    {personObj.isSelf && <span style={{ color: '#C8A840', marginLeft: '6px', fontSize: '11px' }}>◉</span>}
+                  </div>
+                  {personObj.pattern && <div style={{ fontSize: '11px', color: '#A0C4D8', fontStyle: 'italic' }}>{personObj.pattern}</div>}
+                </div>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4 2 L9 6 L4 10" stroke="rgba(142,196,224,0.5)" strokeWidth="1.5" strokeLinecap="round" /></svg>
+              </div>
+            </div>
+          );
+        })()}
         {dreams && (() => {
           const linkedDreams = dreams.filter(d => {
             const links = Array.isArray(d.complexLinks) ? d.complexLinks : (d.complexLink ? [d.complexLink] : []);
@@ -461,7 +587,7 @@ function ViewModal({ complex, dreams, onClose, onEdit }) {
   );
 }
 
-function TreeView({ complexes, onViewComplex, onViewResolution, onSaveOrder, savedOrder }) {
+function TreeView({ complexes, people, patterns, activeCategoryId, onViewComplex, onViewResolution, onSaveOrder, savedOrder }) {
   const viewportRef = useRef(null);
   const treeRef = useRef(null);
   const [scale, setScale] = useState(1);
@@ -539,6 +665,15 @@ function TreeView({ complexes, onViewComplex, onViewResolution, onSaveOrder, sav
   const sourceGroups = {};
   rootNames.forEach(name => { const c = complexes[nameToIdx[name]]; const src = (c && c.source) || ''; if (!sourceGroups[src]) sourceGroups[src] = []; sourceGroups[src].push(name); });
   const namedSources = Object.keys(sourceGroups).filter(s => s !== '');
+  // Sort: predefined sources by developmental priority, custom names alphabetically after, then unnamed last
+  namedSources.sort((a, b) => {
+    const aIsPredef = SOURCE_ORDER[a] !== undefined && a !== 'Custom';
+    const bIsPredef = SOURCE_ORDER[b] !== undefined && b !== 'Custom';
+    if (aIsPredef && bIsPredef) return SOURCE_ORDER[a] - SOURCE_ORDER[b];
+    if (aIsPredef && !bIsPredef) return -1;
+    if (!aIsPredef && bIsPredef) return 1;
+    return a.localeCompare(b);
+  });
   const orderedSources = [...namedSources, ...(sourceGroups[''] && sourceGroups[''].length > 0 ? [''] : [])];
 
   const getOrderedGroupRoots = (source) => {
@@ -661,21 +796,64 @@ function TreeView({ complexes, onViewComplex, onViewResolution, onSaveOrder, sav
     const resolved = c && c.status === 'resolved';
     const isRoot = !c || !c.rootComplex || (Array.isArray(c.rootComplex) ? c.rootComplex.length === 0 : !c.rootComplex);
 
+    // Pattern coloring takes priority when category is active
+    let patternBorder = null;
+    let patternBg = null;
+    if (activeCategoryId && c && c.person && people && patterns) {
+      const personObj = people.find(p => p.name === c.person);
+      if (personObj && personObj.patterns && personObj.patterns[activeCategoryId]) {
+        const pat = patterns.find(pp => pp.id === personObj.patterns[activeCategoryId]);
+        if (pat) {
+          patternBorder = pat.color;
+          patternBg = pat.color + '15';
+        }
+      }
+    }
+
+    let finalBorder, finalLeftBorder, finalBg, finalDot, finalNameColor, finalBurdenColor, finalPeriodColor;
+    if (activeCategoryId) {
+      if (patternBorder) {
+        finalBorder = '2px solid ' + patternBorder;
+        finalLeftBorder = '3px solid ' + patternBorder;
+        finalBg = patternBg;
+        finalDot = patternBorder;
+        finalNameColor = '#D8E6F0';
+        finalBurdenColor = patternBorder;
+        finalPeriodColor = 'rgba(142,196,224,0.55)';
+      } else {
+        finalBorder = '1px solid rgba(142,196,224,0.15)';
+        finalLeftBorder = '3px solid rgba(142,196,224,0.15)';
+        finalBg = 'rgba(142,196,224,0.02)';
+        finalDot = 'rgba(142,196,224,0.3)';
+        finalNameColor = 'rgba(216,230,240,0.4)';
+        finalBurdenColor = 'rgba(142,196,224,0.3)';
+        finalPeriodColor = 'rgba(142,196,224,0.3)';
+      }
+    } else {
+      finalBorder = '1px solid ' + (resolved ? 'rgba(74,174,136,0.5)' : colors.border);
+      finalLeftBorder = '3px solid ' + (resolved ? 'rgba(74,174,136,0.6)' : colors.border);
+      finalBg = resolved ? 'rgba(74,174,136,0.06)' : colors.bg;
+      finalDot = resolved ? '#4AAE88' : colors.dot;
+      finalNameColor = resolved ? '#4AAE88' : '#D8E6F0';
+      finalBurdenColor = resolved ? 'rgba(74,174,136,0.6)' : colors.dot;
+      finalPeriodColor = resolved ? 'rgba(74,174,136,0.5)' : 'rgba(142,196,224,0.55)';
+    }
+
     items.push(
       <div key={'n-' + gi + '-' + ti + '-' + node.name}
         data-root-handle={isRoot ? 'true' : undefined}
         onMouseDown={isRoot ? (e) => startRootDrag(e, source, node.name) : undefined}
         onClick={(e) => { if (!e.defaultPrevented && c) onViewComplex(nameToIdx[node.name]); }}
-        style={{ position: 'absolute', left: node.x, top: LABEL_H + node.y, width: NODE_W, height: NODE_H, border: '1px solid ' + (resolved ? 'rgba(74,174,136,0.5)' : colors.border), borderLeft: '3px solid ' + (resolved ? 'rgba(74,174,136,0.6)' : colors.border), background: resolved ? 'rgba(74,174,136,0.06)' : colors.bg, borderRadius: '3px', padding: '8px 12px', cursor: isRoot ? 'grab' : 'pointer', boxSizing: 'border-box', overflow: 'hidden', userSelect: 'none' }}>
+        style={{ position: 'absolute', left: node.x, top: LABEL_H + node.y, width: NODE_W, height: NODE_H, border: finalBorder, borderLeft: finalLeftBorder, background: finalBg, borderRadius: '3px', padding: '8px 12px', cursor: isRoot ? 'grab' : 'pointer', boxSizing: 'border-box', overflow: 'hidden', userSelect: 'none' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-          <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: resolved ? '#4AAE88' : colors.dot, flexShrink: 0 }} />
-          <span style={{ fontSize: '12px', fontWeight: '600', color: resolved ? '#4AAE88' : '#D8E6F0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{node.name}</span>
+          <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: finalDot, flexShrink: 0 }} />
+          <span style={{ fontSize: '12px', fontWeight: '600', color: finalNameColor, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{node.name}</span>
           {isWound && <span style={{ color: '#C8A840', fontSize: '13px', flexShrink: 0 }}>◉</span>}
           {resolved && <span style={{ fontSize: '10px', color: 'rgba(74,174,136,0.6)', flexShrink: 0 }}>✓</span>}
           {isRoot && <span style={{ fontSize: '9px', color: 'rgba(142,196,224,0.4)', marginLeft: 'auto', flexShrink: 0 }}>⇄</span>}
         </div>
-        {c && c.burden && <div style={{ fontSize: '8px', letterSpacing: '2px', textTransform: 'uppercase', color: resolved ? 'rgba(74,174,136,0.6)' : colors.dot, marginLeft: '13px' }}>{c.burden}</div>}
-        {c && c.period && <div style={{ fontSize: '8px', color: resolved ? 'rgba(74,174,136,0.5)' : 'rgba(142,196,224,0.55)', marginLeft: '13px', marginTop: '2px', letterSpacing: '1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{getPeriodDisplay(c.period)}</div>}
+        {c && c.burden && <div style={{ fontSize: '8px', letterSpacing: '2px', textTransform: 'uppercase', color: finalBurdenColor, marginLeft: '13px' }}>{c.burden}</div>}
+        {c && c.period && <div style={{ fontSize: '8px', color: finalPeriodColor, marginLeft: '13px', marginTop: '2px', letterSpacing: '1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{getPeriodDisplay(c.period)}</div>}
       </div>
     );
 
@@ -711,7 +889,7 @@ function TreeView({ complexes, onViewComplex, onViewResolution, onSaveOrder, sav
         <span style={{ fontSize: '9px', color: 'rgba(142,196,224,0.45)', marginLeft: '8px', letterSpacing: '1px' }}>Drag ⇄ root nodes to reorder</span>
       </div>
       <div ref={viewportRef} style={{ flex: 1, overflow: 'hidden', background: 'rgba(142,196,224,0.02)', cursor: 'grab', position: 'relative', borderTop: '1px solid rgba(142,196,224,0.1)' }}>
-        <div ref={treeRef} style={{ position: 'absolute', transformOrigin: '0 0', transform: 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')', willChange: 'transform', width: totalW, height: totalH + LABEL_H + 20 }}>
+        <div ref={treeRef} data-export-target="cpm-tree" data-export-width={totalW} data-export-height={totalH + LABEL_H + 20} style={{ position: 'absolute', transformOrigin: '0 0', transform: 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')', willChange: 'transform', width: totalW, height: totalH + LABEL_H + 20 }}>
           <svg style={{ position: 'absolute', top: 0, left: 0, width: totalW, height: totalH + LABEL_H + 20, overflow: 'visible', pointerEvents: 'none' }}>
             {allLines.map((l, i) => (
               <path key={i} d={l.d} fill="none"
@@ -736,12 +914,24 @@ function CPM() {
   const navigate = useNavigate();
   const location = useLocation();
   const token = localStorage.getItem('axis_token');
+  const initialTab = (() => {
+    const params = new URLSearchParams(window.location.search);
+    const v = params.get('view');
+    return v === 'tree' ? 'tree' : 'emotion';
+  })();
+  const initialCategory = (() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('category') || '';
+  })();
   const [complexes, setComplexes] = useState([]);
   const [dreams, setDreams] = useState([]);
   const [people, setPeople] = useState([]);
+  const [patternCategories, setPatternCategories] = useState([]);
+  const [patterns, setPatterns] = useState([]);
+  const [activeCategoryId, setActiveCategoryId] = useState(initialCategory);
   const [treeOrder, setTreeOrder] = useState({});
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState('emotion');
+  const [tab, setTab] = useState(initialTab);
   const [filter, setFilter] = useState('active');
   const [showBuilder, setShowBuilder] = useState(false);
   const [builderMode, setBuilderMode] = useState('guided');
@@ -762,14 +952,18 @@ function CPM() {
 
   const loadComplexes = async () => {
     try {
-      const [complexRes, dreamsRes, peopleRes] = await Promise.all([
+      const [complexRes, dreamsRes, peopleRes, catsRes, patternsRes] = await Promise.all([
         axios.get(API + '/api/complexes', { headers: { Authorization: 'Bearer ' + token } }),
         axios.get(API + '/api/dreams', { headers: { Authorization: 'Bearer ' + token } }),
         axios.get(API + '/api/people', { headers: { Authorization: 'Bearer ' + token } }),
+        axios.get(API + '/api/pattern-categories', { headers: { Authorization: 'Bearer ' + token } }),
+        axios.get(API + '/api/patterns', { headers: { Authorization: 'Bearer ' + token } }),
       ]);
       setComplexes(complexRes.data || []);
       setDreams(dreamsRes.data || []);
       setPeople(peopleRes.data || []);
+      setPatternCategories(catsRes.data || []);
+      setPatterns(patternsRes.data || []);
       try {
         const orderRes = await axios.get(API + '/api/tree-order', { headers: { Authorization: 'Bearer ' + token } });
         if (orderRes.data) setTreeOrder(orderRes.data);
@@ -799,6 +993,7 @@ function CPM() {
     if (!payload.name || !payload.name.trim()) return;
     if (typeof payload.rootComplex === 'string') payload.rootComplex = payload.rootComplex ? [payload.rootComplex] : [];
     if (!Array.isArray(payload.rootComplex)) payload.rootComplex = [];
+    if (payload.originalWound) payload.rootComplex = [];
     setSaving(true);
     try {
       let updated;
@@ -899,13 +1094,34 @@ function CPM() {
               </div>
               <div style={styles.formGroup}>
                 <label style={styles.label}>Source <span style={{ fontStyle: 'italic', fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: '6px' }}>optional</span></label>
-                <select style={styles.input} value={form.source || ''} onChange={e => setForm({ ...form, source: e.target.value })}><option value="">None / Unknown</option>{SOURCES.map(s => <option key={s} value={s}>{s}</option>)}</select>
+                <select
+                  style={styles.input}
+                  value={form.source && SOURCES.includes(form.source) && form.source !== 'Custom' ? form.source : (form.source ? 'Custom' : '')}
+                  onChange={e => {
+                    if (e.target.value === 'Custom') setForm({ ...form, source: 'Custom' });
+                    else setForm({ ...form, source: e.target.value });
+                  }}
+                >
+                  <option value="">None / Unknown</option>
+                  {SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+                {(form.source === 'Custom' || (form.source && !SOURCES.includes(form.source))) && (
+                  <input
+                    style={{ ...styles.input, marginTop: '8px' }}
+                    value={form.source === 'Custom' ? '' : form.source}
+                    onChange={e => setForm({ ...form, source: e.target.value || 'Custom' })}
+                    placeholder="Type the source (e.g., 'Aunt Marie', 'High School Coach')..."
+                  />
+                )}
               </div>
               <div style={styles.formGroup}>
                 <label style={styles.label}>Person <span style={{ fontStyle: 'italic', fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: '6px' }}>optional — who is this complex about?</span></label>
                 <PersonPicker value={form.person || ''} onChange={(name) => setForm({ ...form, person: name })} people={people} onAddPerson={savePerson} />
               </div>
-              <div style={{ ...styles.woundToggle, ...(form.originalWound ? styles.woundActive : {}) }} onClick={() => setForm({ ...form, originalWound: !form.originalWound })}>
+              <div style={{ ...styles.woundToggle, ...(form.originalWound ? styles.woundActive : {}) }} onClick={() => {
+                const newVal = !form.originalWound;
+                setForm({ ...form, originalWound: newVal, rootComplex: newVal ? [] : form.rootComplex });
+              }}>
                 <div style={{ ...styles.woundDot, ...(form.originalWound ? styles.woundDotActive : {}) }} />
                 <div><div style={styles.woundLabel}>Original Wound</div><div style={styles.woundDesc}>Mark this complex as the origin, where the pattern first formed.</div></div>
               </div>
@@ -940,7 +1156,7 @@ function CPM() {
   if (tab === 'tree') {
     return (
       <div style={{ ...styles.container, height: '100vh' }}>
-        {viewIdx !== null && <ViewModal complex={complexes[viewIdx]} dreams={dreams} onClose={() => setViewIdx(null)} onEdit={() => { openBuilder(viewIdx); setViewIdx(null); }} />}
+        {viewIdx !== null && <ViewModal complex={complexes[viewIdx]} dreams={dreams} people={people} complexes={complexes} onClose={() => setViewIdx(null)} onEdit={() => { openBuilder(viewIdx); setViewIdx(null); }} />}
         {resolutionViewComplexes && <ResolutionModal resolvedComplexes={resolutionViewComplexes} onClose={() => setResolutionViewComplexes(null)} />}
         {resolutionFormIdx !== null && <ResolutionForm complex={complexes[resolutionFormIdx]} onSave={(data) => markResolved(resolutionFormIdx, data)} onCancel={() => setResolutionFormIdx(null)} />}
         <div style={styles.header}>
@@ -952,14 +1168,41 @@ function CPM() {
           </div>
           <button style={styles.btn} onClick={() => openBuilder()}>+ Build Complex</button>
         </div>
-        <TreeView complexes={complexes} onViewComplex={(idx) => setViewIdx(idx)} onViewResolution={(cxs) => setResolutionViewComplexes(cxs)} onSaveOrder={saveTreeOrder} savedOrder={treeOrder} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 32px', borderBottom: '1px solid rgba(142,196,224,0.08)', flexShrink: 0 }}>
+          <span style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#8BAFC8' }}>View by:</span>
+          <select
+            style={{ background: '#0f2236', border: '1px solid rgba(142,196,224,0.2)', borderRadius: '3px', padding: '6px 10px', color: '#D8E6F0', fontSize: '12px', outline: 'none', cursor: 'pointer' }}
+            value={activeCategoryId}
+            onChange={e => setActiveCategoryId(e.target.value)}
+          >
+            <option value="">None</option>
+            {patternCategories.map(cat => (
+              <option key={cat.id} value={cat.id}>{cat.name}</option>
+            ))}
+          </select>
+          {activeCategoryId && (() => {
+            const activePatterns = patterns.filter(p => p.categoryId === activeCategoryId);
+            if (activePatterns.length === 0) return null;
+            return (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginLeft: '16px', flexWrap: 'wrap' }}>
+                {activePatterns.map(p => (
+                  <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: p.color, flexShrink: 0 }} />
+                    <span style={{ fontSize: '11px', color: '#A0C4D8' }}>{p.name}</span>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+        </div>
+        <TreeView complexes={complexes} people={people} patterns={patterns} activeCategoryId={activeCategoryId} onViewComplex={(idx) => setViewIdx(idx)} onViewResolution={(cxs) => setResolutionViewComplexes(cxs)} onSaveOrder={saveTreeOrder} savedOrder={treeOrder} />
       </div>
     );
   }
 
   return (
     <div style={styles.container}>
-      {viewIdx !== null && <ViewModal complex={complexes[viewIdx]} dreams={dreams} onClose={() => setViewIdx(null)} onEdit={() => { openBuilder(viewIdx); setViewIdx(null); }} />}
+      {viewIdx !== null && <ViewModal complex={complexes[viewIdx]} dreams={dreams} people={people} complexes={complexes} onClose={() => setViewIdx(null)} onEdit={() => { openBuilder(viewIdx); setViewIdx(null); }} />}
       {resolutionFormIdx !== null && <ResolutionForm complex={complexes[resolutionFormIdx]} onSave={(data) => markResolved(resolutionFormIdx, data)} onCancel={() => setResolutionFormIdx(null)} />}
       <div style={styles.header}>
         <button style={styles.backBtn} onClick={() => navigate('/')}>← Home</button>

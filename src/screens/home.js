@@ -1,8 +1,38 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import ExportModal from '../components/ExportModal';
+import { generatePDF } from '../utils/pdfExport';
+
+const API = 'https://axis-backend-production-5e9b.up.railway.app';
 
 function Home(props) {
   const navigate = useNavigate();
+  const token = localStorage.getItem('axis_token');
+  const [showExport, setShowExport] = useState(false);
+  const [patternCategories, setPatternCategories] = useState([]);
+  const [patterns, setPatterns] = useState([]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [catsRes, patternsRes] = await Promise.all([
+          axios.get(API + '/api/pattern-categories', { headers: { Authorization: 'Bearer ' + token } }),
+          axios.get(API + '/api/patterns', { headers: { Authorization: 'Bearer ' + token } }),
+        ]);
+        setPatternCategories(catsRes.data || []);
+        setPatterns(patternsRes.data || []);
+      } catch (e) {
+        console.log(e);
+      }
+    };
+    loadData();
+  }, [token]);
+
+  const handleExport = async (config) => {
+    await generatePDF(config);
+    setShowExport(false);
+  };
 
   const menuItems = [
     {
@@ -84,17 +114,6 @@ function Home(props) {
       )
     },
     {
-      id: 'selfportrait', label: 'Self\nPortrait',
-      svg: (
-        <svg width="64" height="64" viewBox="0 0 80 80" fill="none">
-          <ellipse cx="40" cy="38" rx="22" ry="30" stroke="#8EC4E0" strokeWidth="2.5" fill="none" opacity="0.85"/>
-          <ellipse cx="40" cy="38" rx="17" ry="25" stroke="#8EC4E0" strokeWidth="1" fill="none" opacity="0.45"/>
-          <line x1="33" y1="28" x2="40" y2="48" stroke="#8EC4E0" strokeWidth="1.5" strokeLinecap="round" opacity="0.65"/>
-          <line x1="36" y1="24" x2="43" y2="44" stroke="#8EC4E0" strokeWidth="1" strokeLinecap="round" opacity="0.45"/>
-        </svg>
-      )
-    },
-    {
       id: 'journal', label: 'Dream\nJournal',
       svg: (
         <svg width="64" height="64" viewBox="0 0 80 80" fill="none">
@@ -130,35 +149,51 @@ function Home(props) {
       <div style={styles.sub}>Navigate your inner world</div>
 
       <div style={styles.iconsRow}>
-        {menuItems.map(item => (
-          <button
-            key={item.id}
-            style={styles.iconBtn}
-            onClick={() => navigate('/' + item.id)}
-            onMouseEnter={e => {
-              e.currentTarget.querySelector('.icon-wrap').style.transform = 'translateY(-4px)';
-              e.currentTarget.querySelector('.icon-wrap').style.opacity = '1';
-              e.currentTarget.querySelector('.icon-label').style.color = '#8EC4E0';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.querySelector('.icon-wrap').style.transform = 'translateY(0)';
-              e.currentTarget.querySelector('.icon-wrap').style.opacity = '0.85';
-              e.currentTarget.querySelector('.icon-label').style.color = 'rgba(216,230,240,0.85)';
-            }}
-          >
-            <div className="icon-wrap" style={styles.iconWrap}>{item.svg}</div>
-            <span className="icon-label" style={styles.iconLabel}>
-              {item.label.split('\n').map((line, i) => (
-                <span key={i}>{line}{i === 0 && <br />}</span>
-              ))}
-            </span>
-          </button>
-        ))}
+        {menuItems.map(item => {
+          const isDisabled = item.id === 'tutorial';
+          return (
+            <button
+              key={item.id}
+              style={{ ...styles.iconBtn, cursor: isDisabled ? 'not-allowed' : 'pointer', opacity: isDisabled ? 0.35 : 1 }}
+              disabled={isDisabled}
+              onClick={() => { if (!isDisabled) navigate('/' + item.id); }}
+              onMouseEnter={e => {
+                if (isDisabled) return;
+                e.currentTarget.querySelector('.icon-wrap').style.transform = 'translateY(-4px)';
+                e.currentTarget.querySelector('.icon-wrap').style.opacity = '1';
+                e.currentTarget.querySelector('.icon-label').style.color = '#8EC4E0';
+              }}
+              onMouseLeave={e => {
+                if (isDisabled) return;
+                e.currentTarget.querySelector('.icon-wrap').style.transform = 'translateY(0)';
+                e.currentTarget.querySelector('.icon-wrap').style.opacity = '0.85';
+                e.currentTarget.querySelector('.icon-label').style.color = 'rgba(216,230,240,0.85)';
+              }}
+            >
+              <div className="icon-wrap" style={styles.iconWrap}>{item.svg}</div>
+              <span className="icon-label" style={styles.iconLabel}>
+                {item.label.split('\n').map((line, i) => (
+                  <span key={i}>{line}{i === 0 && <br />}</span>
+                ))}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       <div style={styles.footer}>
+        <button style={styles.exportBtn} onClick={() => setShowExport(true)}>Export PDF</button>
         <button style={styles.signOutBtn} onClick={props.onLogout}>Sign Out</button>
       </div>
+
+      {showExport && (
+        <ExportModal
+          patternCategories={patternCategories}
+          patterns={patterns}
+          onClose={() => setShowExport(false)}
+          onExport={handleExport}
+        />
+      )}
     </div>
   );
 }
@@ -240,6 +275,19 @@ const styles = {
     borderTop: '1px solid rgba(107,163,200,0.2)',
     display: 'flex',
     justifyContent: 'center',
+    gap: '32px',
+  },
+  exportBtn: {
+    background: 'rgba(74,174,136,0.1)',
+    border: '1px solid rgba(74,174,136,0.4)',
+    borderRadius: '3px',
+    padding: '8px 16px',
+    cursor: 'pointer',
+    fontSize: '9px',
+    fontWeight: '600',
+    letterSpacing: '3px',
+    textTransform: 'uppercase',
+    color: '#4AAE88',
   },
   signOutBtn: {
     background: 'none',
