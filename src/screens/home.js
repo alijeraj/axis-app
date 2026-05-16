@@ -95,12 +95,18 @@ function Home(props) {
     setShowProfileModal(true);
   };
 
-  const handleExportClick = () => {
-    if (!isPro) {
+  const handleExportClick = async () => {
+    try {
+      const res = await axios.get(API + '/api/stripe/status', { headers: { Authorization: 'Bearer ' + token } });
+      const t = res.data?.tier;
+      if (t !== 'pro' && t !== 'complimentary') {
+        setShowUpgradePrompt('export');
+        return;
+      }
+      setShowExport(true);
+    } catch (e) {
       setShowUpgradePrompt('export');
-      return;
     }
-    setShowExport(true);
   };
 
   const submitProfileAction = async () => {
