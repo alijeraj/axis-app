@@ -15,6 +15,7 @@ import Tutorial from './screens/tutorial';
 import Yesterday from './screens/yesterday';
 import People from './screens/people';
 import Billing from './screens/billing';
+import AccessGate from './components/AccessGate';
 
 axios.interceptors.request.use((config) => {
   const profileId = localStorage.getItem('axis_profile_id');
@@ -82,6 +83,11 @@ function SplashScreen({ onDone }) {
   );
 }
 
+function Protected({ token, children }) {
+  if (!token) return <Navigate to="/login" />;
+  return <AccessGate>{children}</AccessGate>;
+}
+
 function App() {
   const [token, setToken] = useState(localStorage.getItem('axis_token'));
   const [showSplash, setShowSplash] = useState(true);
@@ -103,18 +109,18 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={token ? <Home onLogout={handleLogout} /> : <Landing />} />
+        <Route path="/" element={token ? <Protected token={token}><Home onLogout={handleLogout} /></Protected> : <Landing />} />
         <Route path="/login" element={token ? <Navigate to="/" /> : <Login onLogin={handleLogin} />} />
         <Route path="/register" element={token ? <Navigate to="/" /> : <Register onLogin={handleLogin} />} />
-        <Route path="/scan" element={token ? <Scan /> : <Navigate to="/login" />} />
-        <Route path="/cpm" element={token ? <CPM /> : <Navigate to="/login" />} />
-        <Route path="/cbm" element={token ? <CBM /> : <Navigate to="/login" />} />
-        <Route path="/progress" element={token ? <Progress /> : <Navigate to="/login" />} />
-        <Route path="/results" element={token ? <Results /> : <Navigate to="/login" />} />
-        <Route path="/journal" element={token ? <Journal /> : <Navigate to="/login" />} />
-        <Route path="/tutorial" element={token ? <Tutorial /> : <Navigate to="/login" />} />
-        <Route path="/yesterday" element={token ? <Yesterday /> : <Navigate to="/login" />} />
-        <Route path="/people" element={token ? <People /> : <Navigate to="/login" />} />
+        <Route path="/scan" element={<Protected token={token}><Scan /></Protected>} />
+        <Route path="/cpm" element={<Protected token={token}><CPM /></Protected>} />
+        <Route path="/cbm" element={<Protected token={token}><CBM /></Protected>} />
+        <Route path="/progress" element={<Protected token={token}><Progress /></Protected>} />
+        <Route path="/results" element={<Protected token={token}><Results /></Protected>} />
+        <Route path="/journal" element={<Protected token={token}><Journal /></Protected>} />
+        <Route path="/tutorial" element={<Protected token={token}><Tutorial /></Protected>} />
+        <Route path="/yesterday" element={<Protected token={token}><Yesterday /></Protected>} />
+        <Route path="/people" element={<Protected token={token}><People /></Protected>} />
         <Route path="/billing" element={token ? <Billing /> : <Navigate to="/login" />} />
         <Route path="/billing/success" element={token ? <Billing /> : <Navigate to="/login" />} />
         <Route path="/billing/cancel" element={token ? <Billing /> : <Navigate to="/login" />} />
