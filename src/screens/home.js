@@ -12,14 +12,34 @@ function Home(props) {
   const [showExport, setShowExport] = useState(false);
   const [patternCategories, setPatternCategories] = useState([]);
   const [patterns, setPatterns] = useState([]);
+  const [profiles, setProfiles] = useState([]);
+  const [activeProfileId, setActiveProfileId] = useState(parseInt(localStorage.getItem('axis_profile_id'), 10) || null);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profileModalMode, setProfileModalMode] = useState('create');
+  const [profileModalTarget, setProfileModalTarget] = useState(null);
+  const [profileNameInput, setProfileNameInput] = useState('');
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [catsRes, patternsRes] = await Promise.all([
+        const [profilesRes, catsRes, patternsRes] = await Promise.all([
+          axios.get(API + '/api/profiles', { headers: { Authorization: 'Bearer ' + token } }),
           axios.get(API + '/api/pattern-categories', { headers: { Authorization: 'Bearer ' + token } }),
           axios.get(API + '/api/patterns', { headers: { Authorization: 'Bearer ' + token } }),
         ]);
+        const profs = profilesRes.data || [];
+        setProfiles(profs);
+        if (profs.length > 0) {
+          const storedId = parseInt(localStorage.getItem('axis_profile_id'), 10);
+          const valid = profs.find(p => p.id === storedId);
+          if (valid) {
+            setActiveProfileId(valid.id);
+          } else {
+            setActiveProfileId(profs[0].id);
+            localStorage.setItem('axis_profile_id', String(profs[0].id));
+          }
+        }
         setPatternCategories(catsRes.data || []);
         setPatterns(patternsRes.data || []);
       } catch (e) {
@@ -33,6 +53,74 @@ function Home(props) {
     await generatePDF(config);
     setShowExport(false);
   };
+
+  const switchProfile = (id) => {
+    localStorage.setItem('axis_profile_id', String(id));
+    setActiveProfileId(id);
+    setShowProfileMenu(false);
+    window.location.reload();
+  };
+
+  const openCreate = () => {
+    setProfileModalMode('create');
+    setProfileNameInput('');
+    setProfileModalTarget(null);
+    setShowProfileMenu(false);
+    setShowProfileModal(true);
+  };
+
+  const openRename = (p) => {
+    setProfileModalMode('rename');
+    setProfileNameInput(p.name);
+    setProfileModalTarget(p);
+    setShowProfileMenu(false);
+    setShowProfileModal(true);
+  };
+
+  const openDelete = (p) => {
+    setProfileModalMode('delete');
+    setProfileModalTarget(p);
+    setShowProfileMenu(false);
+    setShowProfileModal(true);
+  };
+
+  const submitProfileAction = async () => {
+    try {
+      if (profileModalMode === 'create') {
+        if (!profileNameInput.trim()) return;
+        const res = await axios.post(API + '/api/profiles', { name: profileNameInput.trim() }, { headers: { Authorization: 'Bearer ' + token } });
+        const newProfiles = [...profiles, res.data];
+        setProfiles(newProfiles);
+        localStorage.setItem('axis_profile_id', String(res.data.id));
+        setActiveProfileId(res.data.id);
+        setShowProfileModal(false);
+        window.location.reload();
+      } else if (profileModalMode === 'rename') {
+        if (!profileNameInput.trim() || !profileModalTarget) return;
+        const res = await axios.patch(API + '/api/profiles/' + profileModalTarget.id, { name: profileNameInput.trim() }, { headers: { Authorization: 'Bearer ' + token } });
+        setProfiles(profiles.map(p => p.id === profileModalTarget.id ? res.data : p));
+        setShowProfileModal(false);
+      } else if (profileModalMode === 'delete') {
+        if (!profileModalTarget) return;
+        await axios.delete(API + '/api/profiles/' + profileModalTarget.id, { headers: { Authorization: 'Bearer ' + token } });
+        const remaining = profiles.filter(p => p.id !== profileModalTarget.id);
+        setProfiles(remaining);
+        if (profileModalTarget.id === activeProfileId && remaining.length > 0) {
+          localStorage.setItem('axis_profile_id', String(remaining[0].id));
+          setActiveProfileId(remaining[0].id);
+          setShowProfileModal(false);
+          window.location.reload();
+        } else {
+          setShowProfileModal(false);
+        }
+      }
+    } catch (e) {
+      console.log(e);
+      alert(e.response?.data?.error || 'Action failed');
+    }
+  };
+
+  const activeProfile = profiles.find(p => p.id === activeProfileId);
 
   const menuItems = [
     {
@@ -129,7 +217,6 @@ function Home(props) {
         </svg>
       )
     },
-    
     {
       id: 'tutorial', label: 'App\nTutorial',
       svg: (
@@ -144,7 +231,7 @@ function Home(props) {
   ];
 
   return (
-    <div style={styles.container}>
+    <div style={styles.container} onClick={() => setShowProfileMenu(false)}>
       <div style={styles.logo}>AX<span style={styles.logoSpan}>IS</span></div>
       <div style={styles.sub}>Navigate your inner world</div>
 
@@ -181,7 +268,33 @@ function Home(props) {
         })}
       </div>
 
-      <div style={styles.footer}>
+      <div style={styles.footer} onClick={e => e.stopPropagation()}>
+        <div style={{ position: 'relative' }}>
+          <button style={styles.profileBtn} onClick={() => setShowProfileMenu(!showProfileMenu)}>
+            <span style={{ opacity: 0.6, marginRight: '6px' }}>Profile:</span>
+            <span style={{ color: '#8EC4E0' }}>{activeProfile ? activeProfile.name : '...'}</span>
+            <span style={{ marginLeft: '6px', opacity: 0.5 }}>{showProfileMenu ? '▲' : '▼'}</span>
+          </button>
+          {showProfileMenu && (
+            <div style={styles.profileMenu}>
+              {profiles.map(p => (
+                <div key={p.id} style={{ ...styles.profileMenuRow, background: p.id === activeProfileId ? 'rgba(142,196,224,0.1)' : 'none' }}>
+                  <span style={styles.profileMenuName} onClick={() => switchProfile(p.id)}>
+                    {p.id === activeProfileId && <span style={{ color: '#4AAE88', marginRight: '6px' }}>●</span>}
+                    {p.name}
+                  </span>
+                  <span style={styles.profileMenuActions}>
+                    <button style={styles.profileMenuAction} onClick={() => openRename(p)}>Rename</button>
+                    {profiles.length > 1 && <button style={{ ...styles.profileMenuAction, color: '#C87878' }} onClick={() => openDelete(p)}>Delete</button>}
+                  </span>
+                </div>
+              ))}
+              <div style={{ borderTop: '1px solid rgba(142,196,224,0.15)' }}>
+                <button style={{ ...styles.profileMenuAction, padding: '12px 16px', color: '#4AAE88', width: '100%', textAlign: 'left' }} onClick={openCreate}>+ New Profile</button>
+              </div>
+            </div>
+          )}
+        </div>
         <button style={styles.exportBtn} onClick={() => setShowExport(true)}>Export PDF</button>
         <button style={styles.signOutBtn} onClick={props.onLogout}>Sign Out</button>
       </div>
@@ -193,6 +306,42 @@ function Home(props) {
           onClose={() => setShowExport(false)}
           onExport={handleExport}
         />
+      )}
+
+      {showProfileModal && (
+        <div style={styles.modalOverlay} onClick={() => setShowProfileModal(false)}>
+          <div style={styles.modal} onClick={e => e.stopPropagation()}>
+            <div style={styles.modalTitle}>
+              {profileModalMode === 'create' && 'New Profile'}
+              {profileModalMode === 'rename' && 'Rename Profile'}
+              {profileModalMode === 'delete' && 'Delete Profile'}
+            </div>
+            {profileModalMode === 'delete' ? (
+              <div style={{ color: '#D8E6F0', fontSize: '14px', marginBottom: '20px' }}>
+                Delete profile <strong>{profileModalTarget?.name}</strong>? All its data will be permanently removed.
+              </div>
+            ) : (
+              <input
+                style={styles.modalInput}
+                value={profileNameInput}
+                onChange={e => setProfileNameInput(e.target.value)}
+                placeholder="Profile name..."
+                autoFocus
+              />
+            )}
+            <div style={styles.modalFooter}>
+              <button style={styles.cancelBtn} onClick={() => setShowProfileModal(false)}>Cancel</button>
+              <button
+                style={{ ...styles.confirmBtn, ...(profileModalMode === 'delete' ? { background: 'rgba(200,120,120,0.15)', borderColor: 'rgba(200,120,120,0.4)', color: '#C87878' } : {}) }}
+                onClick={submitProfileAction}
+              >
+                {profileModalMode === 'create' && 'Create'}
+                {profileModalMode === 'rename' && 'Save'}
+                {profileModalMode === 'delete' && 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -207,6 +356,60 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     padding: '60px 40px',
+    position: 'relative',
+  },
+  profileBtn: {
+    background: 'rgba(142,196,224,0.08)',
+    border: '1px solid rgba(142,196,224,0.4)',
+    borderRadius: '3px',
+    padding: '8px 16px',
+    color: '#8BAFC8',
+    fontSize: '9px',
+    fontWeight: '600',
+    letterSpacing: '3px',
+    textTransform: 'uppercase',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+  },
+  profileMenu: {
+    position: 'absolute',
+    bottom: 'calc(100% + 6px)',
+    left: 0,
+    background: '#162534',
+    border: '1px solid rgba(142,196,224,0.25)',
+    borderRadius: '3px',
+    minWidth: '280px',
+    boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
+    overflow: 'hidden',
+  },
+  profileMenuRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '10px 14px',
+    borderBottom: '1px solid rgba(142,196,224,0.08)',
+  },
+  profileMenuName: {
+    fontSize: '13px',
+    color: '#D8E6F0',
+    cursor: 'pointer',
+    flex: 1,
+    fontFamily: 'Georgia, serif',
+  },
+  profileMenuActions: {
+    display: 'flex',
+    gap: '8px',
+  },
+  profileMenuAction: {
+    background: 'none',
+    border: 'none',
+    color: '#8BAFC8',
+    fontSize: '10px',
+    fontWeight: '600',
+    letterSpacing: '1px',
+    cursor: 'pointer',
+    textTransform: 'uppercase',
   },
   logo: {
     fontFamily: 'Georgia, serif',
@@ -278,8 +481,8 @@ const styles = {
     gap: '32px',
   },
   exportBtn: {
-    background: 'rgba(74,174,136,0.1)',
-    border: '1px solid rgba(74,174,136,0.4)',
+    background: 'rgba(142,196,224,0.08)',
+    border: '1px solid rgba(142,196,224,0.4)',
     borderRadius: '3px',
     padding: '8px 16px',
     cursor: 'pointer',
@@ -287,7 +490,7 @@ const styles = {
     fontWeight: '600',
     letterSpacing: '3px',
     textTransform: 'uppercase',
-    color: '#4AAE88',
+    color: '#8EC4E0',
   },
   signOutBtn: {
     background: 'none',
@@ -298,6 +501,69 @@ const styles = {
     letterSpacing: '3px',
     textTransform: 'uppercase',
     color: 'rgba(142,196,224,0.55)',
+  },
+  modalOverlay: {
+    position: 'fixed',
+    inset: 0,
+    background: 'rgba(0,0,0,0.75)',
+    zIndex: 200,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modal: {
+    background: '#162534',
+    border: '1px solid rgba(142,196,224,0.3)',
+    borderRadius: '4px',
+    width: '100%',
+    maxWidth: '420px',
+    padding: '28px',
+    boxShadow: '0 0 40px rgba(0,0,0,0.6)',
+  },
+  modalTitle: {
+    fontFamily: 'Georgia, serif',
+    fontSize: '22px',
+    fontWeight: '300',
+    color: '#D8E6F0',
+    marginBottom: '20px',
+  },
+  modalInput: {
+    width: '100%',
+    background: '#0f2236',
+    border: '1px solid rgba(142,196,224,0.2)',
+    borderRadius: '3px',
+    padding: '10px 14px',
+    color: '#D8E6F0',
+    fontSize: '14px',
+    outline: 'none',
+    boxSizing: 'border-box',
+    marginBottom: '20px',
+  },
+  modalFooter: {
+    display: 'flex',
+    gap: '12px',
+    justifyContent: 'flex-end',
+  },
+  cancelBtn: {
+    background: 'none',
+    border: '1px solid rgba(142,196,224,0.2)',
+    borderRadius: '3px',
+    padding: '8px 18px',
+    color: '#8BAFC8',
+    fontSize: '11px',
+    cursor: 'pointer',
+  },
+  confirmBtn: {
+    background: 'rgba(142,196,224,0.15)',
+    border: '1px solid rgba(142,196,224,0.4)',
+    borderRadius: '3px',
+    padding: '8px 18px',
+    color: '#8EC4E0',
+    fontSize: '11px',
+    fontWeight: '600',
+    letterSpacing: '2px',
+    textTransform: 'uppercase',
+    cursor: 'pointer',
   },
 };
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import Landing from './screens/landing';
 import Login from './screens/login';
 import Register from './screens/register';
@@ -13,6 +14,15 @@ import Journal from './screens/journal';
 import Tutorial from './screens/tutorial';
 import Yesterday from './screens/yesterday';
 import People from './screens/people';
+import Billing from './screens/billing';
+
+axios.interceptors.request.use((config) => {
+  const profileId = localStorage.getItem('axis_profile_id');
+  if (profileId) {
+    config.headers['x-profile-id'] = profileId;
+  }
+  return config;
+});
 
 function GoogleCallback({ onLogin }) {
   const navigate = useNavigate();
@@ -83,6 +93,7 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('axis_token');
+    localStorage.removeItem('axis_profile_id');
     setToken(null);
   };
 
@@ -104,6 +115,9 @@ function App() {
         <Route path="/tutorial" element={token ? <Tutorial /> : <Navigate to="/login" />} />
         <Route path="/yesterday" element={token ? <Yesterday /> : <Navigate to="/login" />} />
         <Route path="/people" element={token ? <People /> : <Navigate to="/login" />} />
+        <Route path="/billing" element={token ? <Billing /> : <Navigate to="/login" />} />
+        <Route path="/billing/success" element={token ? <Billing /> : <Navigate to="/login" />} />
+        <Route path="/billing/cancel" element={token ? <Billing /> : <Navigate to="/login" />} />
         <Route path="/auth/callback" element={<GoogleCallback onLogin={handleLogin} />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
