@@ -10,19 +10,12 @@ function AccessGate({ children }) {
   const token = localStorage.getItem('axis_token');
   const [checking, setChecking] = useState(true);
   const [hasAccess, setHasAccess] = useState(true);
-  const [daysLeft, setDaysLeft] = useState(null);
-  const [accessReason, setAccessReason] = useState(null);
 
   useEffect(() => {
     const check = async () => {
       try {
         const res = await axios.get(API + '/api/stripe/status', { headers: { Authorization: 'Bearer ' + token } });
-        const data = res.data;
-        setHasAccess(data.has_access);
-        setAccessReason(data.access_reason);
-        if (data.access_reason === 'grace') {
-          setDaysLeft(Math.max(0, 2 - data.days_old));
-        }
+        setHasAccess(res.data.has_access);
       } catch (e) {
         console.log(e);
       } finally {
@@ -101,35 +94,6 @@ const styles = {
     fontSize: '11px',
     fontWeight: '600',
     letterSpacing: '3px',
-    textTransform: 'uppercase',
-    cursor: 'pointer',
-  },
-  banner: {
-    position: 'fixed',
-    bottom: '20px',
-    right: '20px',
-    background: 'rgba(200,168,80,0.1)',
-    border: '1px solid rgba(200,168,80,0.4)',
-    borderRadius: '3px',
-    padding: '10px 14px',
-    fontSize: '11px',
-    color: '#D8E6F0',
-    letterSpacing: '1px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    zIndex: 50,
-    boxShadow: '0 2px 12px rgba(0,0,0,0.3)',
-  },
-  bannerBtn: {
-    background: 'rgba(200,168,80,0.2)',
-    border: '1px solid rgba(200,168,80,0.5)',
-    borderRadius: '2px',
-    padding: '4px 10px',
-    color: '#C8A840',
-    fontSize: '9px',
-    fontWeight: '600',
-    letterSpacing: '2px',
     textTransform: 'uppercase',
     cursor: 'pointer',
   },
