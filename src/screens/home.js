@@ -19,14 +19,17 @@ function Home(props) {
   const [profileModalMode, setProfileModalMode] = useState('create');
   const [profileModalTarget, setProfileModalTarget] = useState(null);
   const [profileNameInput, setProfileNameInput] = useState('');
+  const [tier, setTier] = useState('regular');
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(null);
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [profilesRes, catsRes, patternsRes] = await Promise.all([
+        const [profilesRes, catsRes, patternsRes, statusRes] = await Promise.all([
           axios.get(API + '/api/profiles', { headers: { Authorization: 'Bearer ' + token } }),
           axios.get(API + '/api/pattern-categories', { headers: { Authorization: 'Bearer ' + token } }),
           axios.get(API + '/api/patterns', { headers: { Authorization: 'Bearer ' + token } }),
+          axios.get(API + '/api/stripe/status', { headers: { Authorization: 'Bearer ' + token } }),
         ]);
         const profs = profilesRes.data || [];
         setProfiles(profs);
@@ -42,12 +45,15 @@ function Home(props) {
         }
         setPatternCategories(catsRes.data || []);
         setPatterns(patternsRes.data || []);
+        setTier(statusRes.data?.tier || 'regular');
       } catch (e) {
         console.log(e);
       }
     };
     loadData();
   }, [token]);
+
+  const isPro = tier === 'pro' || tier === 'complimentary';
 
   const handleExport = async (config) => {
     await generatePDF(config);
@@ -62,6 +68,11 @@ function Home(props) {
   };
 
   const openCreate = () => {
+    if (!isPro && profiles.length >= 1) {
+      setShowProfileMenu(false);
+      setShowUpgradePrompt('profiles');
+      return;
+    }
     setProfileModalMode('create');
     setProfileNameInput('');
     setProfileModalTarget(null);
@@ -82,6 +93,14 @@ function Home(props) {
     setProfileModalTarget(p);
     setShowProfileMenu(false);
     setShowProfileModal(true);
+  };
+
+  const handleExportClick = () => {
+    if (!isPro) {
+      setShowUpgradePrompt('export');
+      return;
+    }
+    setShowExport(true);
   };
 
   const submitProfileAction = async () => {
@@ -290,12 +309,20 @@ function Home(props) {
                 </div>
               ))}
               <div style={{ borderTop: '1px solid rgba(142,196,224,0.15)' }}>
-                <button style={{ ...styles.profileMenuAction, padding: '12px 16px', color: '#4AAE88', width: '100%', textAlign: 'left' }} onClick={openCreate}>+ New Profile</button>
+                <button
+                  style={{ ...styles.profileMenuAction, padding: '12px 16px', color: isPro ? '#4AAE88' : 'rgba(74,174,136,0.4)', width: '100%', textAlign: 'left' }}
+                  onClick={openCreate}
+                >
+                  + New Profile {!isPro && <span style={{ fontSize: '8px', marginLeft: '6px', color: '#9B7EC8' }}>PRO</span>}
+                </button>
               </div>
             </div>
           )}
         </div>
-        <button style={styles.exportBtn} onClick={() => setShowExport(true)}>Export PDF</button>
+        <button style={styles.exportBtn} onClick={handleExportClick}>
+          Export PDF {!isPro && <span style={{ fontSize: '8px', marginLeft: '6px', color: '#9B7EC8' }}>PRO</span>}
+        </button>
+        <button style={styles.billingBtn} onClick={() => navigate('/billing')}>Billing</button>
         <button style={styles.signOutBtn} onClick={props.onLogout}>Sign Out</button>
       </div>
 
@@ -338,6 +365,27 @@ function Home(props) {
                 {profileModalMode === 'create' && 'Create'}
                 {profileModalMode === 'rename' && 'Save'}
                 {profileModalMode === 'delete' && 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showUpgradePrompt && (
+        <div style={styles.modalOverlay} onClick={() => setShowUpgradePrompt(null)}>
+          <div style={styles.modal} onClick={e => e.stopPropagation()}>
+            <div style={styles.modalTitle}>Upgrade to Pro</div>
+            <div style={{ color: '#A0C4D8', fontSize: '14px', marginBottom: '20px', lineHeight: 1.6 }}>
+              {showUpgradePrompt === 'profiles' && 'Multiple profiles are a Pro feature. Manage multiple clients or contexts from one account.'}
+              {showUpgradePrompt === 'export' && 'PDF export is a Pro feature. Share your inner mapping report with practitioners or keep it for your records.'}
+            </div>
+            <div style={styles.modalFooter}>
+              <button style={styles.cancelBtn} onClick={() => setShowUpgradePrompt(null)}>Not now</button>
+              <button
+                style={{ ...styles.confirmBtn, background: 'rgba(155,126,200,0.15)', borderColor: 'rgba(155,126,200,0.4)', color: '#9B7EC8' }}
+                onClick={() => { setShowUpgradePrompt(null); navigate('/billing'); }}
+              >
+                View Plans
               </button>
             </div>
           </div>
@@ -478,7 +526,8 @@ const styles = {
     borderTop: '1px solid rgba(107,163,200,0.2)',
     display: 'flex',
     justifyContent: 'center',
-    gap: '32px',
+    gap: '24px',
+    alignItems: 'center',
   },
   exportBtn: {
     background: 'rgba(142,196,224,0.08)',
@@ -491,6 +540,18 @@ const styles = {
     letterSpacing: '3px',
     textTransform: 'uppercase',
     color: '#8EC4E0',
+    display: 'flex',
+    alignItems: 'center',
+  },
+  billingBtn: {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: '9px',
+    fontWeight: '600',
+    letterSpacing: '3px',
+    textTransform: 'uppercase',
+    color: '#8BAFC8',
   },
   signOutBtn: {
     background: 'none',
