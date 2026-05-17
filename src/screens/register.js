@@ -8,6 +8,7 @@ function Register(props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
+  const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -16,6 +17,10 @@ function Register(props) {
     e.preventDefault();
     if (password !== confirm) {
       setError('Passwords do not match');
+      return;
+    }
+    if (!agreed) {
+      setError('You must agree to the Terms of Service and Privacy Policy');
       return;
     }
     setLoading(true);
@@ -91,6 +96,21 @@ function Register(props) {
               required
             />
           </div>
+          <div style={styles.agreeRow}>
+            <input
+              type="checkbox"
+              id="agree"
+              checked={agreed}
+              onChange={e => setAgreed(e.target.checked)}
+              style={styles.checkbox}
+            />
+            <label htmlFor="agree" style={styles.agreeLabel}>
+              I agree to the{' '}
+              <a href="https://introspection.life/terms" target="_blank" rel="noopener noreferrer" style={styles.linkText}>Terms of Service</a>
+              {' '}and{' '}
+              <a href="https://introspection.life/privacy" target="_blank" rel="noopener noreferrer" style={styles.linkText}>Privacy Policy</a>
+            </label>
+          </div>
           {error && <div style={styles.error}>{error}</div>}
           <button style={styles.btn} type="submit" disabled={loading}>
             {loading ? 'Creating account...' : 'Create Account'}
@@ -160,6 +180,24 @@ const styles = {
     fontSize: '14px',
     outline: 'none',
     boxSizing: 'border-box',
+  },
+  agreeRow: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '10px',
+    marginBottom: '20px',
+    marginTop: '4px',
+  },
+  checkbox: {
+    marginTop: '3px',
+    cursor: 'pointer',
+    accentColor: '#8EC4E0',
+  },
+  agreeLabel: {
+    fontSize: '12px',
+    color: '#8BAFC8',
+    lineHeight: 1.5,
+    cursor: 'pointer',
   },
   error: {
     color: 'var(--burdened)',
