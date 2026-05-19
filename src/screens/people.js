@@ -65,6 +65,81 @@ const SELF_ANCHOR_W = 160;
 const getCurrentPartner = (p) => p.currentPartner || p.partner || null;
 const getPastPartners = (p) => Array.isArray(p.pastPartners) ? p.pastPartners : [];
 
+function ComplexViewModal({ complex, onClose }) {
+  if (!complex) return null;
+  const c = complex;
+  const hasCounter = c.counter && c.counter.trim();
+  const hasCounterBehavior = c.counterBehavior && c.counterBehavior.trim();
+  const W = 220; const CW = 180; const GAP = 16;
+
+  const Arrow = ({ up, color }) => (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '28px' }}>
+      {up && <div style={{ borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderBottom: `7px solid ${color || 'rgba(142,196,224,0.35)'}` }} />}
+      <div style={{ width: '2px', flex: 1, background: color || 'rgba(142,196,224,0.35)' }} />
+      {!up && <div style={{ borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderTop: `7px solid ${color || 'rgba(142,196,224,0.35)'}` }} />}
+    </div>
+  );
+
+  const FlowNode = ({ label, text, isBurden, isTrigger, isCounter }) => (
+    <div style={{ border: `1px solid ${isCounter ? 'rgba(74,174,136,0.3)' : isBurden ? 'rgba(176,90,90,0.35)' : isTrigger ? 'rgba(200,168,80,0.3)' : 'rgba(142,196,224,0.2)'}`, borderRadius: '3px', padding: '12px 14px', background: isCounter ? 'rgba(74,174,136,0.06)' : isBurden ? 'rgba(176,90,90,0.08)' : isTrigger ? 'rgba(200,168,80,0.06)' : 'rgba(142,196,224,0.04)', width: '100%', boxSizing: 'border-box' }}>
+      <div style={{ fontSize: '8px', fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase', color: isCounter ? '#4AAE88' : isBurden ? '#C87878' : isTrigger ? '#C8A840' : '#8EC4E0', marginBottom: '6px' }}>{label}</div>
+      <div style={{ fontSize: '13px', color: '#D8E6F0', fontFamily: 'Georgia, serif', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{text || ''}</div>
+    </div>
+  );
+
+  const Row = ({ main, counter, connector }) => (
+    <div style={{ display: 'flex', alignItems: 'stretch', width: W + GAP + CW }}>
+      <div style={{ width: W, flexShrink: 0 }}>{main}</div>
+      <div style={{ width: GAP, flexShrink: 0, display: 'flex', alignItems: 'center' }}>{connector}</div>
+      <div style={{ width: CW, flexShrink: 0 }}>{counter}</div>
+    </div>
+  );
+
+  const ArrowRow = ({ left, right }) => (
+    <div style={{ display: 'flex', width: W + GAP + CW }}>
+      <div style={{ width: W, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>{left}</div>
+      <div style={{ width: GAP }} />
+      <div style={{ width: CW, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>{right}</div>
+    </div>
+  );
+
+  const Connector = ({ color }) => <div style={{ height: '2px', width: '100%', background: color || 'rgba(74,174,136,0.4)' }} />;
+  const bVal = Array.isArray(c.behaviors) ? c.behaviors.join('\n') : (c.behaviors || '');
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 400, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '40px 20px' }}>
+      <div style={{ background: '#162534', border: '1px solid rgba(142,196,224,0.3)', borderRadius: '4px', width: '100%', maxWidth: '560px', padding: '32px', boxShadow: '0 0 40px rgba(0,0,0,0.6)', margin: 'auto' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '8px' }}>
+          <div>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: '300', color: '#D8E6F0' }}>{c.name}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
+              <span style={{ fontSize: '8px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', padding: '3px 8px', borderRadius: '2px', color: c.status === 'resolved' ? '#4AAE88' : '#C87878', background: c.status === 'resolved' ? 'rgba(74,174,136,0.12)' : 'rgba(176,90,90,0.12)', border: c.status === 'resolved' ? '1px solid rgba(74,174,136,0.3)' : '1px solid rgba(176,90,90,0.3)' }}>{c.status || 'active'}</span>
+              {c.originalWound && <span style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '2px', textTransform: 'uppercase', color: '#C8A840', border: '1px dashed #C8A840', padding: '2px 7px', borderRadius: '2px' }}>Original Wound</span>}
+            </div>
+          </div>
+          <button style={{ background: 'none', border: 'none', color: '#8BAFC8', cursor: 'pointer', fontSize: '18px' }} onClick={onClose}>✕</button>
+        </div>
+        <div style={{ overflowX: 'auto', paddingBottom: '8px', marginTop: '24px' }}>
+          <Row main={<FlowNode label="Emotional Burden" text={c.burden || ''} isBurden />} counter={<div />} connector={<div />} />
+          <ArrowRow left={<Arrow />} right={<div />} />
+          <Row main={<FlowNode label="Beliefs" text={c.beliefs || ''} />} connector={hasCounter ? <Connector /> : <div />} counter={hasCounter ? <><FlowNode label="Counter Beliefs" text={c.counter} isCounter />{c.originalWound && <div style={{ fontSize: '9px', fontStyle: 'italic', color: 'rgba(200,168,80,0.6)', marginTop: '6px' }}>You are speaking to your inner child.</div>}</> : <div />} />
+          <ArrowRow left={<Arrow />} right={<div />} />
+          <Row main={<FlowNode label="Thoughts" text={c.thoughts || ''} />} connector={<div />} counter={<div />} />
+          {c.feelings && c.feelings.trim() && <><ArrowRow left={<Arrow />} right={<div />} /><Row main={<FlowNode label="Feelings" text={c.feelings} />} connector={<div />} counter={<div />} /></>}
+          <ArrowRow left={<Arrow />} right={hasCounterBehavior ? <Arrow color="rgba(74,174,136,0.4)" /> : <div />} />
+          <Row main={<FlowNode label="Behaviors" text={bVal} />} connector={hasCounterBehavior ? <Connector /> : <div />} counter={hasCounterBehavior ? <><FlowNode label="Counter Behaviors" text={c.counterBehavior} isCounter />{c.originalWound && <div style={{ fontSize: '9px', fontStyle: 'italic', color: 'rgba(200,168,80,0.6)', marginTop: '6px' }}>You are speaking to your inner child.</div>}</> : <div />} />
+          <ArrowRow left={<Arrow up />} right={<div />} />
+          <Row main={<FlowNode label="Triggers" text={c.trigger || ''} isTrigger />} connector={<div />} counter={<div />} />
+          {c.notes && c.notes.trim() && <div style={{ marginTop: '20px', opacity: 0.7, width: W + GAP + CW }}><FlowNode label="Notes" text={c.notes} /></div>}
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(142,196,224,0.15)' }}>
+          <button style={{ background: 'rgba(142,196,224,0.15)', border: '1px solid rgba(142,196,224,0.4)', borderRadius: '3px', padding: '10px 24px', color: '#8EC4E0', fontSize: '11px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', cursor: 'pointer' }} onClick={onClose}>Close</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PatternManagementModal({ categories, patterns, onClose, onUpdateCategories, onUpdatePatterns }) {
   const [editingCatId, setEditingCatId] = React.useState(null);
   const [editingCatName, setEditingCatName] = React.useState('');
@@ -1064,6 +1139,7 @@ function People() {
   const [activeCategoryId, setActiveCategoryId] = useState(initialCategory);
   const [detailPerson, setDetailPerson] = useState(null);
   const [showPatternMgmt, setShowPatternMgmt] = useState(false);
+  const [viewComplex, setViewComplex] = useState(null);
 
   useEffect(() => { loadData(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -1477,6 +1553,10 @@ function People() {
         />
       )}
 
+      {viewComplex && (
+        <ComplexViewModal complex={viewComplex} onClose={() => setViewComplex(null)} />
+      )}
+
       {detailPerson && (
         <PersonDetailModal
           person={detailPerson}
@@ -1486,7 +1566,7 @@ function People() {
           patterns={patterns}
           onClose={() => setDetailPerson(null)}
           onEdit={() => { const idx = people.findIndex(p => p.name === detailPerson.name); if (idx !== -1) openForm(idx); }}
-          onOpenComplex={(c) => { setDetailPerson(null); navigate('/cpm'); }}
+          onOpenComplex={(c) => { setDetailPerson(null); setViewComplex(c); }}
           onOpenDream={(d) => { setDetailPerson(null); navigate('/journal'); }}
         />
       )}
