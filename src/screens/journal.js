@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { Page, AppHeader, PageBody } from '../components/Layout';
 
 const API = 'https://axis-backend-production-5e9b.up.railway.app';
 
@@ -227,12 +228,9 @@ function Journal() {
 
   if (showDreamForm) {
     return (
-      <div style={styles.container}>
-        <div style={styles.header}>
-          <button style={styles.backBtn} onClick={() => setShowDreamForm(false)}>← Cancel</button>
-          <span style={styles.screenTitle}>{editDreamIdx !== null ? 'Edit Dream' : 'Record Dream'}</span>
-        </div>
-        <div style={styles.body}>
+      <Page>
+        <AppHeader backLabel="← Cancel" onBack={() => setShowDreamForm(false)} title={editDreamIdx !== null ? 'Edit Dream' : 'Record Dream'} />
+        <PageBody width="reading">
           <div style={styles.card}>
             <div style={styles.formGroup}>
               <label style={styles.label}>Title</label>
@@ -337,8 +335,8 @@ function Journal() {
               <button style={styles.btn} onClick={saveDream} disabled={saving}>{saving ? 'Saving...' : 'Save Dream'}</button>
             </div>
           </div>
-        </div>
-      </div>
+        </PageBody>
+      </Page>
     );
   }
 
