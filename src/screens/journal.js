@@ -342,12 +342,9 @@ function Journal() {
 
   if (showFreeForm) {
     return (
-      <div style={styles.container}>
-        <div style={styles.header}>
-          <button style={styles.backBtn} onClick={() => setShowFreeForm(false)}>← Cancel</button>
-          <span style={styles.screenTitle}>{editFreeIdx !== null ? 'Edit Entry' : 'New Entry'}</span>
-        </div>
-        <div style={styles.body}>
+      <Page>
+        <AppHeader backLabel="← Cancel" onBack={() => setShowFreeForm(false)} title={editFreeIdx !== null ? 'Edit Entry' : 'New Entry'} />
+        <PageBody width="reading">
           <div style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8', marginBottom: '12px' }}>
             {new Date(freeForm.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
           </div>
@@ -362,8 +359,8 @@ function Journal() {
             <button style={styles.cancelBtn} onClick={() => setShowFreeForm(false)}>Cancel</button>
             <button style={styles.btn} onClick={saveFreeEntry} disabled={saving}>{saving ? 'Saving...' : 'Save Entry'}</button>
           </div>
-        </div>
-      </div>
+        </PageBody>
+      </Page>
     );
   }
 
