@@ -501,9 +501,9 @@ const styles = {
     margin: '0 auto',
   },
   groupDivider: {
-    width: '1px',
-    height: '52px',
-    background: 'rgba(142,196,224,0.18)',
+    width: '2px',
+    height: '60px',
+    background: 'linear-gradient(to bottom, rgba(142,196,224,0), rgba(142,196,224,0.65) 50%, rgba(142,196,224,0))',
     alignSelf: 'center',
     marginBottom: '24px',
   },
