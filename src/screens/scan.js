@@ -135,7 +135,7 @@ function ScoreSlider({ value, onChange }) {
       : { left: '0%', width: `${displayPct * 100}%`, background: 'rgba(176,90,90,0.5)' };
 
   return (
-    <div style={{ padding: '8px 16px', minWidth: '180px' }}>
+    <div style={{ padding: '2px 16px', minWidth: '180px' }}>
       <div
         ref={trackRef}
         style={{ position: 'relative', height: '10px', background: 'linear-gradient(to right, rgba(74,174,136,0.4), rgba(142,196,224,0.15) 50%, rgba(176,90,90,0.4))', borderRadius: '5px', cursor: 'pointer', border: '1px solid rgba(142,196,224,0.25)', margin: '8px 0' }}
@@ -146,7 +146,7 @@ function ScoreSlider({ value, onChange }) {
         <div style={{ position: 'absolute', top: 0, bottom: 0, borderRadius: '5px', pointerEvents: 'none', ...fillStyle }} />
         <div style={{ position: 'absolute', top: '50%', left: handleLeft, transform: 'translate(-50%, -50%)', width: '22px', height: '22px', borderRadius: '50%', background: '#1a2d3d', border: `2.5px solid ${borderColor}`, boxShadow: `0 0 8px ${glow}`, cursor: 'grab', zIndex: 2, pointerEvents: 'none', transition: isDragging.current ? 'none' : 'left 0.1s ease' }} />
       </div>
-      <div style={{ textAlign: 'center', fontFamily: 'Georgia, serif', fontSize: '28px', fontWeight: '300', color, marginTop: '8px', lineHeight: 1 }}>
+      <div style={{ textAlign: 'center', fontFamily: 'Georgia, serif', fontSize: '20px', fontWeight: '300', color, marginTop: '2px', lineHeight: 1 }}>
         {displayValue > 0 ? '+' : ''}{displayValue}
       </div>
     </div>
@@ -480,7 +480,7 @@ const styles = {
   dimTitle: { fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: '300', color: '#D8E6F0' },
   dimSub: { fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#8BAFC8', marginLeft: 'auto' },
   scanTable: { borderTop: '1px solid rgba(142,196,224,0.15)' },
-  scanRow: { display: 'grid', gridTemplateColumns: '140px 160px 32px 160px 1fr', alignItems: 'center', borderBottom: '1px solid rgba(142,196,224,0.1)', minHeight: '52px' },
+  scanRow: { display: 'grid', gridTemplateColumns: '140px 160px 32px 160px 1fr', alignItems: 'center', borderBottom: '1px solid rgba(142,196,224,0.1)', minHeight: '40px' },
   scanLabel: { fontSize: '11px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#A0C4D8', padding: '14px 12px 14px 0' },
   scanLib: { fontSize: '13px', fontWeight: '500', color: '#4AAE88', background: 'rgba(74,174,136,0.1)', padding: '14px', borderLeft: '2px solid rgba(74,174,136,0.3)' },
   scanVs: { fontSize: '9px', fontWeight: '600', letterSpacing: '2px', color: '#8BAFC8', textAlign: 'center' },
