@@ -255,42 +255,45 @@ function Home(props) {
     },
   ];
 
+  const byId = (id) => menuItems.find(m => m.id === id);
+  const measureRow = [byId('scan'), byId('progress')];
+  const mapRow = [byId('cpm'), byId('cbm'), byId('people')];
+  const reflectRow = [byId('journal')];
+
   return (
     <div style={styles.container} onClick={() => setShowProfileMenu(false)}>
       <div style={styles.logo}>AX<span style={styles.logoSpan}>IS</span></div>
       <div style={styles.sub}>Navigate your inner world</div>
 
-      <div style={styles.iconsRow}>
-        {menuItems.map(item => {
-          const isDisabled = item.id === 'tutorial';
-          return (
-            <button
-              key={item.id}
-              style={{ ...styles.iconBtn, cursor: isDisabled ? 'not-allowed' : 'pointer', opacity: isDisabled ? 0.35 : 1 }}
-              disabled={isDisabled}
-              onClick={() => { if (!isDisabled) navigate('/' + item.id); }}
-              onMouseEnter={e => {
-                if (isDisabled) return;
-                e.currentTarget.querySelector('.icon-wrap').style.transform = 'translateY(-4px)';
-                e.currentTarget.querySelector('.icon-wrap').style.opacity = '1';
-                e.currentTarget.querySelector('.icon-label').style.color = '#8EC4E0';
-              }}
-              onMouseLeave={e => {
-                if (isDisabled) return;
-                e.currentTarget.querySelector('.icon-wrap').style.transform = 'translateY(0)';
-                e.currentTarget.querySelector('.icon-wrap').style.opacity = '0.85';
-                e.currentTarget.querySelector('.icon-label').style.color = 'rgba(216,230,240,0.85)';
-              }}
-            >
-              <div className="icon-wrap" style={styles.iconWrap}>{item.svg}</div>
-              <span className="icon-label" style={styles.iconLabel}>
-                {item.label.split('\n').map((line, i) => (
-                  <span key={i}>{line}{i === 0 && <br />}</span>
-                ))}
-              </span>
-            </button>
-          );
-        })}
+      <div style={styles.iconGroups}>
+        {[measureRow, mapRow, reflectRow].map((row, ri) => (
+          <div key={ri} style={styles.iconRow}>
+            {row.map(item => (
+              <button
+                key={item.id}
+                style={styles.iconBtn}
+                onClick={() => navigate('/' + item.id)}
+                onMouseEnter={e => {
+                  e.currentTarget.querySelector('.icon-wrap').style.transform = 'translateY(-4px)';
+                  e.currentTarget.querySelector('.icon-wrap').style.opacity = '1';
+                  e.currentTarget.querySelector('.icon-label').style.color = '#8EC4E0';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.querySelector('.icon-wrap').style.transform = 'translateY(0)';
+                  e.currentTarget.querySelector('.icon-wrap').style.opacity = '0.85';
+                  e.currentTarget.querySelector('.icon-label').style.color = 'rgba(216,230,240,0.85)';
+                }}
+              >
+                <div className="icon-wrap" style={styles.iconWrap}>{item.svg}</div>
+                <span className="icon-label" style={styles.iconLabel}>
+                  {item.label.split('\n').map((line, i) => (
+                    <span key={i}>{line}{i === 0 && <br />}</span>
+                  ))}
+                </span>
+              </button>
+            ))}
+          </div>
+        ))}
       </div>
 
       <div style={styles.footer} onClick={e => e.stopPropagation()}>
@@ -329,6 +332,7 @@ function Home(props) {
           Export PDF {!isPro && <span style={{ fontSize: '8px', marginLeft: '6px', color: '#9B7EC8' }}>PRO</span>}
         </button>
         <button style={styles.billingBtn} onClick={() => navigate('/billing')}>Billing</button>
+        <button style={{ ...styles.billingBtn, opacity: 0.4, cursor: 'not-allowed' }} disabled title="Coming soon">App Tutorial</button>
         <button style={styles.signOutBtn} onClick={props.onLogout}>Sign Out</button>
       </div>
 
@@ -486,14 +490,18 @@ const styles = {
     letterSpacing: '3px',
     marginBottom: '64px',
   },
-  iconsRow: {
+  iconGroups: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '40px',
+    margin: '0 auto',
+  },
+  iconRow: {
     display: 'flex',
     alignItems: 'flex-start',
     justifyContent: 'center',
-    gap: '32px',
-    flexWrap: 'nowrap',
-    maxWidth: '900px',
-    margin: '0 auto',
+    gap: '48px',
   },
   iconBtn: {
     display: 'flex',
