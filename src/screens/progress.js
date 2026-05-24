@@ -64,8 +64,8 @@ function Progress() {
     };
   };
 
-  const days = view === '7d' ? 7 : view === '4w' ? 28 : 365;
-  const label = view === '7d' ? '7 Days' : view === '4w' ? '28 Days' : '12 Months';
+  const days = view === '7d' ? 7 : view === '4w' ? 30 : 365;
+  const label = view === '7d' ? 'Weekly' : view === '4w' ? 'Monthly' : 'Yearly';
   const periodEntries = [];
   for (let i = 0; i < days; i++) {
     const d = new Date(today);
@@ -115,22 +115,11 @@ function Progress() {
       return data;
     } else if (view === '4w') {
       const data = [];
-      for (let i = 3; i >= 0; i--) {
-        const ws = new Date(today); ws.setDate(today.getDate() - i * 7 - today.getDay());
-        const lbl = (ws.getMonth() + 1) + '/' + ws.getDate();
-        const weekEntries = [];
-        for (let j = 0; j <= 6; j++) {
-          const dd = new Date(ws); dd.setDate(ws.getDate() + j);
-          const k = dd.getFullYear() + '-' + String(dd.getMonth() + 1).padStart(2, '0') + '-' + String(dd.getDate()).padStart(2, '0');
-          if (entries[k]) weekEntries.push(getEntryPct(entries[k]));
-        }
-        if (weekEntries.length > 0) {
-          data.push({ label: lbl, entry: {
-            ismPct: Math.round(weekEntries.reduce((a, e) => a + e.ismPct, 0) / weekEntries.length),
-            esmPct: Math.round(weekEntries.reduce((a, e) => a + e.esmPct, 0) / weekEntries.length),
-            totalPct: Math.round(weekEntries.reduce((a, e) => a + e.totalPct, 0) / weekEntries.length),
-          }});
-        } else { data.push({ label: lbl, entry: null }); }
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date(today); d.setDate(today.getDate() - i);
+        const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        const lbl = (d.getMonth() + 1) + '/' + d.getDate();
+        data.push({ label: lbl, key, entry: entries[key] ? getEntryPct(entries[key]) : null });
       }
       return data;
     } else {
@@ -171,17 +160,12 @@ function Progress() {
       return result;
     } else if (v === '4w') {
       const result = [];
-      for (let w = 3; w >= 0; w--) {
-        const ws = new Date(today); ws.setDate(today.getDate() - w * 7 - today.getDay());
-        const lbl = (ws.getMonth() + 1) + '/' + ws.getDate();
-        const weekCeilings = [];
-        for (let j = 0; j <= 6; j++) {
-          const dd = new Date(ws); dd.setDate(ws.getDate() + j);
-          const dc = dayCeiling(dk(dd));
-          if (dc) weekCeilings.push(dc.ceiling);
-        }
-        const avg = weekCeilings.length ? Math.round(weekCeilings.reduce((a, b) => a + b, 0) / weekCeilings.length * 10) / 10 : null;
-        result.push({ key: dk(ws), label: lbl, ceiling: avg, logs: [] });
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date(today); d.setDate(today.getDate() - i);
+        const key = dk(d);
+        const lbl = (d.getMonth() + 1) + '/' + d.getDate();
+        const dc = dayCeiling(key);
+        result.push({ key, label: lbl, ceiling: dc ? dc.ceiling : null, logs: dc ? dc.logs : [] });
       }
       return result;
     } else {
@@ -339,10 +323,12 @@ function Progress() {
     setSelectedEntry(e);
   };
 
+  const cbmLabel = cbmView === '7d' ? 'Weekly' : cbmView === '4w' ? 'Monthly' : 'Yearly';
+  const lvlName = (v) => CBM_LEVEL_NAMES[Math.min(Math.round(v), 5)];
   const rangeLabel = (cbmSupport !== null && cbmResistance !== null)
-    ? (cbmSupport === cbmResistance
-        ? CBM_LEVEL_NAMES[Math.min(cbmResistance, 5)]
-        : `${CBM_LEVEL_NAMES[Math.min(cbmSupport, 5)]}\u2013${CBM_LEVEL_NAMES[Math.min(cbmResistance, 5)]}`)
+    ? (Math.round(cbmSupport) === Math.round(cbmResistance)
+        ? lvlName(cbmResistance)
+        : `${lvlName(cbmSupport)}\u2013${lvlName(cbmResistance)}`)
     : '--';
 
   if (loading) return <div style={{ color: '#8BAFC8', padding: '48px', textAlign: 'center' }}>Loading...</div>;
@@ -428,7 +414,7 @@ function Progress() {
                   <div style={styles.viewTabs}>
                     {['7d', '4w', '12m'].map(v => (
                       <button key={v} style={{ ...styles.viewTab, ...(view === v ? styles.viewTabActive : {}) }} onClick={() => setView(v)}>
-                        {v === '7d' ? '7D' : v === '4w' ? '4W' : '12M'}
+                        {v === '7d' ? 'Weekly' : v === '4w' ? 'Monthly' : 'Yearly'}
                       </button>
                     ))}
                   </div>
@@ -440,8 +426,8 @@ function Progress() {
                 <div style={styles.calHeader}>
                   <div style={styles.calMonth}>{monthName}</div>
                   <div style={{ display: 'flex', gap: '4px' }}>
-                    <button style={styles.calBtn} onClick={() => { let m = calMonth - 1; let y = calYear; if (m < 0) { m = 11; y--; } setCalMonth(m); setCalYear(y); setSelectedEntry(null); }}>\u2039</button>
-                    <button style={styles.calBtn} onClick={() => { let m = calMonth + 1; let y = calYear; if (m > 11) { m = 0; y++; } setCalMonth(m); setCalYear(y); setSelectedEntry(null); }}>\u203a</button>
+                    <button style={styles.calBtn} onClick={() => { let m = calMonth - 1; let y = calYear; if (m < 0) { m = 11; y--; } setCalMonth(m); setCalYear(y); setSelectedEntry(null); }}>{'\u2039'}</button>
+                    <button style={styles.calBtn} onClick={() => { let m = calMonth + 1; let y = calYear; if (m > 11) { m = 0; y++; } setCalMonth(m); setCalYear(y); setSelectedEntry(null); }}>{'\u203a'}</button>
                   </div>
                 </div>
                 <div style={styles.calGrid}>
@@ -480,20 +466,20 @@ function Progress() {
                   <div>
                     <div style={{ ...styles.osLabel, color: '#C49FDA' }}>Trading Range</div>
                     <div style={{ fontFamily: 'Georgia, serif', fontSize: '32px', fontWeight: '300', color: '#C49FDA' }}>{rangeLabel}</div>
-                    <div style={{ fontSize: '11px', color: '#8BAFC8', marginTop: '6px' }}>{label} channel</div>
+                    <div style={{ fontSize: '11px', color: '#8BAFC8', marginTop: '6px' }}>{cbmLabel} channel</div>
                   </div>
                   <div style={{ ...styles.scoreCol, borderLeft: '3px solid rgba(200,120,120,0.75)' }}>
                     <div style={{ ...styles.scoreColLabel, color: 'rgba(200,120,120,0.9)' }}>Resistance</div>
                     <div style={{ ...styles.scoreColNum, color: 'rgba(200,120,120,0.9)' }}>{cbmResistance}</div>
-                    <div style={styles.scoreColSub}>{CBM_LEVEL_NAMES[Math.min(cbmResistance, 5)]}</div>
+                    <div style={styles.scoreColSub}>{lvlName(cbmResistance)}</div>
                   </div>
                   <div style={{ ...styles.scoreCol, borderLeft: '3px solid rgba(74,174,136,0.75)' }}>
                     <div style={{ ...styles.scoreColLabel, color: 'rgba(74,174,136,0.9)' }}>Support</div>
                     <div style={{ ...styles.scoreColNum, color: 'rgba(74,174,136,0.9)' }}>{cbmSupport}</div>
-                    <div style={styles.scoreColSub}>{CBM_LEVEL_NAMES[Math.min(cbmSupport, 5)]}</div>
+                    <div style={styles.scoreColSub}>{lvlName(cbmSupport)}</div>
                   </div>
                   <div style={{ ...styles.scoreCol, borderLeft: '3px solid rgba(255,200,80,0.6)' }}>
-                    <div style={{ ...styles.scoreColLabel, color: 'rgba(255,200,80,0.85)' }}>MA</div>
+                    <div style={{ ...styles.scoreColLabel, color: 'rgba(255,200,80,0.85)' }}>Average</div>
                     <div style={{ ...styles.scoreColNum, color: 'rgba(255,200,80,0.85)' }}>{cbmMA !== null ? cbmMA.toFixed(1) : '--'}</div>
                     <div style={styles.scoreColSub}>rolling avg</div>
                   </div>
@@ -507,7 +493,7 @@ function Progress() {
                 <div style={styles.viewTabs}>
                   {['7d', '4w', '12m'].map(v => (
                     <button key={v} style={{ ...styles.viewTab, ...(cbmView === v ? styles.viewTabActive : {}) }} onClick={() => setCbmView(v)}>
-                      {v === '7d' ? '7D' : v === '4w' ? '4W' : '12M'}
+                      {v === '7d' ? 'Weekly' : v === '4w' ? 'Monthly' : 'Yearly'}
                     </button>
                   ))}
                 </div>
@@ -531,18 +517,18 @@ const styles = {
   tabBtn: { background: 'none', border: 'none', borderBottom: '2px solid transparent', padding: '12px 24px', color: '#8BAFC8', fontSize: '11px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', cursor: 'pointer', marginBottom: '-1px' },
   tabBtnActive: { color: '#D8E6F0', borderBottomColor: '#8EC4E0' },
   emptyBlock: { border: '1px solid rgba(142,196,224,0.2)', borderRadius: '3px', background: '#162534', padding: '40px', marginBottom: '32px', textAlign: 'center', fontSize: '13px', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8' },
-  dashBlock: { border: '1px solid rgba(142,196,224,0.6)', borderRadius: '3px', background: '#162534', padding: '32px 36px', marginBottom: '32px', boxShadow: '0 0 24px rgba(142,196,224,0.15), 0 0 48px rgba(142,196,224,0.08), inset 0 1px 0 rgba(142,196,224,0.2)' },
+  dashBlock: { border: '1px solid rgba(142,196,224,0.6)', borderRadius: '3px', background: '#162534', padding: '20px 36px', marginBottom: '20px', boxShadow: '0 0 24px rgba(142,196,224,0.15), 0 0 48px rgba(142,196,224,0.08), inset 0 1px 0 rgba(142,196,224,0.2)' },
   dashRow1: { display: 'grid', gridTemplateColumns: '1fr auto auto auto', alignItems: 'center', gap: '28px' },
   osLabel: { fontSize: '11px', fontWeight: '600', letterSpacing: '4px', textTransform: 'uppercase', color: '#8EC4E0', marginBottom: '8px', textShadow: '0 0 20px rgba(142,196,224,0.4)' },
   scoreCol: { textAlign: 'center', padding: '0 18px' },
   scoreColLabel: { fontSize: '10px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '8px' },
   scoreColNum: { fontFamily: 'Georgia, serif', fontSize: '38px', fontWeight: '300', lineHeight: 1 },
   scoreColSub: { fontSize: '11px', color: '#8BAFC8', marginTop: '6px' },
-  dashRow2: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '28px', paddingTop: '28px', borderTop: '1px solid rgba(142,196,224,0.15)' },
+  dashRow2: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '18px', paddingTop: '18px', borderTop: '1px solid rgba(142,196,224,0.15)' },
   statLabel: { fontSize: '11px', fontWeight: '600', letterSpacing: '4px', textTransform: 'uppercase', color: '#8BAFC8', marginBottom: '6px' },
   entryBadge: { fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', padding: '3px 10px', borderRadius: '10px', background: 'rgba(142,196,224,0.1)', border: '1px solid rgba(142,196,224,0.25)', color: '#8EC4E0' },
   viewResultsBtn: { fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', padding: '10px 20px', border: '1px solid rgba(142,196,224,0.4)', background: 'none', color: '#8EC4E0', cursor: 'pointer', borderRadius: '2px' },
-  trackLayout: { display: 'grid', gridTemplateColumns: '1fr 260px', gap: '32px', alignItems: 'start' },
+  trackLayout: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 240px', gap: '24px', alignItems: 'start' },
   graphTop: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' },
   legend: { display: 'flex', alignItems: 'center', gap: '20px' },
   legendItem: { display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#8BAFC8' },
