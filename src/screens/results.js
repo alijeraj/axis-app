@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { Page, AppHeader, PageBody } from '../components/Layout';
 
 const API = 'https://axis-backend-production-5e9b.up.railway.app';
 
@@ -64,15 +65,12 @@ function Results() {
 
   if (loading) return <div style={{ color: '#5A7A94', padding: '48px', textAlign: 'center' }}>Loading...</div>;
   if (!entry) return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <button style={styles.backBtn} onClick={() => navigate('/scan')}>← Scan</button>
-        <span style={styles.screenTitle}>Results</span>
-      </div>
+    <Page>
+      <AppHeader backLabel="← Scan" onBack={() => navigate('/scan')} title="Results" />
       <div style={{ padding: '80px', textAlign: 'center', fontFamily: 'Georgia, serif', fontStyle: 'italic', color: '#5A7A94' }}>
         No entry logged today. Complete a scan first.
       </div>
-    </div>
+    </Page>
   );
 
   const ism = entry.ism || {};
@@ -94,20 +92,15 @@ function Results() {
   const dateStr = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        {origin === 'scan' && (
-          <button style={styles.backBtn} onClick={() => navigate('/scan')}>← Scan</button>
-        )}
-        {origin === 'progress' && (
-          <button style={styles.backBtn} onClick={() => navigate('/progress')}>← Progress</button>
-        )}
-        <span style={styles.screenTitle}>AX<span style={{ color: '#6BA3C8', fontWeight: 600 }}>IS</span></span>
-        <button style={styles.backBtn} onClick={() => navigate('/progress')}>View Progress →</button>
-        <button style={styles.backBtn} onClick={() => navigate('/')}>Home →</button>
-      </div>
+    <Page>
+      <AppHeader
+        backLabel={origin === 'progress' ? '← Progress' : '← Scan'}
+        onBack={() => navigate(origin === 'progress' ? '/progress' : '/scan')}
+        title="Results"
+        right={<button style={styles.backBtn} onClick={() => navigate('/progress')}>View Progress →</button>}
+      />
 
-      <div style={styles.body}>
+      <PageBody width="content">
 
         <div style={styles.dashboardBlock}>
           <div style={styles.dateStr}>{dateStr}</div>
@@ -212,8 +205,8 @@ function Results() {
           </div>
         </div>
 
-      </div>
-    </div>
+      </PageBody>
+    </Page>
   );
 }
 
