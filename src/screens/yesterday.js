@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { Page, AppHeader, PageBody } from '../components/Layout';
 
 const API = 'https://axis-backend-production-5e9b.up.railway.app';
 
@@ -100,11 +101,8 @@ function Yesterday() {
 
   if (saved) {
     return (
-      <div style={styles.container}>
-        <div style={styles.header}>
-          <button style={styles.backBtn} onClick={() => navigate('/cbm')}>← Behavior Map</button>
-          <span style={styles.screenTitle}>Yesterday</span>
-        </div>
+      <Page>
+        <AppHeader backLabel="← Behavior Map" onBack={() => navigate('/cbm')} title="Yesterday" />
         <div style={{ maxWidth: '700px', margin: '0 auto', padding: '80px 32px', textAlign: 'center' }}>
           <div style={{ fontSize: '48px', marginBottom: '24px' }}>✓</div>
           <div style={{ fontFamily: 'Georgia, serif', fontSize: '24px', fontWeight: '300', color: '#D8E6F0', marginBottom: '12px' }}>Logged</div>
@@ -114,18 +112,15 @@ function Yesterday() {
           </div>
           <button style={styles.btn} onClick={() => navigate('/cbm')}>← Back to Behavior Map</button>
         </div>
-      </div>
+      </Page>
     );
   }
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <button style={styles.backBtn} onClick={() => navigate('/cbm')}>← Behavior Map</button>
-        <span style={styles.screenTitle}>Yesterday</span>
-      </div>
+    <Page>
+      <AppHeader backLabel="← Behavior Map" onBack={() => navigate('/cbm')} title="Yesterday" />
 
-      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '40px 32px 80px', width: '100%' }}>
+      <PageBody width="content">
 
         {/* Date + instruction */}
         <div style={{ marginBottom: '32px' }}>
@@ -270,8 +265,8 @@ function Yesterday() {
           <button style={styles.skipBtn} onClick={() => navigate('/cbm')}>Skip</button>
         </div>
 
-      </div>
-    </div>
+      </PageBody>
+    </Page>
   );
 }
 
