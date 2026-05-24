@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { Page, AppHeader, PageBody } from '../components/Layout';
 
 const API = 'https://axis-backend-production-5e9b.up.railway.app';
 
@@ -318,13 +319,10 @@ function Scan() {
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <button style={styles.backBtn} onClick={() => navigate('/')}>← Home</button>
-        <span style={styles.screenTitle}>Scan</span>
-      </div>
+    <Page>
+      <AppHeader title="Scan" />
 
-      <div style={styles.body}>
+      <PageBody width="content">
         <div style={styles.modeBar}>
           <button style={{ ...styles.modePill, ...(mode === 'custom' ? styles.modePillActive : {}) }} onClick={() => { setMode('custom'); setQComplete(false); }}>Custom</button>
           <button style={{ ...styles.modePill, ...(mode === 'questionnaire' ? styles.modePillActive : {}) }} onClick={() => { setMode('questionnaire'); setQComplete(false); }}>Questionnaire</button>
@@ -396,8 +394,8 @@ function Scan() {
             </div>
           </>
         )}
-      </div>
-    </div>
+      </PageBody>
+    </Page>
   );
 }
 
