@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { Page, AppHeader, PageBody } from '../components/Layout';
 
 const API = 'https://axis-backend-production-5e9b.up.railway.app';
 
@@ -268,12 +269,9 @@ function CBM() {
 
   if (showAdd) {
     return (
-      <div style={styles.container}>
-        <div style={styles.header}>
-          <button style={styles.backBtn} onClick={() => setShowAdd(false)}>← Cancel</button>
-          <div style={styles.toolbarTitle}>Add Behavior</div>
-        </div>
-        <div style={{ maxWidth: '600px', margin: '0 auto', padding: '40px 32px' }}>
+      <Page>
+        <AppHeader backLabel="← Cancel" onBack={() => setShowAdd(false)} title="Add Behavior" />
+        <PageBody width="reading">
           <div style={styles.card}>
             <div style={styles.formGroup}>
               <label style={styles.label}>Behavior Name</label>
@@ -303,8 +301,8 @@ function CBM() {
               <button style={styles.btn} onClick={saveBehavior}>Save</button>
             </div>
           </div>
-        </div>
-      </div>
+        </PageBody>
+      </Page>
     );
   }
 
@@ -535,16 +533,19 @@ function CBM() {
         </div>
       )}
 
-      <div style={styles.header}>
-        <button style={styles.backBtn} onClick={() => navigate('/')}>← Home</button>
-        <span style={styles.toolbarTitle}>Compulsive Behavior Map</span>
-        <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#8BAFC8', marginRight: '8px' }} onClick={() => navigate('/progress')}>View Progress →</button>
-        <button style={{ ...styles.btn, marginRight: '8px', background: 'rgba(255,200,80,0.08)', border: '1px solid rgba(255,200,80,0.25)', color: 'rgba(255,200,80,0.9)' }} onClick={() => navigate('/yesterday')}>Yesterday</button>
-        <button style={{ ...styles.btn, marginRight: '8px' }} onClick={() => setShowLogModal(true)}>Set Resistance</button>
-        <button style={styles.btn} onClick={() => setShowAdd(true)}>+ Add Behavior</button>
-      </div>
+      <AppHeader
+        title="Compulsive Behavior Map"
+        right={
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#8BAFC8' }} onClick={() => navigate('/progress')}>View Progress →</button>
+            <button style={{ ...styles.btn, background: 'rgba(255,200,80,0.08)', border: '1px solid rgba(255,200,80,0.25)', color: 'rgba(255,200,80,0.9)' }} onClick={() => navigate('/yesterday')}>Yesterday</button>
+            <button style={styles.btn} onClick={() => setShowLogModal(true)}>Set Resistance</button>
+            <button style={styles.btn} onClick={() => setShowAdd(true)}>+ Add Behavior</button>
+          </div>
+        }
+      />
 
-      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '32px 32px 80px', width: '100%' }}>
+      <PageBody width="content">
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', marginBottom: '8px' }}>
           {recentLogs.length === 0 ? (
@@ -628,7 +629,7 @@ function CBM() {
             )}
           </>
         )}
-      </div>
+      </PageBody>
     </div>
   );
 }
