@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { Page, AppHeader, PageBody } from '../components/Layout';
 
 const API = 'https://axis-backend-production-5e9b.up.railway.app';
 
@@ -911,7 +912,7 @@ function TreeView({ complexes, people, patterns, activeCategoryId, onViewComplex
 }
 
 function CPM() {
-  const navigate = useNavigate();
+  
   const location = useLocation();
   const token = localStorage.getItem('axis_token');
   const initialTab = (() => {
@@ -1061,12 +1062,9 @@ function CPM() {
   if (showBuilder) {
     const isEdit = editIdx !== null;
     return (
-      <div style={styles.container}>
-        <div style={styles.header}>
-          <button style={styles.backBtn} onClick={closeBuilder}>← Cancel</button>
-          <div style={styles.title}>{isEdit ? 'Edit Complex' : 'Build Complex'}</div>
-        </div>
-        <div style={{ maxWidth: '700px', margin: '0 auto', padding: '40px 32px' }}>
+      <Page>
+        <AppHeader backLabel="← Cancel" onBack={closeBuilder} title={isEdit ? 'Edit Complex' : 'Build Complex'} />
+        <PageBody width="reading">
           {!isEdit && !prefillBehavior && (
             <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid rgba(142,196,224,0.15)', marginBottom: '36px' }}>
               {['guided', 'custom'].map(m => <button key={m} style={{ ...styles.tabBtn, ...(builderMode === m ? styles.tabBtnActive : {}) }} onClick={() => setBuilderMode(m)}>{m.charAt(0).toUpperCase() + m.slice(1)}</button>)}
@@ -1148,25 +1146,25 @@ function CPM() {
               </div>
             </div>
           )}
-        </div>
-      </div>
+        </PageBody>
+      </Page>
     );
   }
 
   if (tab === 'tree') {
     return (
-      <div style={{ ...styles.container, height: '100vh' }}>
+      <Page>
         {viewIdx !== null && <ViewModal complex={complexes[viewIdx]} dreams={dreams} people={people} complexes={complexes} onClose={() => setViewIdx(null)} onEdit={() => { openBuilder(viewIdx); setViewIdx(null); }} />}
         {resolutionViewComplexes && <ResolutionModal resolvedComplexes={resolutionViewComplexes} onClose={() => setResolutionViewComplexes(null)} />}
         {resolutionFormIdx !== null && <ResolutionForm complex={complexes[resolutionFormIdx]} onSave={(data) => markResolved(resolutionFormIdx, data)} onCancel={() => setResolutionFormIdx(null)} />}
-        <div style={styles.header}>
-          <button style={styles.backBtn} onClick={() => navigate('/')}>← Home</button>
-          <div style={{ display: 'flex', gap: 0, flex: 1, justifyContent: 'center' }}>
-            {[{ id: 'emotion', label: 'By Emotion' }, { id: 'tree', label: 'Tree View' }].map(t => (
-              <button key={t.id} style={{ ...styles.tabBtn, ...(tab === t.id ? styles.tabBtnActive : {}) }} onClick={() => setTab(t.id)}>{t.label}</button>
-            ))}
-          </div>
-          <button style={styles.btn} onClick={() => openBuilder()}>+ Build Complex</button>
+        <AppHeader
+          title="Complex Pattern Map"
+          right={<button style={styles.btn} onClick={() => openBuilder()}>+ Build Complex</button>}
+        />
+        <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid rgba(142,196,224,0.15)', padding: '0 32px', flexShrink: 0 }}>
+          {[{ id: 'emotion', label: 'By Emotion' }, { id: 'tree', label: 'Tree View' }].map(t => (
+            <button key={t.id} style={{ ...styles.tabBtn, ...(tab === t.id ? styles.tabBtnActive : {}) }} onClick={() => setTab(t.id)}>{t.label}</button>
+          ))}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 32px', borderBottom: '1px solid rgba(142,196,224,0.08)', flexShrink: 0 }}>
           <span style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#8BAFC8' }}>View by:</span>
@@ -1195,21 +1193,22 @@ function CPM() {
             );
           })()}
         </div>
-        <TreeView complexes={complexes} people={people} patterns={patterns} activeCategoryId={activeCategoryId} onViewComplex={(idx) => setViewIdx(idx)} onViewResolution={(cxs) => setResolutionViewComplexes(cxs)} onSaveOrder={saveTreeOrder} savedOrder={treeOrder} />
-      </div>
+        <PageBody width="full">
+          <TreeView complexes={complexes} people={people} patterns={patterns} activeCategoryId={activeCategoryId} onViewComplex={(idx) => setViewIdx(idx)} onViewResolution={(cxs) => setResolutionViewComplexes(cxs)} onSaveOrder={saveTreeOrder} savedOrder={treeOrder} />
+        </PageBody>
+      </Page>
     );
   }
 
   return (
-    <div style={styles.container}>
+    <Page>
       {viewIdx !== null && <ViewModal complex={complexes[viewIdx]} dreams={dreams} people={people} complexes={complexes} onClose={() => setViewIdx(null)} onEdit={() => { openBuilder(viewIdx); setViewIdx(null); }} />}
       {resolutionFormIdx !== null && <ResolutionForm complex={complexes[resolutionFormIdx]} onSave={(data) => markResolved(resolutionFormIdx, data)} onCancel={() => setResolutionFormIdx(null)} />}
-      <div style={styles.header}>
-        <button style={styles.backBtn} onClick={() => navigate('/')}>← Home</button>
-        <span style={styles.toolbarTitle}>Complex Pattern Map</span>
-        <button style={styles.btn} onClick={() => openBuilder()}>+ Build Complex</button>
-      </div>
-      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '32px 32px 80px', width: '100%' }}>
+      <AppHeader
+        title="Complex Pattern Map"
+        right={<button style={styles.btn} onClick={() => openBuilder()}>+ Build Complex</button>}
+      />
+      <PageBody width="content">
         <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid rgba(142,196,224,0.15)', marginBottom: '24px' }}>
           {[{ id: 'emotion', label: 'By Emotion' }, { id: 'tree', label: 'Tree View' }].map(t => (
             <button key={t.id} style={{ ...styles.tabBtn, ...(tab === t.id ? styles.tabBtnActive : {}) }} onClick={() => setTab(t.id)}>{t.label}</button>
@@ -1259,8 +1258,8 @@ function CPM() {
             )}
           </>
         )}
-      </div>
-    </div>
+      </PageBody>
+    </Page>
   );
 }
 
