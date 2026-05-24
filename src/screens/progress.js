@@ -201,15 +201,30 @@ function Progress() {
     }
   };
 
-  const calcResistance = (ceilings) => {
+  // MA = rolling average of the period's ceilings (the dynamic trend line)
+  const calcMA = (ceilings) => {
     const withData = ceilings.filter(d => d.ceiling !== null);
     if (!withData.length) return null;
     return Math.round(withData.reduce((a, d) => a + d.ceiling, 0) / withData.length * 10) / 10;
   };
+  // Resistance = highest touched ceiling level in the period (static line)
+  const calcResistanceLine = (ceilings) => {
+    const vals = ceilings.filter(d => d.ceiling !== null).map(d => d.ceiling);
+    if (!vals.length) return null;
+    return Math.max(...vals);
+  };
+  // Support = lowest touched ceiling level in the period (static line)
+  const calcSupportLine = (ceilings) => {
+    const vals = ceilings.filter(d => d.ceiling !== null).map(d => d.ceiling);
+    if (!vals.length) return null;
+    return Math.min(...vals);
+  };
 
   const chartData = getChartData();
   const cbmCeilings = getCBMDailyCeilings(cbmView);
-  const cbmResistance = calcResistance(cbmCeilings);
+  const cbmMA = calcMA(cbmCeilings);
+  const cbmResistance = calcResistanceLine(cbmCeilings);
+  const cbmSupport = calcSupportLine(cbmCeilings);
 
   const renderISMChart = () => {
     const W = 600; const H = 220;
@@ -254,7 +269,7 @@ function Progress() {
   const renderCBMChart = () => {
     if (!cbmLog.length) return (
       <div style={{ textAlign: 'center', padding: '60px', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8' }}>
-        No resistance logs yet. Use Log Yesterday on the Compulsive Behavior Map.
+        No behavior logs yet. Use Log Yesterday on the Compulsive Behavior Map.
       </div>
     );
 
@@ -280,15 +295,29 @@ function Progress() {
           </g>
         ))}
         {cbmCeilings.map((d, i) => <text key={i} x={xPos(i)} y={H - 6} textAnchor="middle" fontSize="9" fill="rgba(142,196,224,0.55)">{d.label}</text>)}
+
         {cbmResistance !== null && (
           <>
-            <line x1={PAD.left} y1={yPos(cbmResistance)} x2={W - PAD.right} y2={yPos(cbmResistance)} stroke="rgba(255,200,80,0.65)" strokeWidth="1.5" strokeDasharray="6,3" />
-            <text x={W - PAD.right + 6} y={yPos(cbmResistance) + 4} fontSize="9" fill="rgba(255,200,80,0.8)" fontWeight="600">R</text>
+            <line x1={PAD.left} y1={yPos(cbmResistance)} x2={W - PAD.right} y2={yPos(cbmResistance)} stroke="rgba(200,120,120,0.75)" strokeWidth="1.5" />
+            <text x={W - PAD.right + 6} y={yPos(cbmResistance) + 4} fontSize="9" fill="rgba(200,120,120,0.9)" fontWeight="600">R</text>
           </>
         )}
+        {cbmSupport !== null && (
+          <>
+            <line x1={PAD.left} y1={yPos(cbmSupport)} x2={W - PAD.right} y2={yPos(cbmSupport)} stroke="rgba(74,174,136,0.75)" strokeWidth="1.5" />
+            <text x={W - PAD.right + 6} y={yPos(cbmSupport) + 4} fontSize="9" fill="rgba(74,174,136,0.9)" fontWeight="600">S</text>
+          </>
+        )}
+        {cbmMA !== null && (
+          <>
+            <line x1={PAD.left} y1={yPos(cbmMA)} x2={W - PAD.right} y2={yPos(cbmMA)} stroke="rgba(255,200,80,0.6)" strokeWidth="1.5" strokeDasharray="6,3" />
+            <text x={W - PAD.right + 6} y={yPos(cbmMA) + 4} fontSize="9" fill="rgba(255,200,80,0.85)" fontWeight="600">MA</text>
+          </>
+        )}
+
         {pathPoints.length > 1 && <path d={'M' + pathPoints.map(p => `${p.x},${p.y}`).join(' L')} fill="none" stroke="rgba(176,144,216,0.65)" strokeWidth="2" />}
         {pathPoints.map((p, i) => {
-          const aboveR = cbmResistance !== null && p.d.ceiling > cbmResistance;
+          const aboveR = cbmResistance !== null && p.d.ceiling >= cbmResistance && cbmResistance > cbmSupport;
           return <circle key={i} cx={p.x} cy={p.y} r={aboveR ? 5 : 4} fill={aboveR ? 'rgba(200,106,106,0.9)' : 'rgba(176,144,216,0.9)'} stroke="#0d1b2a" strokeWidth="1.5" />;
         })}
       </svg>
@@ -309,6 +338,12 @@ function Progress() {
     setSelectedDateStr(d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }));
     setSelectedEntry(e);
   };
+
+  const rangeLabel = (cbmSupport !== null && cbmResistance !== null)
+    ? (cbmSupport === cbmResistance
+        ? CBM_LEVEL_NAMES[Math.min(cbmResistance, 5)]
+        : `${CBM_LEVEL_NAMES[Math.min(cbmSupport, 5)]}\u2013${CBM_LEVEL_NAMES[Math.min(cbmResistance, 5)]}`)
+    : '--';
 
   if (loading) return <div style={{ color: '#8BAFC8', padding: '48px', textAlign: 'center' }}>Loading...</div>;
 
@@ -405,8 +440,8 @@ function Progress() {
                 <div style={styles.calHeader}>
                   <div style={styles.calMonth}>{monthName}</div>
                   <div style={{ display: 'flex', gap: '4px' }}>
-                    <button style={styles.calBtn} onClick={() => { let m = calMonth - 1; let y = calYear; if (m < 0) { m = 11; y--; } setCalMonth(m); setCalYear(y); setSelectedEntry(null); }}>‹</button>
-                    <button style={styles.calBtn} onClick={() => { let m = calMonth + 1; let y = calYear; if (m > 11) { m = 0; y++; } setCalMonth(m); setCalYear(y); setSelectedEntry(null); }}>›</button>
+                    <button style={styles.calBtn} onClick={() => { let m = calMonth - 1; let y = calYear; if (m < 0) { m = 11; y--; } setCalMonth(m); setCalYear(y); setSelectedEntry(null); }}>\u2039</button>
+                    <button style={styles.calBtn} onClick={() => { let m = calMonth + 1; let y = calYear; if (m > 11) { m = 0; y++; } setCalMonth(m); setCalYear(y); setSelectedEntry(null); }}>\u203a</button>
                   </div>
                 </div>
                 <div style={styles.calGrid}>
@@ -438,28 +473,48 @@ function Progress() {
             </div>
           </>
         ) : (
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div style={{ fontSize: '11px', fontWeight: '600', letterSpacing: '4px', textTransform: 'uppercase', color: '#8BAFC8' }}>Compulsive Behavior Log</div>
-                {cbmResistance !== null && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <div style={{ width: '8px', height: '8px', background: 'rgba(255,200,80,0.85)', borderRadius: '50%' }} />
-                    <span style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(255,200,80,0.9)' }}>Resistance: {cbmResistance.toFixed(1)} ({CBM_LEVEL_NAMES[Math.min(Math.round(cbmResistance), 5)]})</span>
-                    <span style={{ fontSize: '10px', color: '#8BAFC8', marginLeft: '4px' }}>rolling avg</span>
+          <>
+            {cbmSupport !== null && (
+              <div style={styles.dashBlock}>
+                <div style={styles.dashRow1}>
+                  <div>
+                    <div style={{ ...styles.osLabel, color: '#C49FDA' }}>Trading Range</div>
+                    <div style={{ fontFamily: 'Georgia, serif', fontSize: '32px', fontWeight: '300', color: '#C49FDA' }}>{rangeLabel}</div>
+                    <div style={{ fontSize: '11px', color: '#8BAFC8', marginTop: '6px' }}>{label} channel</div>
                   </div>
-                )}
+                  <div style={{ ...styles.scoreCol, borderLeft: '3px solid rgba(200,120,120,0.75)' }}>
+                    <div style={{ ...styles.scoreColLabel, color: 'rgba(200,120,120,0.9)' }}>Resistance</div>
+                    <div style={{ ...styles.scoreColNum, color: 'rgba(200,120,120,0.9)' }}>{cbmResistance}</div>
+                    <div style={styles.scoreColSub}>{CBM_LEVEL_NAMES[Math.min(cbmResistance, 5)]}</div>
+                  </div>
+                  <div style={{ ...styles.scoreCol, borderLeft: '3px solid rgba(74,174,136,0.75)' }}>
+                    <div style={{ ...styles.scoreColLabel, color: 'rgba(74,174,136,0.9)' }}>Support</div>
+                    <div style={{ ...styles.scoreColNum, color: 'rgba(74,174,136,0.9)' }}>{cbmSupport}</div>
+                    <div style={styles.scoreColSub}>{CBM_LEVEL_NAMES[Math.min(cbmSupport, 5)]}</div>
+                  </div>
+                  <div style={{ ...styles.scoreCol, borderLeft: '3px solid rgba(255,200,80,0.6)' }}>
+                    <div style={{ ...styles.scoreColLabel, color: 'rgba(255,200,80,0.85)' }}>MA</div>
+                    <div style={{ ...styles.scoreColNum, color: 'rgba(255,200,80,0.85)' }}>{cbmMA !== null ? cbmMA.toFixed(1) : '--'}</div>
+                    <div style={styles.scoreColSub}>rolling avg</div>
+                  </div>
+                </div>
               </div>
-              <div style={styles.viewTabs}>
-                {['7d', '4w', '12m'].map(v => (
-                  <button key={v} style={{ ...styles.viewTab, ...(cbmView === v ? styles.viewTabActive : {}) }} onClick={() => setCbmView(v)}>
-                    {v === '7d' ? '7D' : v === '4w' ? '4W' : '12M'}
-                  </button>
-                ))}
+            )}
+
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                <div style={{ fontSize: '11px', fontWeight: '600', letterSpacing: '4px', textTransform: 'uppercase', color: '#8BAFC8' }}>Compulsive Behavior Log</div>
+                <div style={styles.viewTabs}>
+                  {['7d', '4w', '12m'].map(v => (
+                    <button key={v} style={{ ...styles.viewTab, ...(cbmView === v ? styles.viewTabActive : {}) }} onClick={() => setCbmView(v)}>
+                      {v === '7d' ? '7D' : v === '4w' ? '4W' : '12M'}
+                    </button>
+                  ))}
+                </div>
               </div>
+              <div style={{ position: 'relative', width: '100%' }}>{renderCBMChart()}</div>
             </div>
-            <div style={{ position: 'relative', width: '100%' }}>{renderCBMChart()}</div>
-          </div>
+          </>
         )}
 
       </PageBody>
@@ -476,18 +531,18 @@ const styles = {
   tabBtn: { background: 'none', border: 'none', borderBottom: '2px solid transparent', padding: '12px 24px', color: '#8BAFC8', fontSize: '11px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', cursor: 'pointer', marginBottom: '-1px' },
   tabBtnActive: { color: '#D8E6F0', borderBottomColor: '#8EC4E0' },
   emptyBlock: { border: '1px solid rgba(142,196,224,0.2)', borderRadius: '3px', background: '#162534', padding: '40px', marginBottom: '32px', textAlign: 'center', fontSize: '13px', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8' },
-  dashBlock: { border: '1px solid rgba(142,196,224,0.6)', borderRadius: '3px', background: '#162534', padding: '36px 48px', marginBottom: '32px', boxShadow: '0 0 24px rgba(142,196,224,0.15), 0 0 48px rgba(142,196,224,0.08), inset 0 1px 0 rgba(142,196,224,0.2)' },
-  dashRow1: { display: 'grid', gridTemplateColumns: '1fr auto auto auto', alignItems: 'center', gap: '40px', paddingBottom: '28px', borderBottom: '1px solid rgba(142,196,224,0.15)' },
+  dashBlock: { border: '1px solid rgba(142,196,224,0.6)', borderRadius: '3px', background: '#162534', padding: '32px 36px', marginBottom: '32px', boxShadow: '0 0 24px rgba(142,196,224,0.15), 0 0 48px rgba(142,196,224,0.08), inset 0 1px 0 rgba(142,196,224,0.2)' },
+  dashRow1: { display: 'grid', gridTemplateColumns: '1fr auto auto auto', alignItems: 'center', gap: '28px' },
   osLabel: { fontSize: '11px', fontWeight: '600', letterSpacing: '4px', textTransform: 'uppercase', color: '#8EC4E0', marginBottom: '8px', textShadow: '0 0 20px rgba(142,196,224,0.4)' },
-  scoreCol: { textAlign: 'center', padding: '0 24px' },
-  scoreColLabel: { fontSize: '11px', fontWeight: '600', letterSpacing: '4px', textTransform: 'uppercase', marginBottom: '8px' },
-  scoreColNum: { fontFamily: 'Georgia, serif', fontSize: '40px', fontWeight: '300', lineHeight: 1 },
+  scoreCol: { textAlign: 'center', padding: '0 18px' },
+  scoreColLabel: { fontSize: '10px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '8px' },
+  scoreColNum: { fontFamily: 'Georgia, serif', fontSize: '38px', fontWeight: '300', lineHeight: 1 },
   scoreColSub: { fontSize: '11px', color: '#8BAFC8', marginTop: '6px' },
-  dashRow2: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '28px' },
+  dashRow2: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '28px', paddingTop: '28px', borderTop: '1px solid rgba(142,196,224,0.15)' },
   statLabel: { fontSize: '11px', fontWeight: '600', letterSpacing: '4px', textTransform: 'uppercase', color: '#8BAFC8', marginBottom: '6px' },
   entryBadge: { fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', padding: '3px 10px', borderRadius: '10px', background: 'rgba(142,196,224,0.1)', border: '1px solid rgba(142,196,224,0.25)', color: '#8EC4E0' },
   viewResultsBtn: { fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', padding: '10px 20px', border: '1px solid rgba(142,196,224,0.4)', background: 'none', color: '#8EC4E0', cursor: 'pointer', borderRadius: '2px' },
-  trackLayout: { display: 'grid', gridTemplateColumns: '1fr 280px', gap: '40px', alignItems: 'start' },
+  trackLayout: { display: 'grid', gridTemplateColumns: '1fr 260px', gap: '32px', alignItems: 'start' },
   graphTop: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' },
   legend: { display: 'flex', alignItems: 'center', gap: '20px' },
   legendItem: { display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#8BAFC8' },
