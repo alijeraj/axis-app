@@ -214,6 +214,17 @@ function Home(props) {
       )
     },
     {
+      id: 'patterns', label: 'Pattern\nLibrary',
+      svg: (
+        <svg width="64" height="64" viewBox="0 0 80 80" fill="none">
+          <circle cx="30" cy="30" r="9" fill="#8EC4E0" opacity="0.9"/>
+          <circle cx="50" cy="30" r="9" fill="#C49FDA" opacity="0.9"/>
+          <circle cx="30" cy="50" r="9" fill="#4AAE88" opacity="0.9"/>
+          <circle cx="50" cy="50" r="9" fill="#E0B070" opacity="0.9"/>
+        </svg>
+      )
+    },
+    {
       id: 'progress', label: 'View\nProgress',
       svg: (
         <svg width="64" height="64" viewBox="0 0 80 80" fill="none">
@@ -258,7 +269,7 @@ function Home(props) {
   const byId = (id) => menuItems.find(m => m.id === id);
   const measureRow = [byId('scan'), byId('progress')];
   const mapRow = [byId('cpm'), byId('cbm'), byId('people')];
-  const reflectRow = [byId('journal')];
+  const reflectRow = [byId('patterns'), byId('journal')];
 
   return (
     <div style={styles.container} onClick={() => setShowProfileMenu(false)}>

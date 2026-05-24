@@ -173,19 +173,9 @@ function CBM() {
 
   const today = new Date();
   const dk = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-  const cutoff = new Date(today); cutoff.setDate(today.getDate() - 28);
-  const recentLogs = cbmLog.filter(e => new Date(e.date) >= cutoff);
-  const resistance = (() => {
-    if (!recentLogs.length) return null;
-    const dayMap = {};
-    recentLogs.forEach(e => {
-      const key = dk(new Date(e.date));
-      if (!dayMap[key] || e.level > dayMap[key]) dayMap[key] = e.level;
-    });
-    const ceilings = Object.values(dayMap);
-    if (!ceilings.length) return null;
-    return Math.round(ceilings.reduce((a, b) => a + b, 0) / ceilings.length * 10) / 10;
-  })();
+  
+  
+  
 
   const todayKey = dk(today);
   const todayLogs = cbmLog.filter(e => dk(new Date(e.date)) === todayKey);
@@ -546,22 +536,7 @@ function CBM() {
 
       <PageBody width="content">
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', marginBottom: '8px' }}>
-          {recentLogs.length === 0 ? (
-            <>
-              <span style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8' }}>Resistance Line:</span>
-              <span style={{ fontSize: '11px', color: '#8BAFC8', fontStyle: 'italic' }}>Will appear after your first log entry</span>
-            </>
-          ) : (
-            <>
-              <div style={{ width: '10px', height: '2px', background: 'rgba(255,200,80,0.8)' }} />
-              <span style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: 'rgba(255,200,80,0.9)' }}>Resistance Line</span>
-              <span style={{ fontSize: '11px', color: 'rgba(255,200,80,0.75)', letterSpacing: '1px' }}>
-                {resistance !== null ? `${resistance.toFixed(1)} (${LEVEL_NAMES[Math.min(Math.round(resistance) - 1, 4)] || 'None'}, 28-day rolling avg)` : '--'}
-              </span>
-            </>
-          )}
-        </div>
+        
 
         <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid rgba(142,196,224,0.15)', marginBottom: '20px' }}>
           <button style={{ ...styles.tabBtn, ...(view === 'dysregulated' ? styles.tabBtnActive : {}) }} onClick={() => setView('dysregulated')}>Dysregulated</button>
