@@ -265,35 +265,34 @@ function Home(props) {
       <div style={styles.logo}>AX<span style={styles.logoSpan}>IS</span></div>
       <div style={styles.sub}>Navigate your inner world</div>
 
-      <div style={styles.iconGroups}>
-        {[measureRow, mapRow, reflectRow].map((row, ri) => (
-          <div key={ri} style={styles.iconRow}>
-            {row.map(item => (
-              <button
-                key={item.id}
-                style={styles.iconBtn}
-                onClick={() => navigate('/' + item.id)}
-                onMouseEnter={e => {
-                  e.currentTarget.querySelector('.icon-wrap').style.transform = 'translateY(-4px)';
-                  e.currentTarget.querySelector('.icon-wrap').style.opacity = '1';
-                  e.currentTarget.querySelector('.icon-label').style.color = '#8EC4E0';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.querySelector('.icon-wrap').style.transform = 'translateY(0)';
-                  e.currentTarget.querySelector('.icon-wrap').style.opacity = '0.85';
-                  e.currentTarget.querySelector('.icon-label').style.color = 'rgba(216,230,240,0.85)';
-                }}
-              >
-                <div className="icon-wrap" style={styles.iconWrap}>{item.svg}</div>
-                <span className="icon-label" style={styles.iconLabel}>
-                  {item.label.split('\n').map((line, i) => (
-                    <span key={i}>{line}{i === 0 && <br />}</span>
-                  ))}
-                </span>
-              </button>
-            ))}
-          </div>
-        ))}
+      <div style={styles.iconsRow}>
+        {[...measureRow, 'divider', ...mapRow, 'divider', ...reflectRow].map((item, idx) => {
+          if (item === 'divider') return <div key={'div' + idx} style={styles.groupDivider} />;
+          return (
+            <button
+              key={item.id}
+              style={styles.iconBtn}
+              onClick={() => navigate('/' + item.id)}
+              onMouseEnter={e => {
+                e.currentTarget.querySelector('.icon-wrap').style.transform = 'translateY(-4px)';
+                e.currentTarget.querySelector('.icon-wrap').style.opacity = '1';
+                e.currentTarget.querySelector('.icon-label').style.color = '#8EC4E0';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.querySelector('.icon-wrap').style.transform = 'translateY(0)';
+                e.currentTarget.querySelector('.icon-wrap').style.opacity = '0.85';
+                e.currentTarget.querySelector('.icon-label').style.color = 'rgba(216,230,240,0.85)';
+              }}
+            >
+              <div className="icon-wrap" style={styles.iconWrap}>{item.svg}</div>
+              <span className="icon-label" style={styles.iconLabel}>
+                {item.label.split('\n').map((line, i) => (
+                  <span key={i}>{line}{i === 0 && <br />}</span>
+                ))}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       <div style={styles.footer} onClick={e => e.stopPropagation()}>
@@ -490,18 +489,23 @@ const styles = {
     letterSpacing: '3px',
     marginBottom: '64px',
   },
-  iconGroups: {
+  iconsRow: {
     display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '40px',
-    margin: '0 auto',
-  },
-  iconRow: {
-    display: 'flex',
+    flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'center',
-    gap: '48px',
+    gap: '24px',
+    flexWrap: 'nowrap',
+    width: 'max-content',
+    maxWidth: '100%',
+    margin: '0 auto',
+  },
+  groupDivider: {
+    width: '1px',
+    height: '52px',
+    background: 'rgba(142,196,224,0.18)',
+    alignSelf: 'center',
+    marginBottom: '24px',
   },
   iconBtn: {
     display: 'flex',
@@ -513,6 +517,7 @@ const styles = {
     cursor: 'pointer',
     padding: 0,
     width: '100px',
+    flexShrink: 0,
   },
   iconWrap: {
     width: '72px',
