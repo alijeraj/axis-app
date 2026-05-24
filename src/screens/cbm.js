@@ -538,8 +538,7 @@ function CBM() {
         right={
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#8BAFC8' }} onClick={() => navigate('/progress')}>View Progress →</button>
-            <button style={{ ...styles.btn, background: 'rgba(255,200,80,0.08)', border: '1px solid rgba(255,200,80,0.25)', color: 'rgba(255,200,80,0.9)' }} onClick={() => navigate('/yesterday')}>Yesterday</button>
-            <button style={styles.btn} onClick={() => setShowLogModal(true)}>Set Resistance</button>
+            <button style={{ ...styles.btn, background: 'rgba(255,200,80,0.08)', border: '1px solid rgba(255,200,80,0.25)', color: 'rgba(255,200,80,0.9)' }} onClick={() => navigate('/yesterday')}>Log Yesterday</button>
             <button style={styles.btn} onClick={() => setShowAdd(true)}>+ Add Behavior</button>
           </div>
         }
