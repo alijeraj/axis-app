@@ -30,7 +30,6 @@ function Yesterday() {
   const [loading, setLoading] = useState(true);
   const [selectedLevel, setSelectedLevel] = useState(null); // 0-5, 0 = regulated
   const [saved, setSaved] = useState(false);
-  const [note, setNote] = useState('');
   const pyramidRef = useRef(null);
   const isDragging = useRef(false);
 
@@ -69,14 +68,10 @@ function Yesterday() {
     const newLog = [...cbmLog, {
       date: new Date(yesterdayKey + 'T12:00:00').toISOString(),
       level: selectedLevel,
-      note,
     }];
     await axios.post(`${API}/api/cbm-log`, { data: newLog }, { headers: { Authorization: `Bearer ${token}` } });
     setSaved(true);
   };
-
-  // Pyramid height per level for drag calculation
-  
 
   const handlePyramidClick = (e) => {
     if (!pyramidRef.current) return;
@@ -245,16 +240,6 @@ function Yesterday() {
               </>
             )}
           </div>
-        </div>
-
-        {/* Note */}
-        <div style={{ marginTop: '16px' }}>
-          <input
-            style={{ ...styles.input, fontSize: '13px' }}
-            value={note}
-            onChange={e => setNote(e.target.value)}
-            placeholder="Note (optional) — what happened?"
-          />
         </div>
 
         {/* Log button */}

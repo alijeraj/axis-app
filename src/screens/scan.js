@@ -153,8 +153,7 @@ function ScoreSlider({ value, onChange }) {
   );
 }
 
-function QuestionnaireMode({ ismScores, esmScores, onIsmChange, onEsmChange, onComplete }) {
-  const [phase, setPhase] = useState('ism');
+function QuestionnaireMode({ phase, ismScores, esmScores, onIsmChange, onEsmChange, onComplete }) {
   const [ismDimIdx, setIsmDimIdx] = useState(0);
   const [ismQIdx, setIsmQIdx] = useState(0);
   const [esmDimIdx, setEsmDimIdx] = useState(0);
@@ -190,7 +189,7 @@ function QuestionnaireMode({ ismScores, esmScores, onIsmChange, onEsmChange, onC
     const handleNext = () => {
       if (!isLastQ) { setIsmQIdx(ismQIdx + 1); }
       else if (!isLastDim) { setIsmDimIdx(ismDimIdx + 1); setIsmQIdx(0); }
-      else { setPhase('esm'); }
+      else { onComplete(); }
     };
 
     return (
@@ -215,7 +214,7 @@ function QuestionnaireMode({ ismScores, esmScores, onIsmChange, onEsmChange, onC
           {ismDimIdx > 0 && ismQIdx === 0 && <button style={styles.secondaryBtn} onClick={() => { setIsmDimIdx(ismDimIdx - 1); setIsmQIdx(ISM_DIMS[ismDimIdx - 1].questions.length - 1); }}>Back</button>}
           <div style={{ flex: 1 }} />
           <button style={styles.primaryBtn} onClick={handleNext} disabled={currentAnswer === undefined}>
-            {isLastQ && isLastDim ? 'Continue to ESM →' : isLastQ ? 'Next Dimension →' : 'Next →'}
+            {isLastQ && isLastDim ? 'Complete ISM →' : isLastQ ? 'Next Dimension →' : 'Next →'}
           </button>
         </div>
       </div>
@@ -264,7 +263,7 @@ function QuestionnaireMode({ ismScores, esmScores, onIsmChange, onEsmChange, onC
         {esmDimIdx > 0 && esmQIdx === 0 && <button style={styles.secondaryBtn} onClick={() => { setEsmDimIdx(esmDimIdx - 1); setEsmQIdx(ESM_DIMS[esmDimIdx - 1].questions.length - 1); }}>Back</button>}
         <div style={{ flex: 1 }} />
         <button style={styles.primaryBtn} onClick={handleNext} disabled={currentAnswer === undefined}>
-          {isLastQ && isLastDim ? 'Complete →' : isLastQ ? 'Next Dimension →' : 'Next →'}
+          {isLastQ && isLastDim ? 'Complete ESM →' : isLastQ ? 'Next Dimension →' : 'Next →'}
         </button>
       </div>
     </div>
@@ -274,25 +273,32 @@ function QuestionnaireMode({ ismScores, esmScores, onIsmChange, onEsmChange, onC
 function Scan() {
   const navigate = useNavigate();
   const token = localStorage.getItem('axis_token');
+  const [map, setMap] = useState('ism');
   const [mode, setMode] = useState('custom');
   const [ism, setIsm] = useState({ attention: 0, location: 0, drive: 0, emotions: 0 });
   const [esm, setEsm] = useState({ fear: 0, guilt: 0, shame: 0, anger: 0, envy: 0, grief: 0 });
   const [saving, setSaving] = useState(false);
-  const [alreadyLogged, setAlreadyLogged] = useState(false);
-  const [justSaved, setJustSaved] = useState(false);
+  const [ismLogged, setIsmLogged] = useState(false);
+  const [esmLogged, setEsmLogged] = useState(false);
+  const [justSaved, setJustSaved] = useState('');
   const [error, setError] = useState('');
   const [qComplete, setQComplete] = useState(false);
 
   const ismScore = Math.round((Object.values(ism).reduce((a, b) => a + b, 0) / 4) + 5);
   const esmScore = Math.round((Object.values(esm).reduce((a, b) => a + b, 0) / 6) + 5);
-  const axisScore = Math.round((ismScore + esmScore) / 2);
+
+  const todayKey = () => new Date().toISOString().split('T')[0];
 
   useEffect(() => {
     const checkToday = async () => {
       try {
         const res = await axios.get(`${API}/api/entries`, { headers: { Authorization: `Bearer ${token}` } });
-        const today = new Date().toISOString().split('T')[0];
-        if (res.data && res.data[today]) setAlreadyLogged(true);
+        const today = todayKey();
+        const entry = res.data && res.data[today];
+        if (entry) {
+          if (entry.ismLogged) { setIsmLogged(true); if (entry.ism) setIsm(entry.ism); }
+          if (entry.esmLogged) { setEsmLogged(true); if (entry.esm) setEsm(entry.esm); }
+        }
       } catch (err) {
         console.log(err);
       }
@@ -300,17 +306,39 @@ function Scan() {
     checkToday();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleSave = async () => {
+  const logMap = async (which) => {
     setSaving(true);
     setError('');
     try {
-      const today = new Date().toISOString().split('T')[0];
-      await axios.post(`${API}/api/entries`, {
-        date: today,
-        data: { ism, esm, ismScore, esmScore, axisScore }
-      }, { headers: { Authorization: `Bearer ${token}` } });
-      setAlreadyLogged(true);
-      setJustSaved(true);
+      const today = todayKey();
+      // Read today's existing entry so we merge instead of overwrite
+      let existing = {};
+      try {
+        const res = await axios.get(`${API}/api/entries`, { headers: { Authorization: `Bearer ${token}` } });
+        if (res.data && res.data[today]) existing = res.data[today];
+      } catch (e) { /* ignore, treat as empty */ }
+
+      const merged = { ...existing };
+      if (which === 'ism') {
+        merged.ism = ism;
+        merged.ismScore = ismScore;
+        merged.ismLogged = true;
+      } else {
+        merged.esm = esm;
+        merged.esmScore = esmScore;
+        merged.esmLogged = true;
+      }
+      // AXIS score only exists when both halves are logged
+      if (merged.ismLogged && merged.esmLogged) {
+        merged.axisScore = Math.round((merged.ismScore + merged.esmScore) / 2);
+      } else {
+        merged.axisScore = null;
+      }
+
+      await axios.post(`${API}/api/entries`, { date: today, data: merged }, { headers: { Authorization: `Bearer ${token}` } });
+
+      if (which === 'ism') setIsmLogged(true); else setEsmLogged(true);
+      setJustSaved(which);
     } catch (err) {
       setError('Failed to save. Try again.');
     } finally {
@@ -318,11 +346,23 @@ function Scan() {
     }
   };
 
+  const isISM = map === 'ism';
+  
+
   return (
     <Page>
       <AppHeader title="Scan" />
 
       <PageBody width="content">
+        <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid rgba(142,196,224,0.15)', marginBottom: '24px' }}>
+          <button style={{ ...styles.tabBtn, ...(map === 'ism' ? styles.tabBtnActive : {}) }} onClick={() => { setMap('ism'); setQComplete(false); setJustSaved(''); }}>
+            ISM {ismLogged && <span style={{ color: '#4AAE88', marginLeft: '6px' }}>✓</span>}
+          </button>
+          <button style={{ ...styles.tabBtn, ...(map === 'esm' ? styles.tabBtnActive : {}) }} onClick={() => { setMap('esm'); setQComplete(false); setJustSaved(''); }}>
+            ESM {esmLogged && <span style={{ color: '#4AAE88', marginLeft: '6px' }}>✓</span>}
+          </button>
+        </div>
+
         <div style={styles.modeBar}>
           <button style={{ ...styles.modePill, ...(mode === 'custom' ? styles.modePillActive : {}) }} onClick={() => { setMode('custom'); setQComplete(false); }}>Custom</button>
           <button style={{ ...styles.modePill, ...(mode === 'questionnaire' ? styles.modePillActive : {}) }} onClick={() => { setMode('questionnaire'); setQComplete(false); }}>Questionnaire</button>
@@ -330,11 +370,12 @@ function Scan() {
 
         {mode === 'questionnaire' && !qComplete ? (
           <QuestionnaireMode
+            phase={map}
             ismScores={ism} esmScores={esm}
             onIsmChange={setIsm} onEsmChange={setEsm}
             onComplete={() => setQComplete(true)}
           />
-        ) : (
+        ) : isISM ? (
           <>
             <div style={styles.dimHeader}>
               <span style={styles.badge}>ISM</span>
@@ -353,7 +394,22 @@ function Scan() {
               ))}
             </div>
 
-            <div style={{ ...styles.dimHeader, marginTop: '48px' }}>
+            <div style={styles.logRow}>
+              <button style={styles.primaryBtn} onClick={() => logMap('ism')} disabled={saving}>
+                {saving ? 'Saving...' : ismLogged ? 'Re-Log ISM' : 'Log ISM'}
+              </button>
+              {ismLogged && (
+                <button style={styles.secondaryBtn} onClick={() => navigate('/results', { state: { origin: 'scan' } })}>
+                  View Results →
+                </button>
+              )}
+              {justSaved === 'ism' && <span style={styles.logSuccess}>✓ ISM logged</span>}
+              {error && <span style={styles.error}>{error}</span>}
+            </div>
+          </>
+        ) : (
+          <>
+            <div style={styles.dimHeader}>
               <span style={{ ...styles.badge, color: '#C49FDA', background: 'rgba(176,136,212,0.15)' }}>ESM</span>
               <span style={styles.dimTitle}>Emotional Spectrum Map</span>
               <span style={styles.dimSub}>Emotional Dimension</span>
@@ -381,18 +437,27 @@ function Scan() {
             </div>
 
             <div style={styles.logRow}>
-              <button style={styles.primaryBtn} onClick={handleSave} disabled={saving}>
-                {saving ? 'Saving...' : alreadyLogged ? "Re-Log Today's Entry" : "Log Today's Entry"}
+              <button style={styles.primaryBtn} onClick={() => logMap('esm')} disabled={saving}>
+                {saving ? 'Saving...' : esmLogged ? 'Re-Log ESM' : 'Log ESM'}
               </button>
-              {alreadyLogged && (
+              {esmLogged && (
                 <button style={styles.secondaryBtn} onClick={() => navigate('/results', { state: { origin: 'scan' } })}>
                   View Results →
                 </button>
               )}
-              {justSaved && <span style={styles.logSuccess}>✓ Entry logged</span>}
+              {justSaved === 'esm' && <span style={styles.logSuccess}>✓ ESM logged</span>}
               {error && <span style={styles.error}>{error}</span>}
             </div>
           </>
+        )}
+
+        {ismLogged && esmLogged && (
+          <div style={styles.bothNote}>Both maps logged today — your AXIS score is complete.</div>
+        )}
+        {(ismLogged !== esmLogged) && (
+          <div style={styles.partialNote}>
+            {ismLogged ? 'ESM not yet logged' : 'ISM not yet logged'} — AXIS score pending until both are logged.
+          </div>
         )}
       </PageBody>
     </Page>
@@ -405,6 +470,8 @@ const styles = {
   backBtn: { background: 'none', border: 'none', color: '#8BAFC8', fontSize: '12px', fontWeight: '600', letterSpacing: '1px', cursor: 'pointer', padding: 0 },
   screenTitle: { fontFamily: 'Georgia, serif', fontSize: '18px', fontWeight: '300', color: '#D8E6F0', letterSpacing: '2px' },
   body: { maxWidth: '960px', margin: '0 auto', padding: '40px 32px 80px', width: '100%' },
+  tabBtn: { background: 'none', border: 'none', borderBottom: '2px solid transparent', padding: '12px 24px', color: '#8BAFC8', fontSize: '11px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', cursor: 'pointer', marginBottom: '-1px' },
+  tabBtnActive: { color: '#D8E6F0', borderBottomColor: '#8EC4E0' },
   modeBar: { display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '40px', padding: '16px 20px', border: '1px solid rgba(107,163,200,0.2)', background: '#0f2236' },
   modePill: { fontFamily: '-apple-system, sans-serif', fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', padding: '8px 20px', border: '1px solid rgba(107,163,200,0.3)', background: 'none', color: '#8BAFC8', cursor: 'pointer', borderRadius: '2px' },
   modePillActive: { borderColor: '#8EC4E0', background: 'rgba(142,196,224,0.12)', color: '#D8E6F0' },
@@ -426,6 +493,8 @@ const styles = {
   secondaryBtn: { background: 'none', border: '1px solid rgba(142,196,224,0.3)', borderRadius: '3px', padding: '14px 24px', color: '#8EC4E0', fontSize: '11px', fontWeight: '600', letterSpacing: '2px', cursor: 'pointer' },
   logSuccess: { fontSize: '12px', color: '#4AAE88', letterSpacing: '2px' },
   error: { color: '#C87878', fontSize: '12px' },
+  bothNote: { marginTop: '24px', fontSize: '12px', color: '#4AAE88', letterSpacing: '1px', textAlign: 'center' },
+  partialNote: { marginTop: '24px', fontSize: '12px', color: '#8BAFC8', fontStyle: 'italic', letterSpacing: '1px', textAlign: 'center' },
   qWrap: { background: '#162534', border: '1px solid rgba(142,196,224,0.2)', borderRadius: '3px', padding: '40px', maxWidth: '600px' },
   qProgress: { fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8', marginBottom: '20px' },
   qDimHeader: { display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid rgba(142,196,224,0.2)' },
