@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { Page, AppHeader, PageBody } from '../components/Layout';
 
 const API = 'https://axis-backend-production-5e9b.up.railway.app';
 
@@ -1347,12 +1348,9 @@ function People() {
     const eligibleParents = otherPeople.filter(p => !form.parents.includes(p.name));
     const eligiblePast = otherPeople.filter(p => !form.pastPartners.includes(p.name) && form.currentPartner !== p.name);
     return (
-      <div style={styles.container}>
-        <div style={styles.header}>
-          <button style={styles.backBtn} onClick={() => setShowForm(false)}>← Cancel</button>
-          <span style={styles.screenTitle}>{editIdx !== null ? 'Edit Person' : 'Add Person'}</span>
-        </div>
-        <div style={styles.body}>
+      <Page>
+        <AppHeader backLabel="← Cancel" onBack={() => setShowForm(false)} title={editIdx !== null ? 'Edit Person' : 'Add Person'} />
+        <PageBody width="reading">
           <div style={styles.card}>
             <div style={styles.formGroup}>
               <label style={styles.label}>Name</label>
@@ -1500,8 +1498,8 @@ function People() {
               <button style={styles.btn} onClick={savePerson} disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
             </div>
           </div>
-        </div>
-      </div>
+        </PageBody>
+      </Page>
     );
   }
 
@@ -1542,7 +1540,7 @@ function People() {
   const groupOrder = ['family', 'romantic', 'friendships', 'unassigned'];
 
   return (
-    <div style={{ ...styles.container, ...(view === 'map' ? { height: '100vh' } : {}) }}>
+    <Page>
       {showPatternMgmt && (
         <PatternManagementModal
           categories={patternCategories}
@@ -1571,18 +1569,19 @@ function People() {
         />
       )}
 
-      <div style={styles.header}>
-        <button style={styles.backBtn} onClick={() => navigate('/')}>← Home</button>
-        <div style={{ display: 'flex', gap: 0, flex: 1, justifyContent: 'center' }}>
-          {[{ id: 'directory', label: 'Directory' }, { id: 'map', label: 'Map' }].map(t => (
-            <button key={t.id} style={{ ...styles.tabBtn, ...(view === t.id ? styles.tabBtnActive : {}) }} onClick={() => setView(t.id)}>{t.label}</button>
-          ))}
-        </div>
-        <button style={styles.btn} onClick={() => openForm()}>+ Add Person</button>
+      <AppHeader
+        title="Relational Map"
+        right={<button style={styles.btn} onClick={() => openForm()}>+ Add Person</button>}
+      />
+
+      <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid rgba(142,196,224,0.15)', padding: '0 32px', flexShrink: 0 }}>
+        {[{ id: 'directory', label: 'Directory' }, { id: 'map', label: 'Map' }].map(t => (
+          <button key={t.id} style={{ ...styles.tabBtn, ...(view === t.id ? styles.tabBtnActive : {}) }} onClick={() => setView(t.id)}>{t.label}</button>
+        ))}
       </div>
 
       {view === 'directory' && (
-        <div style={styles.body}>
+        <PageBody width="content">
           {people.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '80px 40px', color: '#8BAFC8' }}>
               <div style={{ fontSize: '13px', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '12px' }}>No people yet</div>
@@ -1640,11 +1639,11 @@ function People() {
               })}
             </>
           )}
-        </div>
+        </PageBody>
       )}
 
       {view === 'map' && (
-        <>
+        <PageBody width="full">
           <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid rgba(142,196,224,0.15)', padding: '0 32px', flexShrink: 0 }}>
             {MAP_VIEWS.filter(m => m.id !== 'none').map(m => (
               <button key={m.id} style={{ ...styles.subTabBtn, ...(mapView === m.id ? styles.subTabBtnActive : {}) }} onClick={() => setMapView(m.id)}>{m.label}</button>
@@ -1688,9 +1687,9 @@ function People() {
             onPersonClick={(p) => setDetailPerson(p)}
             onSavePositions={savePositions}
           />
-        </>
+        </PageBody>
       )}
-    </div>
+    </Page>
   );
 }
 

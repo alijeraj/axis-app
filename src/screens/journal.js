@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import axios from 'axios';
 import { Page, AppHeader, PageBody } from '../components/Layout';
 
@@ -81,7 +81,7 @@ function ComplexViewModal({ complex, onClose }) {
 }
 
 function Journal() {
-  const navigate = useNavigate();
+  
   const token = localStorage.getItem('axis_token');
   const [tab, setTab] = useState('dreams');
   const [dreams, setDreams] = useState([]);
@@ -367,7 +367,7 @@ function Journal() {
   const viewDream = viewDreamIdx !== null ? dreams[viewDreamIdx] : null;
 
   return (
-    <div style={styles.container}>
+    <Page>
 
       {viewComplex && (
         <ComplexViewModal complex={viewComplex} onClose={() => setViewComplex(null)} />
@@ -457,15 +457,16 @@ function Journal() {
         </div>
       )}
 
-      <div style={styles.header}>
-        <button style={styles.backBtn} onClick={() => navigate('/')}>← Home</button>
-        <span style={styles.screenTitle}>Journal</span>
-        <button style={styles.btn} onClick={() => tab === 'dreams' ? openDreamForm() : openFreeForm()}>
-          {tab === 'dreams' ? '+ Record Dream' : '+ New Entry'}
-        </button>
-      </div>
+      <AppHeader
+        title="Journal"
+        right={
+          <button style={styles.btn} onClick={() => tab === 'dreams' ? openDreamForm() : openFreeForm()}>
+            {tab === 'dreams' ? '+ Record Dream' : '+ New Entry'}
+          </button>
+        }
+      />
 
-      <div style={styles.body}>
+      <PageBody width="content">
         <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid rgba(142,196,224,0.15)', marginBottom: '32px' }}>
           <button style={{ ...styles.tabBtn, ...(tab === 'dreams' ? styles.tabBtnActive : {}) }} onClick={() => setTab('dreams')}>Dream Journal</button>
           <button style={{ ...styles.tabBtn, ...(tab === 'free' ? styles.tabBtnActive : {}) }} onClick={() => setTab('free')}>Free Journal</button>
@@ -629,8 +630,8 @@ function Journal() {
             </div>
           )
         )}
-      </div>
-    </div>
+      </PageBody>
+    </Page>
   );
 }
 
