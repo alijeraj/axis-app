@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { Page, AppHeader, PageBody } from '../components/Layout';
 
 const API = 'https://axis-backend-production-5e9b.up.railway.app';
 
@@ -14,6 +15,7 @@ function Progress() {
     const v = params.get('view');
     return ['7d', '4w', '12m'].includes(v) ? v : '7d';
   })();
+  const [tab, setTab] = useState('scan');
   const [entries, setEntries] = useState({});
   const [cbmLog, setCbmLog] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -252,7 +254,7 @@ function Progress() {
   const renderCBMChart = () => {
     if (!cbmLog.length) return (
       <div style={{ textAlign: 'center', padding: '60px', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8' }}>
-        No resistance logs yet. Use Set Resistance on the Compulsive Behavior Map.
+        No resistance logs yet. Use Log Yesterday on the Compulsive Behavior Map.
       </div>
     );
 
@@ -311,151 +313,157 @@ function Progress() {
   if (loading) return <div style={{ color: '#8BAFC8', padding: '48px', textAlign: 'center' }}>Loading...</div>;
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <button style={styles.backBtn} onClick={() => navigate('/')}>← Home</button>
-        <span style={styles.screenTitle}>Progress</span>
-      </div>
+    <Page>
+      <AppHeader title="Progress" />
 
-      <div style={styles.body}>
+      <PageBody width="content">
 
-        {n === 0 && !streak ? (
-          <div style={styles.emptyBlock}>No entries yet. Complete your first scan to see progress.</div>
+        <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid rgba(142,196,224,0.15)', marginBottom: '24px' }}>
+          <button style={{ ...styles.tabBtn, ...(tab === 'scan' ? styles.tabBtnActive : {}) }} onClick={() => setTab('scan')}>Scan</button>
+          <button style={{ ...styles.tabBtn, ...(tab === 'behavior' ? styles.tabBtnActive : {}) }} onClick={() => setTab('behavior')}>Behavior</button>
+        </div>
+
+        {tab === 'scan' ? (
+          <>
+            {n === 0 && !streak ? (
+              <div style={styles.emptyBlock}>No entries yet. Complete your first scan to see progress.</div>
+            ) : (
+              <div style={styles.dashBlock}>
+                <div style={styles.dashRow1}>
+                  <div>
+                    <div style={styles.osLabel}>Operating System</div>
+                    <div style={{ fontFamily: 'Georgia, serif', fontSize: '32px', fontWeight: '300', color: osColor }}>{osTendency}</div>
+                    <div style={{ fontSize: '11px', color: '#8BAFC8', marginTop: '6px' }}>{label} tendency</div>
+                  </div>
+                  <div style={{ ...styles.scoreCol, borderLeft: '3px solid #8EC4E0' }}>
+                    <div style={{ ...styles.scoreColLabel, color: '#8EC4E0' }}>ISM</div>
+                    <div style={{ ...styles.scoreColNum, color: '#8EC4E0' }}>{avgISM !== null ? avgISM + '%' : '--'}</div>
+                    <div style={styles.scoreColSub}>avg</div>
+                  </div>
+                  <div style={{ ...styles.scoreCol, borderLeft: '3px solid #C49FDA' }}>
+                    <div style={{ ...styles.scoreColLabel, color: '#C49FDA' }}>ESM</div>
+                    <div style={{ ...styles.scoreColNum, color: '#C49FDA' }}>{avgESM !== null ? avgESM + '%' : '--'}</div>
+                    <div style={styles.scoreColSub}>avg</div>
+                  </div>
+                  <div style={{ ...styles.scoreCol, borderLeft: '3px solid #4EC9A0' }}>
+                    <div style={{ ...styles.scoreColLabel, color: '#4EC9A0' }}>AXIS</div>
+                    <div style={{ ...styles.scoreColNum, color: '#4EC9A0' }}>{avgAXIS !== null ? avgAXIS + '%' : '--'}</div>
+                    <div style={styles.scoreColSub}>avg</div>
+                  </div>
+                </div>
+                <div style={styles.dashRow2}>
+                  <div>
+                    <div style={styles.statLabel}>Period</div>
+                    <div style={{ fontFamily: 'Georgia, serif', fontSize: '24px', fontWeight: '300', color: '#D8E6F0' }}>{label}</div>
+                    <div style={{ marginTop: '8px' }}>
+                      <span style={styles.entryBadge}>{n === 1 ? '1 entry' : n + ' entries'}</span>
+                    </div>
+                  </div>
+                  {streak > 0 && (
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={styles.statLabel}>Streak</div>
+                      <div style={{ fontFamily: 'Georgia, serif', fontSize: '42px', fontWeight: '300', color: '#8EC4E0', lineHeight: 1 }}>{streak}</div>
+                      <div style={{ fontSize: '11px', color: '#8BAFC8', marginTop: '6px' }}>{streak === 1 ? 'consecutive day' : 'consecutive days'}</div>
+                    </div>
+                  )}
+                  {bestKey && (
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={styles.statLabel}>Personal Best</div>
+                      <div style={{ fontFamily: 'Georgia, serif', fontSize: '42px', fontWeight: '300', color: '#4AAE88', lineHeight: 1 }}>{bestScore}%</div>
+                      <div style={{ fontSize: '11px', color: '#8BAFC8', marginTop: '6px' }}>{bestDate}</div>
+                    </div>
+                  )}
+                  {hasTodayEntry && (
+                    <button style={styles.viewResultsBtn} onClick={() => navigate('/results', { state: { origin: 'progress' } })}>
+                      View Today Results
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div style={styles.trackLayout}>
+              <div>
+                <div style={styles.graphTop}>
+                  <div style={styles.legend}>
+                    <div style={styles.legendItem}><div style={{ ...styles.legendDot, background: '#8EC4E0' }} /><span>ISM</span></div>
+                    <div style={styles.legendItem}><div style={{ ...styles.legendDot, background: '#C49FDA' }} /><span>ESM</span></div>
+                    <div style={styles.legendItem}><div style={{ ...styles.legendDot, background: '#4EC9A0' }} /><span>AXIS</span></div>
+                  </div>
+                  <div style={styles.viewTabs}>
+                    {['7d', '4w', '12m'].map(v => (
+                      <button key={v} style={{ ...styles.viewTab, ...(view === v ? styles.viewTabActive : {}) }} onClick={() => setView(v)}>
+                        {v === '7d' ? '7D' : v === '4w' ? '4W' : '12M'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ position: 'relative', width: '100%' }}>{renderISMChart()}</div>
+              </div>
+
+              <div>
+                <div style={styles.calHeader}>
+                  <div style={styles.calMonth}>{monthName}</div>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    <button style={styles.calBtn} onClick={() => { let m = calMonth - 1; let y = calYear; if (m < 0) { m = 11; y--; } setCalMonth(m); setCalYear(y); setSelectedEntry(null); }}>‹</button>
+                    <button style={styles.calBtn} onClick={() => { let m = calMonth + 1; let y = calYear; if (m > 11) { m = 0; y++; } setCalMonth(m); setCalYear(y); setSelectedEntry(null); }}>›</button>
+                  </div>
+                </div>
+                <div style={styles.calGrid}>
+                  {dayLabels.map(d => <div key={d} style={styles.calDayLabel}>{d}</div>)}
+                  {Array(firstDay).fill(null).map((_, i) => <div key={`e${i}`} />)}
+                  {Array(daysInMonth).fill(null).map((_, i) => {
+                    const day = i + 1;
+                    const key = calYear + '-' + String(calMonth + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+                    const isToday = calYear === today.getFullYear() && calMonth === today.getMonth() && day === today.getDate();
+                    const hasEntry = !!entries[key];
+                    return (
+                      <div key={day} style={{ ...styles.calDay, ...(isToday && !hasEntry ? styles.calDayToday : {}), ...(hasEntry ? styles.calDayHasEntry : {}), ...(hasEntry && isToday ? styles.calDayTodayEntry : {}) }} onClick={() => hasEntry && handleCalDay(day)}>
+                        {day}
+                      </div>
+                    );
+                  })}
+                </div>
+                {selectedEntry && (
+                  <div style={styles.entryDetail}>
+                    <div style={styles.entryDetailDate}>{selectedDateStr}</div>
+                    <div style={styles.entryDetailScores}>
+                      <div style={styles.entryDetailScore}><div style={styles.entryDetailLabel}>ISM</div><div style={{ ...styles.entryDetailValue, color: '#8EC4E0' }}>{selectedEntry.ismPct}%</div></div>
+                      <div style={styles.entryDetailScore}><div style={styles.entryDetailLabel}>ESM</div><div style={{ ...styles.entryDetailValue, color: '#C49FDA' }}>{selectedEntry.esmPct}%</div></div>
+                      <div style={styles.entryDetailScore}><div style={styles.entryDetailLabel}>AXIS</div><div style={{ ...styles.entryDetailValue, color: '#4EC9A0' }}>{selectedEntry.totalPct}%</div></div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
         ) : (
-          <div style={styles.dashBlock}>
-            <div style={styles.dashRow1}>
-              <div>
-                <div style={styles.osLabel}>Operating System</div>
-                <div style={{ fontFamily: 'Georgia, serif', fontSize: '32px', fontWeight: '300', color: osColor }}>{osTendency}</div>
-                <div style={{ fontSize: '11px', color: '#8BAFC8', marginTop: '6px' }}>{label} tendency</div>
-              </div>
-              <div style={{ ...styles.scoreCol, borderLeft: '3px solid #8EC4E0' }}>
-                <div style={{ ...styles.scoreColLabel, color: '#8EC4E0' }}>ISM</div>
-                <div style={{ ...styles.scoreColNum, color: '#8EC4E0' }}>{avgISM !== null ? avgISM + '%' : '--'}</div>
-                <div style={styles.scoreColSub}>avg</div>
-              </div>
-              <div style={{ ...styles.scoreCol, borderLeft: '3px solid #C49FDA' }}>
-                <div style={{ ...styles.scoreColLabel, color: '#C49FDA' }}>ESM</div>
-                <div style={{ ...styles.scoreColNum, color: '#C49FDA' }}>{avgESM !== null ? avgESM + '%' : '--'}</div>
-                <div style={styles.scoreColSub}>avg</div>
-              </div>
-              <div style={{ ...styles.scoreCol, borderLeft: '3px solid #4EC9A0' }}>
-                <div style={{ ...styles.scoreColLabel, color: '#4EC9A0' }}>AXIS</div>
-                <div style={{ ...styles.scoreColNum, color: '#4EC9A0' }}>{avgAXIS !== null ? avgAXIS + '%' : '--'}</div>
-                <div style={styles.scoreColSub}>avg</div>
-              </div>
-            </div>
-            <div style={styles.dashRow2}>
-              <div>
-                <div style={styles.statLabel}>Period</div>
-                <div style={{ fontFamily: 'Georgia, serif', fontSize: '24px', fontWeight: '300', color: '#D8E6F0' }}>{label}</div>
-                <div style={{ marginTop: '8px' }}>
-                  <span style={styles.entryBadge}>{n === 1 ? '1 entry' : n + ' entries'}</span>
-                </div>
-              </div>
-              {streak > 0 && (
-                <div style={{ textAlign: 'center' }}>
-                  <div style={styles.statLabel}>Streak</div>
-                  <div style={{ fontFamily: 'Georgia, serif', fontSize: '42px', fontWeight: '300', color: '#8EC4E0', lineHeight: 1 }}>{streak}</div>
-                  <div style={{ fontSize: '11px', color: '#8BAFC8', marginTop: '6px' }}>{streak === 1 ? 'consecutive day' : 'consecutive days'}</div>
-                </div>
-              )}
-              {bestKey && (
-                <div style={{ textAlign: 'center' }}>
-                  <div style={styles.statLabel}>Personal Best</div>
-                  <div style={{ fontFamily: 'Georgia, serif', fontSize: '42px', fontWeight: '300', color: '#4AAE88', lineHeight: 1 }}>{bestScore}%</div>
-                  <div style={{ fontSize: '11px', color: '#8BAFC8', marginTop: '6px' }}>{bestDate}</div>
-                </div>
-              )}
-              {hasTodayEntry && (
-                <button style={styles.viewResultsBtn} onClick={() => navigate('/results', { state: { origin: 'progress' } })}>
-                  View Today Results
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-
-        <div style={styles.trackLayout}>
           <div>
-            <div style={styles.graphTop}>
-              <div style={styles.legend}>
-                <div style={styles.legendItem}><div style={{ ...styles.legendDot, background: '#8EC4E0' }} /><span>ISM</span></div>
-                <div style={styles.legendItem}><div style={{ ...styles.legendDot, background: '#C49FDA' }} /><span>ESM</span></div>
-                <div style={styles.legendItem}><div style={{ ...styles.legendDot, background: '#4EC9A0' }} /><span>AXIS</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{ fontSize: '11px', fontWeight: '600', letterSpacing: '4px', textTransform: 'uppercase', color: '#8BAFC8' }}>Compulsive Behavior Log</div>
+                {cbmResistance !== null && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ width: '8px', height: '8px', background: 'rgba(255,200,80,0.85)', borderRadius: '50%' }} />
+                    <span style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(255,200,80,0.9)' }}>Resistance: {cbmResistance.toFixed(1)} ({CBM_LEVEL_NAMES[Math.min(Math.round(cbmResistance), 5)]})</span>
+                    <span style={{ fontSize: '10px', color: '#8BAFC8', marginLeft: '4px' }}>rolling avg</span>
+                  </div>
+                )}
               </div>
               <div style={styles.viewTabs}>
                 {['7d', '4w', '12m'].map(v => (
-                  <button key={v} style={{ ...styles.viewTab, ...(view === v ? styles.viewTabActive : {}) }} onClick={() => setView(v)}>
+                  <button key={v} style={{ ...styles.viewTab, ...(cbmView === v ? styles.viewTabActive : {}) }} onClick={() => setCbmView(v)}>
                     {v === '7d' ? '7D' : v === '4w' ? '4W' : '12M'}
                   </button>
                 ))}
               </div>
             </div>
-            <div style={{ position: 'relative', width: '100%' }}>{renderISMChart()}</div>
+            <div style={{ position: 'relative', width: '100%' }}>{renderCBMChart()}</div>
           </div>
+        )}
 
-          <div>
-            <div style={styles.calHeader}>
-              <div style={styles.calMonth}>{monthName}</div>
-              <div style={{ display: 'flex', gap: '4px' }}>
-                <button style={styles.calBtn} onClick={() => { let m = calMonth - 1; let y = calYear; if (m < 0) { m = 11; y--; } setCalMonth(m); setCalYear(y); setSelectedEntry(null); }}>‹</button>
-                <button style={styles.calBtn} onClick={() => { let m = calMonth + 1; let y = calYear; if (m > 11) { m = 0; y++; } setCalMonth(m); setCalYear(y); setSelectedEntry(null); }}>›</button>
-              </div>
-            </div>
-            <div style={styles.calGrid}>
-              {dayLabels.map(d => <div key={d} style={styles.calDayLabel}>{d}</div>)}
-              {Array(firstDay).fill(null).map((_, i) => <div key={`e${i}`} />)}
-              {Array(daysInMonth).fill(null).map((_, i) => {
-                const day = i + 1;
-                const key = calYear + '-' + String(calMonth + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
-                const isToday = calYear === today.getFullYear() && calMonth === today.getMonth() && day === today.getDate();
-                const hasEntry = !!entries[key];
-                return (
-                  <div key={day} style={{ ...styles.calDay, ...(isToday && !hasEntry ? styles.calDayToday : {}), ...(hasEntry ? styles.calDayHasEntry : {}), ...(hasEntry && isToday ? styles.calDayTodayEntry : {}) }} onClick={() => hasEntry && handleCalDay(day)}>
-                    {day}
-                  </div>
-                );
-              })}
-            </div>
-            {selectedEntry && (
-              <div style={styles.entryDetail}>
-                <div style={styles.entryDetailDate}>{selectedDateStr}</div>
-                <div style={styles.entryDetailScores}>
-                  <div style={styles.entryDetailScore}><div style={styles.entryDetailLabel}>ISM</div><div style={{ ...styles.entryDetailValue, color: '#8EC4E0' }}>{selectedEntry.ismPct}%</div></div>
-                  <div style={styles.entryDetailScore}><div style={styles.entryDetailLabel}>ESM</div><div style={{ ...styles.entryDetailValue, color: '#C49FDA' }}>{selectedEntry.esmPct}%</div></div>
-                  <div style={styles.entryDetailScore}><div style={styles.entryDetailLabel}>AXIS</div><div style={{ ...styles.entryDetailValue, color: '#4EC9A0' }}>{selectedEntry.totalPct}%</div></div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div style={{ marginTop: '48px', paddingTop: '36px', borderTop: '1px solid rgba(142,196,224,0.12)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <div style={{ fontSize: '11px', fontWeight: '600', letterSpacing: '4px', textTransform: 'uppercase', color: '#8BAFC8' }}>Compulsive Behavior Log</div>
-              {cbmResistance !== null && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <div style={{ width: '8px', height: '8px', background: 'rgba(255,200,80,0.85)', borderRadius: '50%' }} />
-                  <span style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(255,200,80,0.9)' }}>Resistance: {cbmResistance.toFixed(1)} ({CBM_LEVEL_NAMES[Math.min(Math.round(cbmResistance), 5)]})</span>
-                  <span style={{ fontSize: '10px', color: '#8BAFC8', marginLeft: '4px' }}>rolling avg</span>
-                </div>
-              )}
-            </div>
-            <div style={styles.viewTabs}>
-              {['7d', '4w', '12m'].map(v => (
-                <button key={v} style={{ ...styles.viewTab, ...(cbmView === v ? styles.viewTabActive : {}) }} onClick={() => setCbmView(v)}>
-                  {v === '7d' ? '7D' : v === '4w' ? '4W' : '12M'}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div style={{ position: 'relative', width: '100%' }}>{renderCBMChart()}</div>
-        </div>
-
-      </div>
-    </div>
+      </PageBody>
+    </Page>
   );
 }
 
@@ -465,6 +473,8 @@ const styles = {
   backBtn: { background: 'none', border: 'none', color: '#8BAFC8', fontSize: '12px', fontWeight: '600', letterSpacing: '1px', cursor: 'pointer', padding: 0 },
   screenTitle: { fontFamily: 'Georgia, serif', fontSize: '18px', fontWeight: '300', color: '#D8E6F0', letterSpacing: '2px' },
   body: { maxWidth: '1100px', margin: '0 auto', padding: '40px 32px 80px', width: '100%' },
+  tabBtn: { background: 'none', border: 'none', borderBottom: '2px solid transparent', padding: '12px 24px', color: '#8BAFC8', fontSize: '11px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', cursor: 'pointer', marginBottom: '-1px' },
+  tabBtnActive: { color: '#D8E6F0', borderBottomColor: '#8EC4E0' },
   emptyBlock: { border: '1px solid rgba(142,196,224,0.2)', borderRadius: '3px', background: '#162534', padding: '40px', marginBottom: '32px', textAlign: 'center', fontSize: '13px', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8' },
   dashBlock: { border: '1px solid rgba(142,196,224,0.6)', borderRadius: '3px', background: '#162534', padding: '36px 48px', marginBottom: '32px', boxShadow: '0 0 24px rgba(142,196,224,0.15), 0 0 48px rgba(142,196,224,0.08), inset 0 1px 0 rgba(142,196,224,0.2)' },
   dashRow1: { display: 'grid', gridTemplateColumns: '1fr auto auto auto', alignItems: 'center', gap: '40px', paddingBottom: '28px', borderBottom: '1px solid rgba(142,196,224,0.15)' },
