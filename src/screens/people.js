@@ -1049,7 +1049,7 @@ function MapCanvas({ people, mapView, selfPerson, patternCategories, patterns, a
                   {p.isSelf && <span style={{ color: '#C8A840', fontSize: '11px', flexShrink: 0 }}>◉</span>}
                   {isCurrentRomantic && <span style={{ color: '#C8A840', fontSize: '9px', flexShrink: 0, letterSpacing: '1px' }}>NOW</span>}
                 </div>
-                {p.pattern && <div style={{ fontSize: '9px', color: '#A0C4D8', fontStyle: 'italic', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '2px' }}>{p.pattern}</div>}
+                {activeCategoryId && activePattern && <div style={{ fontSize: '9px', color: textColor, fontStyle: 'italic', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '2px' }}>{activePattern.name}</div>}
               </div>
             );
 

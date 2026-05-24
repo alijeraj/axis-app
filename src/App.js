@@ -14,6 +14,7 @@ import Journal from './screens/journal';
 import Tutorial from './screens/tutorial';
 import Yesterday from './screens/yesterday';
 import People from './screens/people';
+import Patterns from './screens/patterns';
 import Billing from './screens/billing';
 import AccessGate from './components/AccessGate';
 
@@ -121,6 +122,7 @@ function App() {
         <Route path="/tutorial" element={<Protected token={token}><Tutorial /></Protected>} />
         <Route path="/yesterday" element={<Protected token={token}><Yesterday /></Protected>} />
         <Route path="/people" element={<Protected token={token}><People /></Protected>} />
+        <Route path="/patterns" element={<Protected token={token}><Patterns /></Protected>} />
         <Route path="/billing" element={token ? <Billing /> : <Navigate to="/login" />} />
         <Route path="/billing/success" element={token ? <Billing /> : <Navigate to="/login" />} />
         <Route path="/billing/cancel" element={token ? <Billing /> : <Navigate to="/login" />} />
