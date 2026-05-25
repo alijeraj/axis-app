@@ -1464,7 +1464,7 @@ function People() {
               </>
             )}
 
-            {(form.mapView === 'family' || form.isSelf) && (
+            {form.isSelf && (
               <div style={styles.formGroup}>
                 <label style={styles.label}>Past Partners <span style={{ color: '#8BAFC8', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>— optional</span></label>
                 <select style={styles.input} value="" onChange={e => { if (e.target.value) setForm({ ...form, pastPartners: [...form.pastPartners, e.target.value] }); }}>

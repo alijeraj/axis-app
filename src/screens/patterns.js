@@ -14,21 +14,86 @@ const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2
 
 const PRESETS = [
   {
-    key: 'attachment',
-    name: 'Attachment Theory',
-    blurb: 'How you bond, seek closeness, and respond to distance in relationships.',
+    key: 'familyroles',
+    name: 'Family Systems — Childhood Roles',
+    blurb: 'Backbone: Wegscheider-Cruse · Golden Child from the narcissistic-family model (Pressman & Pressman) · Parentified Child from Minuchin (structural family therapy).',
     items: [
-      { name: 'Secure', color: '#7DB860', description: 'Comfortable with intimacy and autonomy; trusts others and is able to depend and be depended on.' },
-      { name: 'Anxious', color: '#E8B84A', description: 'Craves closeness, fears abandonment, and is sensitive to a partner\u2019s availability.' },
-      { name: 'Avoidant', color: '#7DA8E0', description: 'Values independence highly, tends to suppress emotional needs and keep distance.' },
-      { name: 'Disorganized', color: '#E87878', description: 'Wants closeness yet fears it; behavior toward intimacy can feel contradictory.' },
+      {
+        name: 'Hero', color: '#E8B84A',
+        details: [
+          { label: 'Origin / How the Role Forms', value: 'Usually the eldest/capable child; steps up to provide the family a source of pride and competence the dysfunction can\'t supply. Earned, not granted, elevation through achievement and over-responsibility.' },
+          { label: 'Childhood Behavior', value: 'Over-achieves; takes on adult responsibilities early; self-disciplined, reliable, the \'good kid\' who makes the family look functional.' },
+          { label: 'Function in the Family', value: 'Restores the family\'s self-image and worth; gives the system something to point to as proof it\'s okay.' },
+          { label: 'Emotional Cost', value: 'Self-worth fused to performance; can\'t rest or fail; buries own needs under duty; chronic pressure and fear of inadequacy.' },
+          { label: 'Adult Trajectory', value: 'Driven, controlling, can\'t delegate; workaholism and burnout; may slide into the Enabler role (the over-functioning rescuer) in adult relationships.' },
+        ],
+      },
+      {
+        name: 'Golden Child', color: '#E89048',
+        details: [
+          { label: 'Origin / How the Role Forms', value: 'Anointed by a parent (often a narcissistic one) as a chosen extension of themselves, regardless of achievement. Proximity and favor, not merit, install the role (can fall to a relative, not only a sibling).' },
+          { label: 'Childhood Behavior', value: 'Favored and idealized; shielded from blame; mirrors the parent\'s image; rewarded for reflecting the parent, not for being a self.' },
+          { label: 'Function in the Family', value: 'Serves the parent\'s ego as living proof of their specialness; the family\'s designated \'success\' through whom a parent feeds.' },
+          { label: 'Emotional Cost', value: 'No authentic self allowed, only the projected one; conditional love tied to compliance; fragile identity beneath the privilege.' },
+          { label: 'Adult Trajectory', value: 'May develop narcissistic traits (the anointed self becomes the only self), or collapse into emptiness/anxiety when the supply of approval ends; difficulty knowing who they actually are.' },
+        ],
+      },
+      {
+        name: 'Scapegoat', color: '#7DA8E0',
+        details: [
+          { label: 'Origin / How the Role Forms', value: 'Cast as the family\'s problem-carrier; absorbs blame meant for the truly dysfunctional member. Often the most perceptive/honest child, punished for seeing and naming the truth.' },
+          { label: 'Childhood Behavior', value: 'Acts out, rebels, or is simply labeled \'the difficult one\'; frequently criticized and blamed; the family\'s designated troublemaker and truth-teller.' },
+          { label: 'Function in the Family', value: 'Diverts attention from the real issue; gives the system somewhere to project its failures so it never has to look at itself.' },
+          { label: 'Emotional Cost', value: 'Internalized worthlessness; isolation and feeling misunderstood; deep resentment; carries families deep emotional burdens.' },
+          { label: 'Adult Trajectory', value: 'Struggles with authority; self-destructive patterns or, conversely, becomes the one who breaks the cycle and sees clearly; anger and resentment to resolve.' },
+        ],
+      },
+      {
+        name: 'Lost Child', color: '#9AA0A6',
+        details: [
+          { label: 'Origin / How the Role Forms', value: 'Survives a chaotic system by becoming invisible; withdraws to avoid adding to the family\'s burden or drawing fire.' },
+          { label: 'Childhood Behavior', value: 'Quiet, solitary, undemanding; disappears into books/fantasy/solo activity; asks for nothing, causes no trouble, goes unnoticed.' },
+          { label: 'Function in the Family', value: 'Provides relief,one less child to worry about; reduces the load by needing nothing.' },
+          { label: 'Emotional Cost', value: 'Loneliness, invisibility, and a buried sense of inadequacy; needs and identity go unexpressed and underdeveloped.' },
+          { label: 'Adult Trajectory', value: 'Avoidant, super-independent, hard to know; difficulty with intimacy and asserting needs; may struggle to feel they matter or take up space.' },
+        ],
+      },
+      {
+        name: 'Mascot', color: '#5DB8A6',
+        details: [
+          { label: 'Origin / How the Role Forms', value: 'Becomes the family\'s comic relief; uses humor and charm to break tension and survive the emotional climate.' },
+          { label: 'Childhood Behavior', value: 'Funny, cute, hyperactive, performative; deflects conflict with jokes; often kept unaware of the family\'s real problems.' },
+          { label: 'Function in the Family', value: 'Diffuses tension and lightens the atmosphere; gives the system relief from its anxiety.' },
+          { label: 'Emotional Cost', value: 'Fear, insecurity, and loneliness hidden under the performance; rarely taken seriously; emotions go unfelt because the job is to entertain.' },
+          { label: 'Adult Trajectory', value: 'Uses humor to avoid depth; difficulty being taken seriously or sitting with hard emotions; anxiety beneath the charm.' },
+        ],
+      },
+      {
+        name: 'Enabler', color: '#D88AB0',
+        details: [
+          { label: 'Origin / How the Role Forms', value: 'Typically the co-parent/spouse (an adult role) who manages the dysfunction by smoothing it over and protecting the dysfunctional member from consequences.' },
+          { label: 'Childhood Behavior', value: '(Primarily an adult/co-parent role rather than a child role.) When a child carries it, they prematurely caretake and cover for a parent.' },
+          { label: 'Function in the Family', value: 'Reduces tension and offers a surface sense of stability; holds the family together, while unintentionally sustaining the dysfunction.' },
+          { label: 'Emotional Cost', value: 'Self-erasure; chronic over-responsibility for others\' behavior; own needs perpetually deferred; complicity guilt.' },
+          { label: 'Adult Trajectory', value: 'Codependency; surrounds self with people who need rescuing; over-functions in relationships; smoothing conflict feels like survival.' },
+        ],
+      },
+      {
+        name: 'Parentified Child', color: '#A07AC4',
+        details: [
+          { label: 'Origin / How the Role Forms', value: 'A vacancy in the parental subsystem, a parent who leaves, dies, or is incapacitated, pulls a child upward into the missing adult\'s role. Instrumental (tasks) and/or emotional/spousal (surrogate partner); the emotional form usually carries the instrumental with it.' },
+          { label: 'Childhood Behavior', value: 'Raises siblings, runs the household, and/or becomes a parent\'s confidant or emotional surrogate; performs an adult role before being developmentally ready for it.' },
+          { label: 'Function in the Family', value: 'Fills the structural hole left by the missing/failing parent; keeps the family operational or emotionally regulated.' },
+          { label: 'Emotional Cost', value: 'Lost childhood; the authentic self is sacrificed to the role; boundary collapse (especially in the spousal form); over-responsibility imprinted early.' },
+          { label: 'Adult Trajectory', value: 'Over-functioning, can\'t-rest adult; caretakes partners; difficulty receiving; in extreme/spousal cases the sacrificed self can adapt into narcissistic structure.' },
+        ],
+      },
     ],
   },
   {
     key: 'clusterb',
     name: 'Personality Disorders (Cluster B)',
     blurb: 'Cluster B personality structures',
-    sources: 'Sources: DSM-5-TR; Sperry, Handbook of Diagnosis and Treatment of DSM-5-TR Personality Disorders. Narcissistic subtypes also draw on Pincus, Miller, Gebauer, Kernberg, and Vaknin.',
     items: [
       {
         name: 'Antisocial', color: '#9AA0A6',
@@ -46,7 +111,7 @@ const PRESETS = [
         ],
       },
       {
-        name: 'Borderline', color: '#7DB860',
+        name: 'Borderline', color: '#E8B84A',
         details: [
           { label: 'Trigger', value: 'Expectation of meeting personal goals and/or maintaining close relationships' },
           { label: 'Behavioral Style', value: 'Impulsivity; acting-out behaviors; helpless, empty “void”; unstable, intense relationships; fear of abandonment' },
@@ -154,25 +219,218 @@ const PRESETS = [
   },
   {
     key: 'mbti',
-    name: 'MBTI',
-    blurb: 'Sixteen types grouped by four temperaments. Color marks the temperament; the code names the type.',
+    name: 'Personality Types (Myers-Briggs)',
+    blurb: 'Framework sources: Jung (cognitive functions) · Myers & Briggs (16-type structure) · Keirsey (temperament grouping).',
+    sources: 'Not affiliated with or endorsed by The Myers & Briggs Foundation. “MBTI” and “Myers-Briggs” are trademarks of the Foundation.',
     items: [
-      { name: 'INTJ', color: '#A07AC4', description: 'The Architect \u2014 strategic, independent, driven by long-range vision.' },
-      { name: 'INTP', color: '#A07AC4', description: 'The Logician \u2014 analytical, curious, drawn to ideas and systems.' },
-      { name: 'ENTJ', color: '#A07AC4', description: 'The Commander \u2014 decisive, organized, natural at leading toward goals.' },
-      { name: 'ENTP', color: '#A07AC4', description: 'The Debater \u2014 inventive, quick, energized by intellectual challenge.' },
-      { name: 'INFJ', color: '#5DB8A6', description: 'The Advocate \u2014 insightful, idealistic, quietly principled.' },
-      { name: 'INFP', color: '#5DB8A6', description: 'The Mediator \u2014 values-driven, imaginative, deeply empathetic.' },
-      { name: 'ENFJ', color: '#5DB8A6', description: 'The Protagonist \u2014 warm, inspiring, attuned to others\u2019 growth.' },
-      { name: 'ENFP', color: '#5DB8A6', description: 'The Campaigner \u2014 enthusiastic, expressive, full of possibility.' },
-      { name: 'ISTJ', color: '#7DA8E0', description: 'The Logistician \u2014 reliable, thorough, grounded in duty.' },
-      { name: 'ISFJ', color: '#7DA8E0', description: 'The Defender \u2014 loyal, caring, steady in support of others.' },
-      { name: 'ESTJ', color: '#7DA8E0', description: 'The Executive \u2014 orderly, dependable, a natural organizer.' },
-      { name: 'ESFJ', color: '#7DA8E0', description: 'The Consul \u2014 sociable, attentive, devoted to harmony.' },
-      { name: 'ISTP', color: '#E8B84A', description: 'The Virtuoso \u2014 practical, hands-on, calm under pressure.' },
-      { name: 'ISFP', color: '#E8B84A', description: 'The Adventurer \u2014 gentle, spontaneous, aesthetically attuned.' },
-      { name: 'ESTP', color: '#E8B84A', description: 'The Entrepreneur \u2014 bold, energetic, thrives in the moment.' },
-      { name: 'ESFP', color: '#E8B84A', description: 'The Entertainer \u2014 lively, generous, loves shared experience.' },
+      {
+        name: 'INFJ', color: '#3E8A5F',
+        details: [
+          { label: 'Temperament', value: 'Idealist' },
+          { label: 'Core Preferences', value: 'Introverted, Intuitive, Feeling, Judging. Inner-focused, abstract, values-driven, decisive about conclusions while private about the process.' },
+          { label: 'Cognitive Functions', value: 'Ni (dom), Fe (aux), Ti (tert), Se (inf). A long-arc pattern-synthesizer that lands on one quiet conviction, delivered through attunement to others\' emotions.' },
+          { label: 'Strengths', value: 'Reads people and undercurrents before they\'re spoken; fuses unrelated ideas into a coherent vision; empathy paired with sharp insight; quietly resilient, turning private struggle into purpose.' },
+          { label: 'Blind Spots', value: 'Perfectionism and harsh self-criticism; burnout from impossible standards; weak Se neglects present detail, tactical reactivity, and bodily needs; over-lives in \'what will be.\'' },
+          { label: 'Interpersonal Style', value: 'Few but deep bonds; warm yet selective; a natural mediator who senses unspoken suffering; guards the inner world even with intimates.' },
+          { label: 'Decision / Work Style', value: 'Pre-processes internally, then acts with surprising firmness; values-aligned, meaning-driven work; needs autonomy and quiet.' },
+          { label: 'Growth', value: 'Letting \'good enough\' be enough; grounding in the present and body (developing Se); voicing the inner process instead of arriving fully-formed and unreadable.' },
+        ],
+      },
+      {
+        name: 'INFP', color: '#3E8A5F',
+        details: [
+          { label: 'Temperament', value: 'Idealist' },
+          { label: 'Core Preferences', value: 'Introverted, Intuitive, Feeling, Perceiving. Inward, abstract, guided by deep personal values, and flexible rather than structured.' },
+          { label: 'Cognitive Functions', value: 'Fi (dom), Ne (aux), Si (tert), Te (inf). A private moral compass that evaluates everything against deeply held values, branching into possibilities.' },
+          { label: 'Strengths', value: 'Strong, authentic value system; deep empathy without losing self; imaginative and idea-rich; sensitive to hypocrisy and to meaning others miss.' },
+          { label: 'Blind Spots', value: 'Idealism collides with reality; conflict-avoidant; weak Te makes structure, follow-through, and external organization hard; under stress turns harshly self-critical.' },
+          { label: 'Interpersonal Style', value: 'Gentle, accepting, loyal to a chosen few; reserved about private convictions; bonds over shared meaning and authenticity.' },
+          { label: 'Decision / Work Style', value: 'Decides by inner resonance (\'does this feel right?\'); needs work aligned with values; resists rigid systems and deadlines.' },
+          { label: 'Growth', value: 'Building external structure and follow-through (developing Te); acting on ideals rather than only feeling them; tolerating imperfection in self and world.' },
+        ],
+      },
+      {
+        name: 'ENFJ', color: '#3E8A5F',
+        details: [
+          { label: 'Temperament', value: 'Idealist' },
+          { label: 'Core Preferences', value: 'Extraverted, Intuitive, Feeling, Judging. Outward, abstract, people-oriented, and organized toward shared goals.' },
+          { label: 'Cognitive Functions', value: 'Fe (dom), Ni (aux), Se (tert), Ti (inf). Reads and shapes the group\'s emotional field, guided by an intuitive vision of people\'s potential.' },
+          { label: 'Strengths', value: 'Inspiring and persuasive; deeply attuned to others\' needs; develops people and builds consensus; charismatic, organized, future-oriented.' },
+          { label: 'Blind Spots', value: 'Over-involved in others\' lives; neglects own needs; conflict-averse to the point of self-erasure; weak Ti means over-personalizing and circular self-analysis under stress.' },
+          { label: 'Interpersonal Style', value: 'Warm, engaging, mentoring; naturally takes responsibility for group harmony; thrives on connection and being needed.' },
+          { label: 'Decision / Work Style', value: 'Decides with the group\'s wellbeing front of mind; mobilizes people toward a vision; strong at coordination and motivation.' },
+          { label: 'Growth', value: 'Setting boundaries and tending own needs; tolerating disapproval; trusting impersonal logic (developing Ti) alongside empathy.' },
+        ],
+      },
+      {
+        name: 'ENFP', color: '#3E8A5F',
+        details: [
+          { label: 'Temperament', value: 'Idealist' },
+          { label: 'Core Preferences', value: 'Extraverted, Intuitive, Feeling, Perceiving. Outward, abstract, values-led, and open-endedly flexible.' },
+          { label: 'Cognitive Functions', value: 'Ne (dom), Fi (aux), Te (tert), Si (inf). A possibility-generator that scans connections everywhere, anchored by personal values.' },
+          { label: 'Strengths', value: 'Infectious enthusiasm; sees potential and connection others miss; warm, curious, adaptable; rallies people around new ideas.' },
+          { label: 'Blind Spots', value: 'Starts more than it finishes; restless with routine and detail; weak Si means neglected follow-through and bodily upkeep; scattered when over-stimulated.' },
+          { label: 'Interpersonal Style', value: 'Magnetic, affirming, broadly connected; makes people feel seen; bonds fast over shared excitement and meaning.' },
+          { label: 'Decision / Work Style', value: 'Explores options widely before committing; energized by novelty and people; struggles with repetitive, structured tasks.' },
+          { label: 'Growth', value: 'Following through and grounding in routine (developing Si); converting ideas into completed action; managing the urge to chase the next spark.' },
+        ],
+      },
+      {
+        name: 'INTJ', color: '#7E4FA0',
+        details: [
+          { label: 'Temperament', value: 'Rational' },
+          { label: 'Core Preferences', value: 'Introverted, Intuitive, Thinking, Judging. Inward, abstract, logic-driven, decisive and strategic.' },
+          { label: 'Cognitive Functions', value: 'Ni (dom), Te (aux), Fi (tert), Se (inf). Convergent long-range vision executed through efficient external systems.' },
+          { label: 'Strengths', value: 'Strategic foresight; independent and decisive; builds and optimizes systems toward a goal; near-imperviousness to social pressure once convinced.' },
+          { label: 'Blind Spots', value: 'Dismissive of others\' input; impatient with inefficiency; weak Se neglects present realities and the body; can over-trust a single internal vision.' },
+          { label: 'Interpersonal Style', value: 'Selective, reserved, direct; values competence over warmth; small circle of respected peers; little patience for small talk.' },
+          { label: 'Decision / Work Style', value: 'Decides early and commits; plans long-horizon then implements ruthlessly; autonomy-driven and goal-fixated.' },
+          { label: 'Growth', value: 'Inviting input and softening certainty; engaging the present and body (developing Se); valuing relational warmth alongside results.' },
+        ],
+      },
+      {
+        name: 'INTP', color: '#7E4FA0',
+        details: [
+          { label: 'Temperament', value: 'Rational' },
+          { label: 'Core Preferences', value: 'Introverted, Intuitive, Thinking, Perceiving. Inward, abstract, logic-precise, and open-endedly exploratory.' },
+          { label: 'Cognitive Functions', value: 'Ti (dom), Ne (aux), Si (tert), Fe (inf). Builds precise internal frameworks, fed by expansive possibility-generation.' },
+          { label: 'Strengths', value: 'Rigorous logical analysis; spots inconsistency instantly; original, theory-rich thinking; intellectually honest and independent.' },
+          { label: 'Blind Spots', value: 'Endless analysis without action; detached from practical follow-through; weak Fe means social/emotional missteps and sudden sensitivity under stress.' },
+          { label: 'Interpersonal Style', value: 'Reserved, candid, low-maintenance; engages through ideas and debate; awkward with emotional expression but loyal to the few.' },
+          { label: 'Decision / Work Style', value: 'Resolves logical inconsistency before acting; explores frameworks at length; resists arbitrary structure and deadlines.' },
+          { label: 'Growth', value: 'Acting before the model is perfect; developing social-emotional attunement (Fe); grounding theory in real-world application.' },
+        ],
+      },
+      {
+        name: 'ENTJ', color: '#7E4FA0',
+        details: [
+          { label: 'Temperament', value: 'Rational' },
+          { label: 'Core Preferences', value: 'Extraverted, Intuitive, Thinking, Judging. Outward, abstract, logic-driven, organized and commanding.' },
+          { label: 'Cognitive Functions', value: 'Te (dom), Ni (aux), Se (tert), Fi (inf). Organizes the external world efficiently, steered by long-range strategic vision.' },
+          { label: 'Strengths', value: 'Decisive leadership; strategic and efficient; turns vision into structured execution; confident, resilient to criticism, drives results.' },
+          { label: 'Blind Spots', value: 'Blunt, impatient, domineering; overrides others\' feelings; neglects health and balance; weak Fi means sudden value-crises and feeling like a fraud under stress.' },
+          { label: 'Interpersonal Style', value: 'Direct, assertive, energizing; respects competence and challenge; takes charge naturally; can read as harsh.' },
+          { label: 'Decision / Work Style', value: 'Closes on decisions fast; builds systems and mobilizes people toward goals; thrives in high-stakes leadership.' },
+          { label: 'Growth', value: 'Tending feelings and relationships (developing Fi); building in rest and balance; softening bluntness into influence.' },
+        ],
+      },
+      {
+        name: 'ENTP', color: '#7E4FA0',
+        details: [
+          { label: 'Temperament', value: 'Rational' },
+          { label: 'Core Preferences', value: 'Extraverted, Intuitive, Thinking, Perceiving. Outward, abstract, logic-led, and restlessly flexible.' },
+          { label: 'Cognitive Functions', value: 'Ne (dom), Ti (aux), Fe (tert), Si (inf). Generates possibilities prolifically, stress-tested against an internal logical framework.' },
+          { label: 'Strengths', value: 'Quick, inventive, intellectually fearless; sees angles and connections fast; persuasive debater; thrives on novelty and challenge.' },
+          { label: 'Blind Spots', value: 'Argues for sport; starts more than it finishes; weak Si neglects routine, detail, follow-through, and health; bored by maintenance.' },
+          { label: 'Interpersonal Style', value: 'Charismatic, provocative, playful; bonds through banter and idea-jousting; enjoys challenging others\' thinking.' },
+          { label: 'Decision / Work Style', value: 'Keeps options open and explores alternatives long; energized by problem-solving and debate; resists closure and routine.' },
+          { label: 'Growth', value: 'Following through and respecting detail (developing Si); knowing when to stop debating and commit; honoring others\' feelings.' },
+        ],
+      },
+      {
+        name: 'ISTJ', color: '#3E6B8A',
+        details: [
+          { label: 'Temperament', value: 'Guardian' },
+          { label: 'Core Preferences', value: 'Introverted, Sensing, Thinking, Judging. Inward, concrete, logic-driven, and firmly structured.' },
+          { label: 'Cognitive Functions', value: 'Si (dom), Te (aux), Fi (tert), Ne (inf). Compares the present against proven past experience, organized through efficient logic.' },
+          { label: 'Strengths', value: 'Reliable, thorough, responsible; strong memory for fact and procedure; consistent and dutiful; finishes what they start.' },
+          { label: 'Blind Spots', value: 'Rigid about change and new methods; over-attached to \'how it\'s always been\'; weak Ne catastrophizes about the future under stress.' },
+          { label: 'Interpersonal Style', value: 'Loyal, steady, private; shows care through dependability more than words; honors commitments and tradition.' },
+          { label: 'Decision / Work Style', value: 'Decides by precedent and proven data; methodical, detail-exact, deadline-respecting; excels in stable, defined systems.' },
+          { label: 'Growth', value: 'Staying open to new approaches (developing Ne); accepting change isn\'t a threat; voicing feelings rather than burying them.' },
+        ],
+      },
+      {
+        name: 'ISFJ', color: '#3E6B8A',
+        details: [
+          { label: 'Temperament', value: 'Guardian' },
+          { label: 'Core Preferences', value: 'Introverted, Sensing, Feeling, Judging. Inward, concrete, people-warm, and dependably structured.' },
+          { label: 'Cognitive Functions', value: 'Si (dom), Fe (aux), Ti (tert), Ne (inf). Anchored in remembered experience, attuned to others\' needs and harmony.' },
+          { label: 'Strengths', value: 'Devoted, attentive, conscientious; remembers and meets others\' practical needs; patient and loyal; quietly hardworking.' },
+          { label: 'Blind Spots', value: 'Self-sacrificing to a fault; avoids conflict and overlooks own needs; resistant to change; weak Ne breeds anxious worst-case thinking.' },
+          { label: 'Interpersonal Style', value: 'Nurturing, gentle, behind-the-scenes; expresses care through service; deeply loyal to family and close circle.' },
+          { label: 'Decision / Work Style', value: 'Decides by what\'s worked and who\'s affected; meticulous and reliable; prefers clear roles and stable routines.' },
+          { label: 'Growth', value: 'Asserting own needs and setting boundaries; embracing change (developing Ne); accepting appreciation without guilt.' },
+        ],
+      },
+      {
+        name: 'ESTJ', color: '#3E6B8A',
+        details: [
+          { label: 'Temperament', value: 'Guardian' },
+          { label: 'Core Preferences', value: 'Extraverted, Sensing, Thinking, Judging. Outward, concrete, logic-driven, and decisively organized.' },
+          { label: 'Cognitive Functions', value: 'Te (dom), Si (aux), Ne (tert), Fi (inf). Organizes the external world by objective standards, grounded in proven experience.' },
+          { label: 'Strengths', value: 'Decisive, dependable organizer; enforces structure and gets things done; strong sense of duty and standards; natural administrator.' },
+          { label: 'Blind Spots', value: 'Rigid and controlling; dismissive of emotions and unproven ideas; weak Fi means hypersensitivity and emotional reactivity under stress.' },
+          { label: 'Interpersonal Style', value: 'Direct, authoritative, sociable; values order and reliability; takes charge of practical matters; can steamroll feelings.' },
+          { label: 'Decision / Work Style', value: 'Decides fast by logic and precedent; implements efficiently; thrives running defined operations and teams.' },
+          { label: 'Growth', value: 'Honoring emotions and values (developing Fi); flexing on \'the right way\'; listening before correcting.' },
+        ],
+      },
+      {
+        name: 'ESFJ', color: '#3E6B8A',
+        details: [
+          { label: 'Temperament', value: 'Guardian' },
+          { label: 'Core Preferences', value: 'Extraverted, Sensing, Feeling, Judging. Outward, concrete, people-centered, and warmly organized.' },
+          { label: 'Cognitive Functions', value: 'Fe (dom), Si (aux), Ne (tert), Ti (inf). Reads and tends the group\'s emotional needs, grounded in tradition and experience.' },
+          { label: 'Strengths', value: 'Warm, sociable, dependable; creates harmony and takes care of practical needs; loyal, organized, community-minded.' },
+          { label: 'Blind Spots', value: 'Needs approval; conflict-avoidant; over-attentive to others\' opinions; weak Ti means circular over-analysis and lost warmth under stress.' },
+          { label: 'Interpersonal Style', value: 'Generous, attentive, hospitable; remembers and meets social needs; thrives on belonging and being useful.' },
+          { label: 'Decision / Work Style', value: 'Decides by group harmony and convention; organized and service-oriented; prefers clear, cooperative structures.' },
+          { label: 'Growth', value: 'Acting on own values regardless of approval; tolerating conflict; trusting impersonal logic (developing Ti).' },
+        ],
+      },
+      {
+        name: 'ISTP', color: '#C2913B',
+        details: [
+          { label: 'Temperament', value: 'Artisan' },
+          { label: 'Core Preferences', value: 'Introverted, Sensing, Thinking, Perceiving. Inward, concrete, logic-precise, and flexibly hands-on.' },
+          { label: 'Cognitive Functions', value: 'Ti (dom), Se (aux), Ni (tert), Fe (inf). Builds internal logical models, applied through sharp real-time sensory action.' },
+          { label: 'Strengths', value: 'Cool under pressure; masterful with tools, systems, and mechanics; pragmatic problem-solver; independent and unflappable.' },
+          { label: 'Blind Spots', value: 'Detached and hard to read; impatient with rules and long commitments; weak Fe means missing/ignoring emotional cues, sudden outbursts under stress.' },
+          { label: 'Interpersonal Style', value: 'Private, low-key, autonomous; shows up through competent action, not words; bonds over shared activity.' },
+          { label: 'Decision / Work Style', value: 'Decides by hands-on logic in the moment; learns by doing; thrives troubleshooting concrete problems, resists bureaucracy.' },
+          { label: 'Growth', value: 'Developing emotional awareness and expression (Fe); committing beyond the immediate; communicating rather than withdrawing.' },
+        ],
+      },
+      {
+        name: 'ISFP', color: '#C2913B',
+        details: [
+          { label: 'Temperament', value: 'Artisan' },
+          { label: 'Core Preferences', value: 'Introverted, Sensing, Feeling, Perceiving. Inward, concrete, values-led, and gently flexible.' },
+          { label: 'Cognitive Functions', value: 'Fi (dom), Se (aux), Ni (tert), Te (inf). A quiet, deep value system expressed through immediate sensory and aesthetic experience.' },
+          { label: 'Strengths', value: 'Authentic and gentle; keen aesthetic and sensory sense; lives in the present; warm, accepting, quietly principled.' },
+          { label: 'Blind Spots', value: 'Avoids conflict and long-range planning; hard to know; weak Te makes structure and follow-through difficult; self-critical under stress.' },
+          { label: 'Interpersonal Style', value: 'Soft-spoken, kind, loyal to a few; shows love through action and presence; needs space and authenticity.' },
+          { label: 'Decision / Work Style', value: 'Decides by personal values and present feel; hands-on and experiential; resists rigid systems and abstraction.' },
+          { label: 'Growth', value: 'Building structure and long-term follow-through (developing Te); voicing values and needs; tolerating conflict.' },
+        ],
+      },
+      {
+        name: 'ESTP', color: '#C2913B',
+        details: [
+          { label: 'Temperament', value: 'Artisan' },
+          { label: 'Core Preferences', value: 'Extraverted, Sensing, Thinking, Perceiving. Outward, concrete, logic-driven, and built for the live moment.' },
+          { label: 'Cognitive Functions', value: 'Se (dom), Ti (aux), Fe (tert), Ni (inf). A real-time environment-reader that acts fast and reasons on the fly.' },
+          { label: 'Strengths', value: 'Exceptional situational awareness; cool and decisive under pressure; persuasive and socially fluid; learns by doing, turns obstacles into action.' },
+          { label: 'Blind Spots', value: 'Impatient with theory and planning; risk- and thrill-chasing; weak Ni underweights future consequences and patterns; can steamroll feelings.' },
+          { label: 'Interpersonal Style', value: 'Charming, direct, energizing; thrives in groups; connects through shared activity and banter; reads the room instantly.' },
+          { label: 'Decision / Work Style', value: 'Pragmatic and fast; solves the problem in front of them with whatever works; hates rigid structure; best hands-on and high-stakes.' },
+          { label: 'Growth', value: 'Building the long view (developing Ni); pausing before impulse; valuing depth and follow-through over the next stimulus.' },
+        ],
+      },
+      {
+        name: 'ESFP', color: '#C2913B',
+        details: [
+          { label: 'Temperament', value: 'Artisan' },
+          { label: 'Core Preferences', value: 'Extraverted, Sensing, Feeling, Perceiving. Outward, concrete, people-warm, and spontaneously flexible.' },
+          { label: 'Cognitive Functions', value: 'Se (dom), Fi (aux), Te (tert), Ni (inf). Lives fully in the sensory present, steered by personal values.' },
+          { label: 'Strengths', value: 'Vivacious, fun, fully present; reads and lifts a room; practical and generous; adapts fast and enjoys life out loud.' },
+          { label: 'Blind Spots', value: 'Avoids the abstract and the long-term; conflict- and boredom-averse; weak Ni misses consequences; over-indulgent or scattered under stress.' },
+          { label: 'Interpersonal Style', value: 'Outgoing, affectionate, spontaneous; makes others feel good; bonds through shared experience and warmth.' },
+          { label: 'Decision / Work Style', value: 'Decides by present feel and values; hands-on, people-facing, immediate; resists theory and rigid planning.' },
+          { label: 'Growth', value: 'Developing foresight (Ni); planning beyond the moment; sitting with discomfort instead of chasing the next high.' },
+        ],
+      },
     ],
   },
 ];
@@ -222,7 +480,7 @@ function BuilderModal({ initialCategory, initialItems, onClose, onSave }) {
                     boxShadow: it.color === c ? '0 0 6px rgba(216,230,240,0.4)' : 'none' }} />
               ))}
             </div>
-            <div style={styles.miniLabel}>Description <span style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 400 }}>\u2014 optional</span></div>
+            <div style={styles.miniLabel}>Description <span style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 400 }}>— optional</span></div>
             <textarea style={{ ...styles.input, minHeight: '54px', resize: 'vertical', fontFamily: 'Georgia, serif' }}
               value={it.description || ''} onChange={e => updateItem(it.id, 'description', e.target.value)}
               placeholder="A short description shown when this item is tapped." />
@@ -370,7 +628,7 @@ function Patterns() {
         </div>
 
         {categories.length === 0 ? (
-          <div style={styles.empty}>No patterns yet. Build your own with \u201c+ New Pattern\u201d, or adopt one from the Library below.</div>
+          <div style={styles.empty}>No patterns yet. Build your own with “+ New Pattern”, or adopt one from the Library below.</div>
         ) : (
           <div style={styles.cardGrid}>
             {categories.map(cat => {
@@ -412,7 +670,6 @@ function Patterns() {
               <div key={preset.key} style={{ ...styles.card, ...styles.presetCard }}>
                 <div style={styles.cardName}>{preset.name}</div>
                 <div style={styles.presetBlurb}>{preset.blurb}</div>
-                {preset.sources && <div style={styles.presetSources}>{preset.sources}</div>}
                 <div style={styles.chipWrap}>
                   {preset.items.map((it, i) => (
                     <span key={i} style={styles.chip} onClick={() => { setDetailItem(it); setDetailCatName(preset.name); }}>
@@ -423,7 +680,7 @@ function Patterns() {
                 </div>
                 <div style={{ marginTop: '16px' }}>
                   <button style={adopted ? styles.adoptedBtn : styles.adoptBtn} onClick={() => adoptPreset(preset)}>
-                    {adopted ? '\u2713 Adopted \u2014 add again' : '+ Adopt'}
+                    {adopted ? '✓ Adopted — add again' : '+ Adopt'}
                   </button>
                 </div>
               </div>
@@ -454,8 +711,7 @@ const styles = {
   card: { background: '#162534', border: '1px solid rgba(142,196,224,0.2)', borderRadius: '4px', padding: '20px 22px' },
   presetCard: { background: 'rgba(22,37,52,0.5)', borderStyle: 'dashed', borderColor: 'rgba(142,196,224,0.18)' },
   cardName: { fontFamily: 'Georgia, serif', fontSize: '17px', fontWeight: '300', color: '#D8E6F0', marginBottom: '8px' },
-  presetBlurb: { fontSize: '11px', color: '#8BAFC8', lineHeight: 1.5, marginBottom: '8px', fontStyle: 'italic' },
-  presetSources: { fontSize: '9px', color: '#6E8BA0', lineHeight: 1.5, marginBottom: '14px' },
+  presetBlurb: { fontSize: '11px', color: '#8BAFC8', lineHeight: 1.5, marginBottom: '14px', fontStyle: 'italic' },
   chipWrap: { display: 'flex', flexWrap: 'wrap', gap: '8px' },
   chip: { display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '5px 10px', borderRadius: '12px', background: 'rgba(142,196,224,0.06)', border: '1px solid rgba(142,196,224,0.15)', fontSize: '11px', color: '#D8E6F0', cursor: 'pointer' },
   chipDot: { width: '9px', height: '9px', borderRadius: '50%', flexShrink: 0 },
