@@ -8,11 +8,11 @@ import Home from './screens/home';
 import Scan from './screens/scan';
 import CPM from './screens/cpm';
 import CBM from './screens/cbm';
+import CBMResults from './screens/cbmresults';
 import Progress from './screens/progress';
 import Results from './screens/results';
 import Journal from './screens/journal';
 import Tutorial from './screens/tutorial';
-import Yesterday from './screens/yesterday';
 import People from './screens/people';
 import Patterns from './screens/patterns';
 import Billing from './screens/billing';
@@ -116,11 +116,11 @@ function App() {
         <Route path="/scan" element={<Protected token={token}><Scan /></Protected>} />
         <Route path="/cpm" element={<Protected token={token}><CPM /></Protected>} />
         <Route path="/cbm" element={<Protected token={token}><CBM /></Protected>} />
+        <Route path="/cbmresults" element={<Protected token={token}><CBMResults /></Protected>} />
         <Route path="/progress" element={<Protected token={token}><Progress /></Protected>} />
         <Route path="/results" element={<Protected token={token}><Results /></Protected>} />
         <Route path="/journal" element={<Protected token={token}><Journal /></Protected>} />
         <Route path="/tutorial" element={<Protected token={token}><Tutorial /></Protected>} />
-        <Route path="/yesterday" element={<Protected token={token}><Yesterday /></Protected>} />
         <Route path="/people" element={<Protected token={token}><People /></Protected>} />
         <Route path="/patterns" element={<Protected token={token}><Patterns /></Protected>} />
         <Route path="/billing" element={token ? <Billing /> : <Navigate to="/login" />} />

@@ -5,7 +5,7 @@ import { Page, AppHeader, PageBody } from '../components/Layout';
 
 const API = 'https://axis-backend-production-5e9b.up.railway.app';
 
-const CBM_LEVEL_NAMES = ['None', 'Mild', 'Low', 'Moderate', 'Intense', 'Severe'];
+// AUC model: no levels. Series carries D, R, and score per day.
 
 function Progress() {
   const navigate = useNavigate();
@@ -15,16 +15,26 @@ function Progress() {
     const v = params.get('view');
     return ['7d', '4w', '12m'].includes(v) ? v : '7d';
   })();
-  const [tab, setTab] = useState('scan');
+  const initialTab = (() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('tab') === 'behavior' ? 'behavior' : 'scan';
+  })();
+  const [tab, setTab] = useState(initialTab);
   const [entries, setEntries] = useState({});
   const [cbmLog, setCbmLog] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState(initialView);
   const [cbmView, setCbmView] = useState(initialView);
+  const [scanLines, setScanLines] = useState({ ismPct: true, esmPct: true, totalPct: true });
+  const [cbmLines, setCbmLines] = useState({ d: true, r: true, score: true });
+  const toggleScan = (k) => setScanLines(s => ({ ...s, [k]: !s[k] }));
+  const toggleCbm = (k) => setCbmLines(s => ({ ...s, [k]: !s[k] }));
   const [calYear, setCalYear] = useState(new Date().getFullYear());
   const [calMonth, setCalMonth] = useState(new Date().getMonth());
   const [selectedEntry, setSelectedEntry] = useState(null);
   const [selectedDateStr, setSelectedDateStr] = useState('');
+  const [selectedCbm, setSelectedCbm] = useState(null);
+  const [selectedCbmDateStr, setSelectedCbmDateStr] = useState('');
 
   useEffect(() => {
     const load = async () => {
@@ -142,73 +152,61 @@ function Progress() {
 
   const dk = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 
-  const getCBMDailyCeilings = (v) => {
-    if (!cbmLog.length) return [];
-    const dayCeiling = (key) => {
-      const dayLogs = cbmLog.filter(e => dk(new Date(e.date)) === key);
-      return dayLogs.length > 0 ? { ceiling: Math.max(...dayLogs.map(e => e.level)), logs: dayLogs } : null;
-    };
-    if (v === '7d') {
-      const result = [];
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date(today); d.setDate(today.getDate() - i);
-        const key = dk(d);
-        const lbl = d.toLocaleDateString('en-US', { weekday: 'short' }).charAt(0) + d.getDate();
-        const dc = dayCeiling(key);
-        result.push({ key, label: lbl, ceiling: dc ? dc.ceiling : null, logs: dc ? dc.logs : [] });
-      }
-      return result;
-    } else if (v === '4w') {
-      const result = [];
-      for (let i = 29; i >= 0; i--) {
-        const d = new Date(today); d.setDate(today.getDate() - i);
-        const key = dk(d);
-        const lbl = (d.getMonth() + 1) + '/' + d.getDate();
-        const dc = dayCeiling(key);
-        result.push({ key, label: lbl, ceiling: dc ? dc.ceiling : null, logs: dc ? dc.logs : [] });
-      }
-      return result;
-    } else {
-      const result = [];
+  const validLog = (e) => e && e.date && typeof e.dTotal === 'number';
+
+  const getCBMSeries = (v) => {
+    if (v === '12m') {
+      const out = [];
       for (let i = 11; i >= 0; i--) {
         const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
-        const monthKey = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+        const mk = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
         const lbl = d.toLocaleDateString('en-US', { month: 'short' });
-        const monthLogs = cbmLog.filter(e => { const ld = new Date(e.date); return (ld.getFullYear() + '-' + String(ld.getMonth() + 1).padStart(2, '0')) === monthKey; });
-        const dayKeys = {};
-        monthLogs.forEach(e => { const key = dk(new Date(e.date)); if (!dayKeys[key]) dayKeys[key] = []; dayKeys[key].push(e.level); });
-        const dayCeilings = Object.keys(dayKeys).map(k => Math.max(...dayKeys[k]));
-        const avg = dayCeilings.length ? Math.round(dayCeilings.reduce((a, b) => a + b, 0) / dayCeilings.length * 10) / 10 : null;
-        result.push({ key: monthKey, label: lbl, ceiling: avg, logs: [] });
+        const logs = cbmLog.filter(e => validLog(e) && (new Date(e.date).getFullYear() + '-' + String(new Date(e.date).getMonth() + 1).padStart(2, '0')) === mk);
+        if (logs.length) {
+          const dAvg = Math.round(logs.reduce((a, e) => a + e.dTotal, 0) / logs.length);
+          const rAvg = Math.round(logs.reduce((a, e) => a + e.rTotal, 0) / logs.length);
+          out.push({ label: lbl, d: dAvg, r: rAvg, score: rAvg - dAvg });
+        } else out.push({ label: lbl, d: null, r: null, score: null });
       }
-      return result;
+      return out;
     }
-  };
-
-  // MA = rolling average of the period's ceilings (the dynamic trend line)
-  const calcMA = (ceilings) => {
-    const withData = ceilings.filter(d => d.ceiling !== null);
-    if (!withData.length) return null;
-    return Math.round(withData.reduce((a, d) => a + d.ceiling, 0) / withData.length * 10) / 10;
-  };
-  // Resistance = highest touched ceiling level in the period (static line)
-  const calcResistanceLine = (ceilings) => {
-    const vals = ceilings.filter(d => d.ceiling !== null).map(d => d.ceiling);
-    if (!vals.length) return null;
-    return Math.max(...vals);
-  };
-  // Support = lowest touched ceiling level in the period (static line)
-  const calcSupportLine = (ceilings) => {
-    const vals = ceilings.filter(d => d.ceiling !== null).map(d => d.ceiling);
-    if (!vals.length) return null;
-    return Math.min(...vals);
+    const span = v === '7d' ? 7 : 30;
+    const out = [];
+    for (let i = span - 1; i >= 0; i--) {
+      const d = new Date(today); d.setDate(today.getDate() - i);
+      const key = dk(d);
+      const lbl = v === '7d' ? d.toLocaleDateString('en-US', { weekday: 'short' }).charAt(0) + d.getDate() : (d.getMonth() + 1) + '/' + d.getDate();
+      const e = cbmLog.find(x => validLog(x) && dk(new Date(x.date)) === key);
+      out.push({ label: lbl, d: e ? e.dTotal : null, r: e ? e.rTotal : null, score: e ? e.score : null });
+    }
+    return out;
   };
 
   const chartData = getChartData();
-  const cbmCeilings = getCBMDailyCeilings(cbmView);
-  const cbmMA = calcMA(cbmCeilings);
-  const cbmResistance = calcResistanceLine(cbmCeilings);
-  const cbmSupport = calcSupportLine(cbmCeilings);
+  const cbmSeries = getCBMSeries(cbmView);
+  const cbmWithData = cbmSeries.filter(p => p.score !== null);
+  const avgD = cbmWithData.length ? Math.round(cbmWithData.reduce((a, p) => a + p.d, 0) / cbmWithData.length) : null;
+  const avgR = cbmWithData.length ? Math.round(cbmWithData.reduce((a, p) => a + p.r, 0) / cbmWithData.length) : null;
+  const avgScore = cbmWithData.length ? Math.round(cbmWithData.reduce((a, p) => a + p.score, 0) / cbmWithData.length) : null;
+
+  // Behavior stats for dashboard + calendar
+  const cbmByDate = {};
+  cbmLog.forEach(e => { if (validLog(e)) cbmByDate[dk(new Date(e.date))] = e; });
+  const cbmCount = Object.keys(cbmByDate).length;
+  let cbmStreak = 0;
+  const cbmCheck = new Date(today);
+  while (cbmByDate[dk(cbmCheck)]) { cbmStreak++; cbmCheck.setDate(cbmCheck.getDate() - 1); }
+  let cbmBest = null; let cbmBestKey = null;
+  Object.keys(cbmByDate).forEach(k => {
+    const sc = cbmByDate[k].score;
+    if (cbmBest === null || sc > cbmBest) { cbmBest = sc; cbmBestKey = k; }
+  });
+  let cbmBestDate = '';
+  if (cbmBestKey) {
+    const bp = cbmBestKey.split('-');
+    cbmBestDate = new Date(bp[0], bp[1] - 1, bp[2]).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+  const cbmLoggedToday = !!cbmByDate[dk(today)];
 
   const renderISMChart = () => {
     const W = 600; const H = 220;
@@ -238,13 +236,13 @@ function Progress() {
       <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: H }}>
         {grid}
         {chartData.map((d, i) => <text key={i} x={xPos(i)} y={H - 6} fill="rgba(142,196,224,0.6)" fontSize="9" textAnchor="middle">{d.label}</text>)}
-        {buildPath('ismPct') && <path d={buildPath('ismPct')} fill="none" stroke="#8EC4E0" strokeWidth="2.5" opacity="0.9" />}
-        {buildPath('esmPct') && <path d={buildPath('esmPct')} fill="none" stroke="#C49FDA" strokeWidth="2.5" opacity="0.9" />}
-        {buildPath('totalPct') && <path d={buildPath('totalPct')} fill="none" stroke="#4EC9A0" strokeWidth="2.5" opacity="0.9" />}
+        {scanLines.ismPct && buildPath('ismPct') && <path d={buildPath('ismPct')} fill="none" stroke="#8EC4E0" strokeWidth="2.5" opacity="0.9" />}
+        {scanLines.esmPct && buildPath('esmPct') && <path d={buildPath('esmPct')} fill="none" stroke="#C49FDA" strokeWidth="2.5" opacity="0.9" />}
+        {scanLines.totalPct && buildPath('totalPct') && <path d={buildPath('totalPct')} fill="none" stroke="#4EC9A0" strokeWidth="2.5" opacity="0.9" />}
         {chartData.map((d, i) => d.entry ? [
-          <circle key={`ism${i}`} cx={xPos(i)} cy={yPos(d.entry.ismPct)} r="4" fill="#8EC4E0" stroke="#0d1b2a" strokeWidth="2" />,
-          <circle key={`esm${i}`} cx={xPos(i)} cy={yPos(d.entry.esmPct)} r="4" fill="#C49FDA" stroke="#0d1b2a" strokeWidth="2" />,
-          <circle key={`tot${i}`} cx={xPos(i)} cy={yPos(d.entry.totalPct)} r="4" fill="#4EC9A0" stroke="#0d1b2a" strokeWidth="2" />,
+          scanLines.ismPct && <circle key={`ism${i}`} cx={xPos(i)} cy={yPos(d.entry.ismPct)} r="4" fill="#8EC4E0" stroke="#0d1b2a" strokeWidth="2" />,
+          scanLines.esmPct && <circle key={`esm${i}`} cx={xPos(i)} cy={yPos(d.entry.esmPct)} r="4" fill="#C49FDA" stroke="#0d1b2a" strokeWidth="2" />,
+          scanLines.totalPct && <circle key={`tot${i}`} cx={xPos(i)} cy={yPos(d.entry.totalPct)} r="4" fill="#4EC9A0" stroke="#0d1b2a" strokeWidth="2" />,
         ] : null)}
       </svg>
     );
@@ -253,11 +251,10 @@ function Progress() {
   const renderCBMChart = () => {
     if (!cbmLog.length) return (
       <div style={{ textAlign: 'center', padding: '60px', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8' }}>
-        No behavior logs yet. Use Log Yesterday on the Compulsive Behavior Map.
+        No behavior logs yet. Log a day on the Behavior Log screen.
       </div>
     );
-
-    const hasData = cbmCeilings.some(d => d.ceiling !== null);
+    const hasData = cbmSeries.some(p => p.score !== null);
     if (!hasData) return <div style={{ textAlign: 'center', padding: '60px', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8' }}>No logs in this period.</div>;
 
     const W = 600; const H = 220;
@@ -265,45 +262,45 @@ function Progress() {
     const cW = W - PAD.left - PAD.right;
     const cH = H - PAD.top - PAD.bottom;
 
-    const xPos = (i) => PAD.left + (i / (cbmCeilings.length - 1 || 1)) * cW;
-    const yPos = (level) => PAD.top + cH - (level / 5) * cH;
+    // Range must include D, R, and score (which can be negative)
+    const allVals = [];
+    cbmSeries.forEach(p => { if (p.d !== null) { allVals.push(p.d, p.r, p.score); } });
+    const maxVal = allVals.length ? Math.max(...allVals, 1) : 1;
+    const minVal = allVals.length ? Math.min(...allVals, 0) : 0;
+    const range = (maxVal - minVal) || 1;
 
-    const pathPoints = cbmCeilings.map((d, i) => d.ceiling !== null ? { x: xPos(i), y: yPos(d.ceiling), d } : null).filter(Boolean);
+    const xPos = (i) => PAD.left + (i / (cbmSeries.length - 1 || 1)) * cW;
+    const yPos = (val) => PAD.top + cH - ((val - minVal) / range) * cH;
+
+    const buildPath = (key) => {
+      const pts = cbmSeries.map((p, i) => p[key] !== null ? `${xPos(i)},${yPos(p[key])}` : null).filter(Boolean);
+      if (pts.length < 2) return null;
+      return 'M' + pts.join(' L');
+    };
+
+    const grid = [];
+    for (let g = 0; g <= 4; g++) {
+      const y = PAD.top + (g / 4) * cH;
+      const val = Math.round(maxVal - (g / 4) * range);
+      grid.push(<line key={`g${g}`} x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="rgba(142,196,224,0.1)" strokeWidth="1" />);
+      grid.push(<text key={`gt${g}`} x={PAD.left - 8} y={y + 4} textAnchor="end" fontSize="9" fill="rgba(142,196,224,0.5)">{val}</text>);
+    }
+    // zero baseline if range crosses zero
+    const zeroLine = minVal < 0 ? <line x1={PAD.left} y1={yPos(0)} x2={W - PAD.right} y2={yPos(0)} stroke="rgba(142,196,224,0.3)" strokeWidth="1" strokeDasharray="3,3" /> : null;
 
     return (
       <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: H, overflow: 'visible' }}>
-        {[0, 1, 2, 3, 4, 5].map(i => (
-          <g key={i}>
-            <line x1={PAD.left} y1={yPos(i)} x2={W - PAD.right} y2={yPos(i)} stroke="rgba(142,196,224,0.1)" strokeWidth="1" />
-            <text x={PAD.left - 8} y={yPos(i) + 4} textAnchor="end" fontSize="9" fill="rgba(142,196,224,0.5)">{CBM_LEVEL_NAMES[i]}</text>
-          </g>
-        ))}
-        {cbmCeilings.map((d, i) => <text key={i} x={xPos(i)} y={H - 6} textAnchor="middle" fontSize="9" fill="rgba(142,196,224,0.55)">{d.label}</text>)}
-
-        {cbmResistance !== null && (
-          <>
-            <line x1={PAD.left} y1={yPos(cbmResistance)} x2={W - PAD.right} y2={yPos(cbmResistance)} stroke="rgba(200,120,120,0.75)" strokeWidth="1.5" />
-            <text x={W - PAD.right + 6} y={yPos(cbmResistance) + 4} fontSize="9" fill="rgba(200,120,120,0.9)" fontWeight="600">R</text>
-          </>
-        )}
-        {cbmSupport !== null && (
-          <>
-            <line x1={PAD.left} y1={yPos(cbmSupport)} x2={W - PAD.right} y2={yPos(cbmSupport)} stroke="rgba(74,174,136,0.75)" strokeWidth="1.5" />
-            <text x={W - PAD.right + 6} y={yPos(cbmSupport) + 4} fontSize="9" fill="rgba(74,174,136,0.9)" fontWeight="600">S</text>
-          </>
-        )}
-        {cbmMA !== null && (
-          <>
-            <line x1={PAD.left} y1={yPos(cbmMA)} x2={W - PAD.right} y2={yPos(cbmMA)} stroke="rgba(255,200,80,0.6)" strokeWidth="1.5" strokeDasharray="6,3" />
-            <text x={W - PAD.right + 6} y={yPos(cbmMA) + 4} fontSize="9" fill="rgba(255,200,80,0.85)" fontWeight="600">MA</text>
-          </>
-        )}
-
-        {pathPoints.length > 1 && <path d={'M' + pathPoints.map(p => `${p.x},${p.y}`).join(' L')} fill="none" stroke="rgba(176,144,216,0.65)" strokeWidth="2" />}
-        {pathPoints.map((p, i) => {
-          const aboveR = cbmResistance !== null && p.d.ceiling >= cbmResistance && cbmResistance > cbmSupport;
-          return <circle key={i} cx={p.x} cy={p.y} r={aboveR ? 5 : 4} fill={aboveR ? 'rgba(200,106,106,0.9)' : 'rgba(176,144,216,0.9)'} stroke="#0d1b2a" strokeWidth="1.5" />;
-        })}
+        {grid}
+        {zeroLine}
+        {cbmSeries.map((p, i) => <text key={i} x={xPos(i)} y={H - 6} textAnchor="middle" fontSize="9" fill="rgba(142,196,224,0.55)">{p.label}</text>)}
+        {buildPath('d') && cbmLines.d && <path d={buildPath('d')} fill="none" stroke="#C87878" strokeWidth="2.5" opacity="0.9" />}
+        {buildPath('r') && cbmLines.r && <path d={buildPath('r')} fill="none" stroke="#4AAE88" strokeWidth="2.5" opacity="0.9" />}
+        {buildPath('score') && cbmLines.score && <path d={buildPath('score')} fill="none" stroke="#8EC4E0" strokeWidth="2.5" />}
+        {cbmSeries.map((p, i) => p.d !== null ? [
+          cbmLines.d && <circle key={`d${i}`} cx={xPos(i)} cy={yPos(p.d)} r="4" fill="#C87878" stroke="#0d1b2a" strokeWidth="2" />,
+          cbmLines.r && <circle key={`r${i}`} cx={xPos(i)} cy={yPos(p.r)} r="4" fill="#4AAE88" stroke="#0d1b2a" strokeWidth="2" />,
+          cbmLines.score && <circle key={`s${i}`} cx={xPos(i)} cy={yPos(p.score)} r="4" fill="#8EC4E0" stroke="#0d1b2a" strokeWidth="2" />,
+        ] : null)}
       </svg>
     );
   };
@@ -323,13 +320,16 @@ function Progress() {
     setSelectedEntry(e);
   };
 
+  const handleCbmCalDay = (day) => {
+    const key = calYear + '-' + String(calMonth + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+    if (!cbmByDate[key]) return;
+    const parts = key.split('-');
+    const d = new Date(parts[0], parts[1] - 1, parts[2]);
+    setSelectedCbmDateStr(d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }));
+    setSelectedCbm(cbmByDate[key]);
+  };
+
   const cbmLabel = cbmView === '7d' ? 'Weekly' : cbmView === '4w' ? 'Monthly' : 'Yearly';
-  const lvlName = (v) => CBM_LEVEL_NAMES[Math.min(Math.round(v), 5)];
-  const rangeLabel = (cbmSupport !== null && cbmResistance !== null)
-    ? (Math.round(cbmSupport) === Math.round(cbmResistance)
-        ? lvlName(cbmResistance)
-        : `${lvlName(cbmSupport)}\u2013${lvlName(cbmResistance)}`)
-    : '--';
 
   if (loading) return <div style={{ color: '#8BAFC8', padding: '48px', textAlign: 'center' }}>Loading...</div>;
 
@@ -407,9 +407,9 @@ function Progress() {
               <div>
                 <div style={styles.graphTop}>
                   <div style={styles.legend}>
-                    <div style={styles.legendItem}><div style={{ ...styles.legendDot, background: '#8EC4E0' }} /><span>ISM</span></div>
-                    <div style={styles.legendItem}><div style={{ ...styles.legendDot, background: '#C49FDA' }} /><span>ESM</span></div>
-                    <div style={styles.legendItem}><div style={{ ...styles.legendDot, background: '#4EC9A0' }} /><span>AXIS</span></div>
+                    <div style={{ ...styles.legendItem, opacity: scanLines.ismPct ? 1 : 0.35, cursor: 'pointer' }} onClick={() => toggleScan('ismPct')}><div style={{ ...styles.legendDot, background: '#8EC4E0' }} /><span>ISM</span></div>
+                    <div style={{ ...styles.legendItem, opacity: scanLines.esmPct ? 1 : 0.35, cursor: 'pointer' }} onClick={() => toggleScan('esmPct')}><div style={{ ...styles.legendDot, background: '#C49FDA' }} /><span>ESM</span></div>
+                    <div style={{ ...styles.legendItem, opacity: scanLines.totalPct ? 1 : 0.35, cursor: 'pointer' }} onClick={() => toggleScan('totalPct')}><div style={{ ...styles.legendDot, background: '#4EC9A0' }} /><span>AXIS</span></div>
                   </div>
                   <div style={styles.viewTabs}>
                     {['7d', '4w', '12m'].map(v => (
@@ -460,45 +460,109 @@ function Progress() {
           </>
         ) : (
           <>
-            {cbmSupport !== null && (
+            {avgScore !== null && (
               <div style={styles.dashBlock}>
                 <div style={styles.dashRow1}>
                   <div>
-                    <div style={{ ...styles.osLabel, color: '#C49FDA' }}>Trading Range</div>
-                    <div style={{ fontFamily: 'Georgia, serif', fontSize: '32px', fontWeight: '300', color: '#C49FDA' }}>{rangeLabel}</div>
-                    <div style={{ fontSize: '11px', color: '#8BAFC8', marginTop: '6px' }}>{cbmLabel} channel</div>
+                    <div style={{ ...styles.osLabel, color: '#8EC4E0' }}>Average AXIS</div>
+                    <div style={{ fontFamily: 'Georgia, serif', fontSize: '32px', fontWeight: '300', color: avgScore >= 0 ? '#4AAE88' : '#C87878' }}>{avgScore >= 0 ? '+' : ''}{avgScore}</div>
+                    <div style={{ fontSize: '11px', color: '#8BAFC8', marginTop: '6px' }}>{cbmLabel} · R − D</div>
                   </div>
-                  <div style={{ ...styles.scoreCol, borderLeft: '3px solid rgba(200,120,120,0.75)' }}>
-                    <div style={{ ...styles.scoreColLabel, color: 'rgba(200,120,120,0.9)' }}>Resistance</div>
-                    <div style={{ ...styles.scoreColNum, color: 'rgba(200,120,120,0.9)' }}>{cbmResistance}</div>
-                    <div style={styles.scoreColSub}>{lvlName(cbmResistance)}</div>
+                  <div style={{ ...styles.scoreCol, borderLeft: '3px solid #C87878' }}>
+                    <div style={{ ...styles.scoreColLabel, color: '#C87878' }}>Dysregulated</div>
+                    <div style={{ ...styles.scoreColNum, color: '#C87878' }}>{avgD}</div>
+                    <div style={styles.scoreColSub}>avg AUC</div>
                   </div>
-                  <div style={{ ...styles.scoreCol, borderLeft: '3px solid rgba(74,174,136,0.75)' }}>
-                    <div style={{ ...styles.scoreColLabel, color: 'rgba(74,174,136,0.9)' }}>Support</div>
-                    <div style={{ ...styles.scoreColNum, color: 'rgba(74,174,136,0.9)' }}>{cbmSupport}</div>
-                    <div style={styles.scoreColSub}>{lvlName(cbmSupport)}</div>
+                  <div style={{ ...styles.scoreCol, borderLeft: '3px solid #4AAE88' }}>
+                    <div style={{ ...styles.scoreColLabel, color: '#4AAE88' }}>Regulated</div>
+                    <div style={{ ...styles.scoreColNum, color: '#4AAE88' }}>{avgR}</div>
+                    <div style={styles.scoreColSub}>avg AUC</div>
                   </div>
-                  <div style={{ ...styles.scoreCol, borderLeft: '3px solid rgba(255,200,80,0.6)' }}>
-                    <div style={{ ...styles.scoreColLabel, color: 'rgba(255,200,80,0.85)' }}>Average</div>
-                    <div style={{ ...styles.scoreColNum, color: 'rgba(255,200,80,0.85)' }}>{cbmMA !== null ? cbmMA.toFixed(1) : '--'}</div>
-                    <div style={styles.scoreColSub}>rolling avg</div>
+                </div>
+                <div style={styles.dashRow2}>
+                  <div>
+                    <div style={styles.statLabel}>Period</div>
+                    <div style={{ fontFamily: 'Georgia, serif', fontSize: '24px', fontWeight: '300', color: '#D8E6F0' }}>{cbmLabel}</div>
+                    <div style={{ marginTop: '8px' }}>
+                      <span style={styles.entryBadge}>{cbmCount === 1 ? '1 day' : cbmCount + ' days'}</span>
+                    </div>
                   </div>
+                  {cbmStreak > 0 && (
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={styles.statLabel}>Streak</div>
+                      <div style={{ fontFamily: 'Georgia, serif', fontSize: '42px', fontWeight: '300', color: '#8EC4E0', lineHeight: 1 }}>{cbmStreak}</div>
+                      <div style={{ fontSize: '11px', color: '#8BAFC8', marginTop: '6px' }}>{cbmStreak === 1 ? 'consecutive day' : 'consecutive days'}</div>
+                    </div>
+                  )}
+                  {cbmBestKey && (
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={styles.statLabel}>Best AXIS</div>
+                      <div style={{ fontFamily: 'Georgia, serif', fontSize: '42px', fontWeight: '300', color: '#4AAE88', lineHeight: 1 }}>{cbmBest >= 0 ? '+' : ''}{cbmBest}</div>
+                      <div style={{ fontSize: '11px', color: '#8BAFC8', marginTop: '6px' }}>{cbmBestDate}</div>
+                    </div>
+                  )}
+                  {cbmLoggedToday && (
+                    <button style={styles.viewResultsBtn} onClick={() => navigate('/cbmresults')}>
+                      View Today Results
+                    </button>
+                  )}
                 </div>
               </div>
             )}
 
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                <div style={{ fontSize: '11px', fontWeight: '600', letterSpacing: '4px', textTransform: 'uppercase', color: '#8BAFC8' }}>Compulsive Behavior Log</div>
-                <div style={styles.viewTabs}>
-                  {['7d', '4w', '12m'].map(v => (
-                    <button key={v} style={{ ...styles.viewTab, ...(cbmView === v ? styles.viewTabActive : {}) }} onClick={() => setCbmView(v)}>
-                      {v === '7d' ? 'Weekly' : v === '4w' ? 'Monthly' : 'Yearly'}
-                    </button>
-                  ))}
+            <div style={styles.trackLayout}>
+              <div>
+                <div style={styles.graphTop}>
+                  <div style={styles.legend}>
+                    <div style={{ ...styles.legendItem, opacity: cbmLines.d ? 1 : 0.35, cursor: 'pointer' }} onClick={() => toggleCbm('d')}><div style={{ ...styles.legendDot, background: '#C87878' }} /><span>Dysregulated</span></div>
+                    <div style={{ ...styles.legendItem, opacity: cbmLines.r ? 1 : 0.35, cursor: 'pointer' }} onClick={() => toggleCbm('r')}><div style={{ ...styles.legendDot, background: '#4AAE88' }} /><span>Regulated</span></div>
+                    <div style={{ ...styles.legendItem, opacity: cbmLines.score ? 1 : 0.35, cursor: 'pointer' }} onClick={() => toggleCbm('score')}><div style={{ ...styles.legendDot, background: '#8EC4E0' }} /><span>AXIS</span></div>
+                  </div>
+                  <div style={styles.viewTabs}>
+                    {['7d', '4w', '12m'].map(v => (
+                      <button key={v} style={{ ...styles.viewTab, ...(cbmView === v ? styles.viewTabActive : {}) }} onClick={() => setCbmView(v)}>
+                        {v === '7d' ? 'Weekly' : v === '4w' ? 'Monthly' : 'Yearly'}
+                      </button>
+                    ))}
+                  </div>
                 </div>
+                <div style={{ position: 'relative', width: '100%' }}>{renderCBMChart()}</div>
               </div>
-              <div style={{ position: 'relative', width: '100%' }}>{renderCBMChart()}</div>
+
+              <div>
+                <div style={styles.calHeader}>
+                  <div style={styles.calMonth}>{monthName}</div>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    <button style={styles.calBtn} onClick={() => { let m = calMonth - 1; let y = calYear; if (m < 0) { m = 11; y--; } setCalMonth(m); setCalYear(y); setSelectedCbm(null); }}>{'\u2039'}</button>
+                    <button style={styles.calBtn} onClick={() => { let m = calMonth + 1; let y = calYear; if (m > 11) { m = 0; y++; } setCalMonth(m); setCalYear(y); setSelectedCbm(null); }}>{'\u203a'}</button>
+                  </div>
+                </div>
+                <div style={styles.calGrid}>
+                  {dayLabels.map(d => <div key={d} style={styles.calDayLabel}>{d}</div>)}
+                  {Array(firstDay).fill(null).map((_, i) => <div key={`e${i}`} />)}
+                  {Array(daysInMonth).fill(null).map((_, i) => {
+                    const day = i + 1;
+                    const key = calYear + '-' + String(calMonth + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+                    const isToday = calYear === today.getFullYear() && calMonth === today.getMonth() && day === today.getDate();
+                    const hasEntry = !!cbmByDate[key];
+                    return (
+                      <div key={day} style={{ ...styles.calDay, ...(isToday && !hasEntry ? styles.calDayToday : {}), ...(hasEntry ? styles.calDayHasEntry : {}), ...(hasEntry && isToday ? styles.calDayTodayEntry : {}) }} onClick={() => hasEntry && handleCbmCalDay(day)}>
+                        {day}
+                      </div>
+                    );
+                  })}
+                </div>
+                {selectedCbm && (
+                  <div style={styles.entryDetail}>
+                    <div style={styles.entryDetailDate}>{selectedCbmDateStr}</div>
+                    <div style={styles.entryDetailScores}>
+                      <div style={styles.entryDetailScore}><div style={styles.entryDetailLabel}>Dys</div><div style={{ ...styles.entryDetailValue, color: '#C87878' }}>{selectedCbm.dTotal}</div></div>
+                      <div style={styles.entryDetailScore}><div style={styles.entryDetailLabel}>Reg</div><div style={{ ...styles.entryDetailValue, color: '#4AAE88' }}>{selectedCbm.rTotal}</div></div>
+                      <div style={styles.entryDetailScore}><div style={styles.entryDetailLabel}>AXIS</div><div style={{ ...styles.entryDetailValue, color: '#8EC4E0' }}>{selectedCbm.score >= 0 ? '+' : ''}{selectedCbm.score}</div></div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </>
         )}

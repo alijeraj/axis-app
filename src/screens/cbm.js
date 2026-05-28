@@ -5,108 +5,91 @@ import { Page, AppHeader, PageBody } from '../components/Layout';
 
 const API = 'https://axis-backend-production-5e9b.up.railway.app';
 
-const LEVEL_CONFIGS = [
-  { label: 'Mild',     color: 'rgba(74,174,136,0.25)',  border: 'rgba(74,174,136,0.4)',   width: '100%', num: 1 },
-  { label: 'Low',      color: 'rgba(107,163,200,0.2)',  border: 'rgba(107,163,200,0.35)', width: '85%',  num: 2 },
-  { label: 'Moderate', color: 'rgba(155,126,200,0.2)',  border: 'rgba(155,126,200,0.35)', width: '68%',  num: 3 },
-  { label: 'Intense',  color: 'rgba(200,126,80,0.22)',  border: 'rgba(200,126,80,0.4)',   width: '50%',  num: 4 },
-  { label: 'Severe',   color: 'rgba(176,90,90,0.28)',   border: 'rgba(176,90,90,0.5)',    width: '32%',  num: 5 },
+// Fixed dopamine database (per-unit AUC). Auto-generated from AXIS_Dopamine_Database.
+const DB_DYS = [
+  { name: 'Methamphetamine', category: 'Substance', unit: '1 dose (10-30mg)', auc: 8000, tier: 'firsthand' },
+  { name: 'Amphetamine', category: 'Substance', unit: '1 dose (~20mg)', auc: 4000, tier: 'firsthand' },
+  { name: 'MDMA', category: 'Substance', unit: '1 pill (~100mg)', auc: 2800, tier: 'secondhand' },
+  { name: 'Morphine / Opioids', category: 'Substance', unit: '1 dose (10mg morphine eq)', auc: 540, tier: 'firsthand' },
+  { name: 'Cocaine', category: 'Substance', unit: '1 line (~30-50mg)', auc: 400, tier: 'firsthand' },
+  { name: 'Alcohol', category: 'Substance', unit: '1 standard drink', auc: 368, tier: 'firsthand' },
+  { name: 'THC', category: 'Substance', unit: '0.5g / 1 joint', auc: 350, tier: 'estimate' },
+  { name: 'Porn', category: 'Digital', unit: '30 min session', auc: 300, tier: 'estimate' },
+  { name: 'Gambling', category: 'Behavioral', unit: '30 min session', auc: 200, tier: 'estimate' },
+  { name: 'Fatty / Fried Food', category: 'Food', unit: '1 meal', auc: 155, tier: 'firsthand' },
+  { name: 'Video Games', category: 'Digital', unit: '30 min', auc: 150, tier: 'estimate' },
+  { name: 'Caffeine', category: 'Substance', unit: '1 cup of coffee', auc: 150, tier: 'firsthand' },
+  { name: 'Social Media / Doomscrolling', category: 'Digital', unit: '30 min', auc: 130, tier: 'estimate' },
+  { name: 'Binge-Watching', category: 'Digital', unit: '30 min', auc: 120, tier: 'estimate' },
+  { name: 'Processed Sugar', category: 'Food', unit: '1 snack (~30g sugar)', auc: 80, tier: 'firsthand' },
+  { name: 'Nicotine', category: 'Substance', unit: '1 cigarette', auc: 51, tier: 'firsthand' },
+];
+const DB_REG = [
+  { name: 'Hiking', category: 'Behavioral', unit: '3h outing', auc: 700, tier: 'estimate' },
+  { name: 'Cold Exposure / Ice Bath', category: 'Behavioral', unit: '1 immersion (3-10 min)', auc: 500, tier: 'estimate' },
+  { name: 'Running / Jogging', category: 'Behavioral', unit: '30 min', auc: 360, tier: 'firsthand' },
+  { name: 'Strength Training', category: 'Behavioral', unit: '30 min', auc: 300, tier: 'estimate' },
+  { name: 'Yoga', category: 'Behavioral', unit: '30 min', auc: 280, tier: 'estimate' },
+  { name: 'High Impact Sports', category: 'Behavioral', unit: '1h', auc: 250, tier: 'estimate' },
+  { name: 'Matcha', category: 'Nutrient', unit: '1 cup (~50mg L-theanine)', auc: 195, tier: 'estimate' },
+  { name: 'Walking', category: 'Behavioral', unit: '30 min', auc: 180, tier: 'estimate' },
+  { name: 'Meditation', category: 'Behavioral', unit: '15 min', auc: 165, tier: 'firsthand' },
+  { name: 'Green Tea', category: 'Nutrient', unit: '1 cup (~15mg L-theanine)', auc: 158, tier: 'estimate' },
+  { name: 'Black Tea', category: 'Nutrient', unit: '1 cup (~5mg L-theanine)', auc: 150, tier: 'estimate' },
+  { name: 'Low Impact Sports', category: 'Behavioral', unit: '1h', auc: 140, tier: 'estimate' },
+  { name: 'Breathing Exercises', category: 'Behavioral', unit: '10 min', auc: 125, tier: 'estimate' },
 ];
 
-const REG_CONFIGS = [
-  { label: 'Mild',     color: 'rgba(74,174,136,0.20)',  border: 'rgba(74,174,136,0.45)',  width: '100%' },
-  { label: 'Low',      color: 'rgba(74,174,136,0.16)',  border: 'rgba(74,174,136,0.4)',   width: '85%'  },
-  { label: 'Moderate', color: 'rgba(74,174,136,0.13)',  border: 'rgba(74,174,136,0.35)',  width: '68%'  },
-  { label: 'Intense',  color: 'rgba(74,174,136,0.10)',  border: 'rgba(74,174,136,0.3)',   width: '50%'  },
-  { label: 'Severe',   color: 'rgba(74,174,136,0.08)',  border: 'rgba(74,174,136,0.25)',  width: '32%'  },
+const MULTIPLIERS = [
+  { key: 'occasional', label: 'Occasional', value: 1.0 },
+  { key: 'regular', label: 'Regular', value: 0.5 },
+  { key: 'heavy', label: 'Heavy', value: 0.25 },
 ];
 
-const LOG_CONFIGS = [
-  { label: 'Mild',     color: 'rgba(74,174,136,0.3)',   border: 'rgba(74,174,136,0.5)',   num: 1 },
-  { label: 'Low',      color: 'rgba(107,163,200,0.25)', border: 'rgba(107,163,200,0.45)', num: 2 },
-  { label: 'Moderate', color: 'rgba(155,126,200,0.25)', border: 'rgba(155,126,200,0.45)', num: 3 },
-  { label: 'Intense',  color: 'rgba(200,126,80,0.25)',  border: 'rgba(200,126,80,0.45)',  num: 4 },
-  { label: 'Severe',   color: 'rgba(176,90,90,0.3)',    border: 'rgba(176,90,90,0.5)',    num: 5 },
-];
-
-const LEVEL_NAMES = ['Mild', 'Low', 'Moderate', 'Intense', 'Severe'];
-
-const getAlternatives = (b) => {
-  if (!b) return [];
-  if (Array.isArray(b.alternatives)) return b.alternatives.filter(a => a && a.trim());
-  if (b.alternative && b.alternative.trim()) return [b.alternative];
-  return [];
+const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const todayKey = () => {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 };
 
-function ComplexViewModal({ complex, onClose }) {
-  if (!complex) return null;
-  const c = complex;
-  const hasCounter = c.counter && c.counter.trim();
-  const hasCounterBehavior = c.counterBehavior && c.counterBehavior.trim();
-  const W = 220; const CW = 180; const GAP = 16;
-
-  const Arrow = ({ up, color }) => (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '28px' }}>
-      {up && <div style={{ borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderBottom: `7px solid ${color || 'rgba(142,196,224,0.35)'}` }} />}
-      <div style={{ width: '2px', flex: 1, background: color || 'rgba(142,196,224,0.35)' }} />
-      {!up && <div style={{ borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderTop: `7px solid ${color || 'rgba(142,196,224,0.35)'}` }} />}
-    </div>
+// ---------- Add-habit picker ----------
+function AddHabitModal({ side, existingNames, onAdd, onClose }) {
+  const [query, setQuery] = useState('');
+  const list = side === 'D' ? DB_DYS : DB_REG;
+  const filtered = list.filter(e =>
+    e.name.toLowerCase().includes(query.toLowerCase()) && !existingNames.has(e.name)
   );
-
-  const FlowNode = ({ label, text, isBurden, isTrigger, isCounter }) => (
-    <div style={{ border: `1px solid ${isCounter ? 'rgba(74,174,136,0.3)' : isBurden ? 'rgba(176,90,90,0.35)' : isTrigger ? 'rgba(200,168,80,0.3)' : 'rgba(142,196,224,0.2)'}`, borderRadius: '3px', padding: '12px 14px', background: isCounter ? 'rgba(74,174,136,0.06)' : isBurden ? 'rgba(176,90,90,0.08)' : isTrigger ? 'rgba(200,168,80,0.06)' : 'rgba(142,196,224,0.04)', width: '100%', boxSizing: 'border-box' }}>
-      <div style={{ fontSize: '8px', fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase', color: isCounter ? '#4AAE88' : isBurden ? '#C87878' : isTrigger ? '#C8A840' : '#8EC4E0', marginBottom: '6px' }}>{label}</div>
-      <div style={{ fontSize: '13px', color: '#D8E6F0', fontFamily: 'Georgia, serif', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{text || ''}</div>
-    </div>
-  );
-
-  const Row = ({ main, counter, connector }) => (
-    <div style={{ display: 'flex', alignItems: 'stretch', width: W + GAP + CW }}>
-      <div style={{ width: W, flexShrink: 0 }}>{main}</div>
-      <div style={{ width: GAP, flexShrink: 0, display: 'flex', alignItems: 'center' }}>{connector}</div>
-      <div style={{ width: CW, flexShrink: 0 }}>{counter}</div>
-    </div>
-  );
-
-  const ArrowRow = ({ left, right }) => (
-    <div style={{ display: 'flex', width: W + GAP + CW }}>
-      <div style={{ width: W, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>{left}</div>
-      <div style={{ width: GAP }} />
-      <div style={{ width: CW, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>{right}</div>
-    </div>
-  );
-
-  const Connector = ({ color }) => <div style={{ height: '2px', width: '100%', background: color || 'rgba(74,174,136,0.4)' }} />;
-  const bVal = Array.isArray(c.behaviors) ? c.behaviors.join('\n') : (c.behaviors || '');
-
+  const accent = side === 'D' ? '#C87878' : '#4AAE88';
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 400, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '40px 20px' }}>
-      <div style={{ background: '#162534', border: '1px solid rgba(142,196,224,0.3)', borderRadius: '4px', width: '100%', maxWidth: '560px', padding: '32px', boxShadow: '0 0 40px rgba(0,0,0,0.6)', margin: 'auto' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '8px' }}>
-          <div>
-            <div style={{ fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: '300', color: '#D8E6F0' }}>{c.name}</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
-              <span style={{ fontSize: '8px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', padding: '3px 8px', borderRadius: '2px', color: c.status === 'resolved' ? '#4AAE88' : '#C87878', background: c.status === 'resolved' ? 'rgba(74,174,136,0.12)' : 'rgba(176,90,90,0.12)', border: c.status === 'resolved' ? '1px solid rgba(74,174,136,0.3)' : '1px solid rgba(176,90,90,0.3)' }}>{c.status || 'active'}</span>
-              {c.originalWound && <span style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '2px', textTransform: 'uppercase', color: '#C8A840', border: '1px dashed #C8A840', padding: '2px 7px', borderRadius: '2px' }}>Original Wound</span>}
-            </div>
+    <div style={styles.overlay} onClick={onClose}>
+      <div style={styles.modal} onClick={e => e.stopPropagation()}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+          <div style={{ fontFamily: 'Georgia, serif', fontSize: '20px', fontWeight: '300', color: '#D8E6F0' }}>
+            Add {side === 'D' ? 'Dysregulating' : 'Regulating'} Habit
           </div>
-          <button style={{ background: 'none', border: 'none', color: '#8BAFC8', cursor: 'pointer', fontSize: '18px' }} onClick={onClose}>✕</button>
+          <button style={styles.x} onClick={onClose}>✕</button>
         </div>
-        <div style={{ overflowX: 'auto', paddingBottom: '8px', marginTop: '24px' }}>
-          <Row main={<FlowNode label="Emotional Burden" text={c.burden || ''} isBurden />} counter={<div />} connector={<div />} />
-          <ArrowRow left={<Arrow />} right={<div />} />
-          <Row main={<FlowNode label="Beliefs" text={c.beliefs || ''} />} connector={hasCounter ? <Connector /> : <div />} counter={hasCounter ? <><FlowNode label="Counter Beliefs" text={c.counter} isCounter />{c.originalWound && <div style={{ fontSize: '9px', fontStyle: 'italic', color: 'rgba(200,168,80,0.6)', marginTop: '6px' }}>You are speaking to your inner child.</div>}</> : <div />} />
-          <ArrowRow left={<Arrow />} right={<div />} />
-          <Row main={<FlowNode label="Thoughts" text={c.thoughts || ''} />} connector={<div />} counter={<div />} />
-          {c.feelings && c.feelings.trim() && <><ArrowRow left={<Arrow />} right={<div />} /><Row main={<FlowNode label="Feelings" text={c.feelings} />} connector={<div />} counter={<div />} /></>}
-          <ArrowRow left={<Arrow />} right={hasCounterBehavior ? <Arrow color="rgba(74,174,136,0.4)" /> : <div />} />
-          <Row main={<FlowNode label="Behaviors" text={bVal} />} connector={hasCounterBehavior ? <Connector /> : <div />} counter={hasCounterBehavior ? <><FlowNode label="Counter Behaviors" text={c.counterBehavior} isCounter />{c.originalWound && <div style={{ fontSize: '9px', fontStyle: 'italic', color: 'rgba(200,168,80,0.6)', marginTop: '6px' }}>You are speaking to your inner child.</div>}</> : <div />} />
-          <ArrowRow left={<Arrow up />} right={<div />} />
-          <Row main={<FlowNode label="Triggers" text={c.trigger || ''} isTrigger />} connector={<div />} counter={<div />} />
-          {c.notes && c.notes.trim() && <div style={{ marginTop: '20px', opacity: 0.7, width: W + GAP + CW }}><FlowNode label="Notes" text={c.notes} /></div>}
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(142,196,224,0.15)' }}>
-          <button style={{ background: 'rgba(142,196,224,0.15)', border: '1px solid rgba(142,196,224,0.4)', borderRadius: '3px', padding: '10px 24px', color: '#8EC4E0', fontSize: '11px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', cursor: 'pointer' }} onClick={onClose}>Close</button>
+        <input
+          style={styles.input}
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          placeholder="Search…"
+          autoFocus
+        />
+        <div style={{ marginTop: '12px', maxHeight: '340px', overflowY: 'auto' }}>
+          {filtered.length === 0 && <div style={{ fontSize: '12px', color: '#8BAFC8', fontStyle: 'italic', padding: '16px', textAlign: 'center' }}>Nothing left to add.</div>}
+          {filtered.map(e => (
+            <div key={e.name} style={styles.pickRow} onClick={() => onAdd(e)}>
+              <div>
+                <div style={{ fontSize: '14px', color: '#D8E6F0' }}>{e.name}</div>
+                <div style={{ fontSize: '10px', color: '#8BAFC8', marginTop: '2px' }}>{e.unit} · {e.category}</div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '15px', fontFamily: 'Georgia, serif', color: accent }}>{e.auc}</span>
+                <span style={{ fontSize: '8px', color: '#8BAFC8', textTransform: 'uppercase', letterSpacing: '1px' }}>{e.tier}</span>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -116,520 +99,247 @@ function ComplexViewModal({ complex, onClose }) {
 function CBM() {
   const navigate = useNavigate();
   const token = localStorage.getItem('axis_token');
-  const [view, setView] = useState('dysregulated');
-  const [data, setData] = useState({ levels: Array(5).fill(null).map(() => ({ behaviors: [] })) });
-  const [cbmLog, setCbmLog] = useState([]);
+  const [habits, setHabits] = useState([]);     // {id,name,side,auc,unit,tier,quantity,multiplier}
+  const [todayLog, setTodayLog] = useState({}); // habitId -> quantity for today
   const [loading, setLoading] = useState(true);
-  const [showAdd, setShowAdd] = useState(false);
-  const [showLogModal, setShowLogModal] = useState(false);
-  const [showInsightModal, setShowInsightModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showLinkModal, setShowLinkModal] = useState(false);
-  const [showAltModal, setShowAltModal] = useState(false);
-  const [showComplexModal, setShowComplexModal] = useState(false);
-  const [viewComplex, setViewComplex] = useState(null);
-  const [complexes, setComplexes] = useState([]);
-  const [popup, setPopup] = useState(null);
-  const [selectedLogLevel, setSelectedLogLevel] = useState(null);
-  const [logNote, setLogNote] = useState('');
-  const [insightData, setInsightData] = useState(null);
-  const [editForm, setEditForm] = useState({ name: '', level: 0 });
-  const [editTarget, setEditTarget] = useState(null);
-  const [altTarget, setAltTarget] = useState(null);
-  const [altList, setAltList] = useState([]);
-  const [altInput, setAltInput] = useState('');
-  const [linkTarget, setLinkTarget] = useState(null);
-  const [selectedComplex, setSelectedComplex] = useState('');
-  const [form, setForm] = useState({ name: '', level: 0, alternatives: [] });
-  const [formAltInput, setFormAltInput] = useState('');
+  const [adding, setAdding] = useState(null);   // 'D' | 'R' | null
+  const [logStatus, setLogStatus] = useState(''); // '', 'saving', 'saved', 'error'
+  const [loggedToday, setLoggedToday] = useState(false);
 
-  useEffect(() => { loadData(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await axios.get(`${API}/api/cbm`, { headers: { Authorization: `Bearer ${token}` } });
+        if (res.data && Array.isArray(res.data.habits)) {
+          setHabits(res.data.habits);
+          if (res.data.todayLog && res.data.todayLogDate === todayKey()) {
+            setTodayLog(res.data.todayLog);
+          }
+        }
+        const logRes = await axios.get(`${API}/api/cbm-log`, { headers: { Authorization: `Bearer ${token}` } });
+        const arr = Array.isArray(logRes.data) ? logRes.data : [];
+        const k = todayKey();
+        setLoggedToday(arr.some(e => {
+          if (!e || !e.date || typeof e.dTotal !== 'number') return false;
+          const d = new Date(e.date);
+          return (d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')) === k;
+        }));
+      } catch (err) { console.log(err); }
+      finally { setLoading(false); }
+    };
+    load();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const loadData = async () => {
+  const persist = async (nextHabits, nextLog) => {
+    const payload = { habits: nextHabits, todayLog: nextLog, todayLogDate: todayKey() };
+    await axios.post(`${API}/api/cbm`, { data: payload }, { headers: { Authorization: `Bearer ${token}` } });
+  };
+
+  const addHabit = (entry, side) => {
+    const h = { id: newId(), name: entry.name, side, auc: entry.auc, unit: entry.unit, tier: entry.tier, quantity: 1, multiplier: 1.0 };
+    const next = [...habits, h];
+    setHabits(next);
+    persist(next, todayLog);
+    setAdding(null);
+  };
+
+  const updateHabit = (id, field, val) => {
+    const next = habits.map(h => h.id === id ? { ...h, [field]: val } : h);
+    setHabits(next);
+    persist(next, todayLog);
+  };
+
+  const removeHabit = (id) => {
+    const next = habits.filter(h => h.id !== id);
+    const nextLog = { ...todayLog }; delete nextLog[id];
+    setHabits(next); setTodayLog(nextLog);
+    persist(next, nextLog);
+  };
+
+  const setQty = (id, qty) => {
+    const nextLog = { ...todayLog, [id]: qty };
+    setTodayLog(nextLog);
+    persist(habits, nextLog);
+  };
+
+  // load for a habit today = auc * quantity(today, default its saved quantity) * multiplier
+  const qtyFor = (h) => (todayLog[h.id] !== undefined ? todayLog[h.id] : h.quantity);
+  const loadFor = (h) => Math.round(h.auc * qtyFor(h) * (h.side === 'D' ? h.multiplier : 1));
+
+  const dHabits = habits.filter(h => h.side === 'D');
+  const rHabits = habits.filter(h => h.side === 'R');
+  const dTotal = dHabits.reduce((a, h) => a + loadFor(h), 0);
+  const rTotal = rHabits.reduce((a, h) => a + loadFor(h), 0);
+  const score = rTotal - dTotal;
+
+  const logToday = async () => {
+    setLogStatus('saving');
+    const k = todayKey();
+    const items = habits
+      .filter(h => qtyFor(h) > 0)
+      .map(h => ({ name: h.name, side: h.side, load: loadFor(h) }));
+    const entry = { date: new Date(k + 'T12:00:00').toISOString(), dTotal, rTotal, score, items };
     try {
-      const [cbmRes, complexRes, cbmLogRes] = await Promise.all([
-        axios.get(`${API}/api/cbm`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/api/complexes`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/api/cbm-log`, { headers: { Authorization: `Bearer ${token}` } }),
-      ]);
-      if (cbmRes.data && cbmRes.data.levels) setData(cbmRes.data);
-      setComplexes(complexRes.data || []);
-      setCbmLog(cbmLogRes.data || []);
+      let existing = [];
+      try {
+        const res = await axios.get(`${API}/api/cbm-log`, { headers: { Authorization: `Bearer ${token}` } });
+        if (Array.isArray(res.data)) {
+          // keep only valid new-shape entries that aren't today
+          existing = res.data.filter(e => {
+            if (!e || !e.date || typeof e.dTotal !== 'number') return false;
+            const d = new Date(e.date);
+            const ek = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+            return ek !== k;
+          });
+        }
+      } catch (e) { existing = []; }
+      await axios.post(`${API}/api/cbm-log`, { data: [...existing, entry] }, { headers: { Authorization: `Bearer ${token}` } });
+      navigate('/cbmresults');
     } catch (err) {
-      console.log('Error loading CBM:', err);
-    } finally {
-      setLoading(false);
+      console.log(err);
+      setLogStatus('error');
+      setTimeout(() => setLogStatus(''), 3000);
     }
-  };
-
-  const saveData = async (newData) => {
-    await axios.post(`${API}/api/cbm`, { data: newData }, { headers: { Authorization: `Bearer ${token}` } });
-  };
-
-  const saveLog = async (newLog) => {
-    await axios.post(`${API}/api/cbm-log`, { data: newLog }, { headers: { Authorization: `Bearer ${token}` } });
-    setCbmLog(newLog);
-  };
-
-  const today = new Date();
-  const dk = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-  
-  
-  
-
-  const todayKey = dk(today);
-  const todayLogs = cbmLog.filter(e => dk(new Date(e.date)) === todayKey);
-  const todayCeiling = todayLogs.length > 0 ? Math.max(...todayLogs.map(e => e.level)) : null;
-
-  const saveBehavior = async () => {
-    if (!form.name.trim()) return;
-    const newData = JSON.parse(JSON.stringify(data));
-    newData.levels[form.level].behaviors.push({ name: form.name, alternatives: form.alternatives, alternative: form.alternatives[0] || '', relocated: false });
-    await saveData(newData);
-    setData(newData);
-    setShowAdd(false);
-    setForm({ name: '', level: 0, alternatives: [] });
-    setFormAltInput('');
-  };
-
-  const deleteBehavior = async (levelIdx, behaviorIdx) => {
-    const newData = JSON.parse(JSON.stringify(data));
-    newData.levels[levelIdx].behaviors.splice(behaviorIdx, 1);
-    await saveData(newData);
-    setData(newData);
-  };
-
-  const moveBehavior = async (fromLevel, fromIdx, toLevel) => {
-    const newData = JSON.parse(JSON.stringify(data));
-    const behavior = newData.levels[fromLevel].behaviors.splice(fromIdx, 1)[0];
-    if (behavior) { behavior.relocated = true; newData.levels[toLevel].behaviors.push(behavior); }
-    await saveData(newData);
-    setData(newData);
-  };
-
-  const saveEdit = async () => {
-    if (!editForm.name.trim() || !editTarget) return;
-    const newData = JSON.parse(JSON.stringify(data));
-    const behavior = newData.levels[editTarget.level].behaviors[editTarget.idx];
-    if (behavior) {
-      if (editForm.level !== editTarget.level) {
-        newData.levels[editTarget.level].behaviors.splice(editTarget.idx, 1);
-        behavior.name = editForm.name;
-        behavior.relocated = true;
-        newData.levels[editForm.level].behaviors.push(behavior);
-      } else {
-        behavior.name = editForm.name;
-      }
-    }
-    await saveData(newData);
-    setData(newData);
-    setShowEditModal(false);
-  };
-
-  const saveAlternatives = async () => {
-    if (!altTarget) return;
-    const newData = JSON.parse(JSON.stringify(data));
-    const behavior = newData.levels[altTarget.level].behaviors[altTarget.idx];
-    if (behavior) { behavior.alternatives = altList; behavior.alternative = altList[0] || ''; }
-    await saveData(newData);
-    setData(newData);
-    setShowAltModal(false);
-  };
-
-  const saveLink = async () => {
-    if (!linkTarget || !selectedComplex) return;
-    const newData = JSON.parse(JSON.stringify(data));
-    const behavior = newData.levels[linkTarget.level].behaviors[linkTarget.idx];
-    if (behavior) behavior.complexLink = selectedComplex;
-    await saveData(newData);
-    setData(newData);
-    setShowLinkModal(false);
-  };
-
-  const logEntry = async () => {
-    if (selectedLogLevel === null) return;
-    const newLog = [...cbmLog, { date: new Date().toISOString(), level: selectedLogLevel, note: logNote }];
-    await saveLog(newLog);
-    setShowLogModal(false);
-    setSelectedLogLevel(null);
-    setLogNote('');
   };
 
   if (loading) return <div style={{ color: '#8BAFC8', padding: '48px', textAlign: 'center' }}>Loading...</div>;
 
-  if (showAdd) {
+  const existingD = new Set(dHabits.map(h => h.name));
+  const existingR = new Set(rHabits.map(h => h.name));
+
+  const HabitRow = ({ h }) => {
+    const accent = h.side === 'D' ? '#C87878' : '#4AAE88';
+    const multIdx = MULTIPLIERS.findIndex(m => m.value === h.multiplier);
+    const curMult = multIdx >= 0 ? MULTIPLIERS[multIdx] : MULTIPLIERS[0];
+    const cycleMult = () => {
+      const next = MULTIPLIERS[(multIdx + 1) % MULTIPLIERS.length];
+      updateHabit(h.id, 'multiplier', next.value);
+    };
     return (
-      <Page>
-        <AppHeader backLabel="← Cancel" onBack={() => setShowAdd(false)} title="Add Behavior" />
-        <PageBody width="reading">
-          <div style={styles.card}>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Behavior Name</label>
-              <input style={styles.input} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Name this behavior..." autoFocus />
-            </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Level</label>
-              <select style={styles.input} value={form.level} onChange={e => setForm({ ...form, level: parseInt(e.target.value) })}>
-                {LEVEL_CONFIGS.map((cfg, i) => <option key={i} value={i}>Level {cfg.num} · {cfg.label}</option>)}
-              </select>
-            </div>
-            <div style={styles.formGroup}>
-              <label style={{ ...styles.label, color: '#4AAE88' }}>Alternative Behaviors <span style={{ color: '#8BAFC8', fontWeight: 400 }}>— optional, add multiple</span></label>
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-                <input style={{ ...styles.input, borderColor: 'rgba(74,174,136,0.25)', flex: 1 }} value={formAltInput} onChange={e => setFormAltInput(e.target.value)} placeholder="What could you do instead?" onKeyDown={e => { if (e.key === 'Enter' && formAltInput.trim()) { setForm({ ...form, alternatives: [...form.alternatives, formAltInput.trim()] }); setFormAltInput(''); } }} />
-                <button style={{ ...styles.btn, padding: '8px 16px', background: 'rgba(74,174,136,0.1)', border: '1px solid rgba(74,174,136,0.3)', color: '#4AAE88' }} onClick={() => { if (formAltInput.trim()) { setForm({ ...form, alternatives: [...form.alternatives, formAltInput.trim()] }); setFormAltInput(''); } }}>Add</button>
-              </div>
-              {form.alternatives.map((a, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 10px', background: 'rgba(74,174,136,0.06)', border: '1px solid rgba(74,174,136,0.2)', borderRadius: '3px', marginBottom: '4px' }}>
-                  <span style={{ flex: 1, fontSize: '13px', color: '#4AAE88' }}>{a}</span>
-                  <button style={{ background: 'none', border: 'none', color: '#C87878', cursor: 'pointer', fontSize: '14px' }} onClick={() => setForm({ ...form, alternatives: form.alternatives.filter((_, j) => j !== i) })}>✕</button>
-                </div>
-              ))}
-            </div>
-            <div style={styles.formFooter}>
-              <button style={styles.cancelBtn} onClick={() => setShowAdd(false)}>Cancel</button>
-              <button style={styles.btn} onClick={saveBehavior}>Save</button>
+      <div style={styles.habitRow}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: '13px', color: '#D8E6F0' }}>{h.name}</div>
+          <div style={{ fontSize: '9px', color: '#8BAFC8', marginTop: '2px' }}>{h.auc}/unit · {h.unit}</div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          {/* Quantity */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
+            <span style={styles.fieldTag}>Qty</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <button style={styles.stepBtn} onClick={() => setQty(h.id, Math.max(0, qtyFor(h) - 1))}>−</button>
+              <span style={{ minWidth: '22px', textAlign: 'center', fontSize: '14px', color: '#D8E6F0' }}>{qtyFor(h)}</span>
+              <button style={styles.stepBtn} onClick={() => setQty(h.id, qtyFor(h) + 1)}>+</button>
             </div>
           </div>
-        </PageBody>
-      </Page>
+          {/* Usage / receptor multiplier — dysregulating only; tap to cycle */}
+          {h.side === 'D' && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
+              <span style={styles.fieldTag}>Usage</span>
+              <button style={styles.usageBtn} onClick={cycleMult}>
+                {curMult.label} · {Math.round(curMult.value * 100)}%
+              </button>
+            </div>
+          )}
+          {/* Load */}
+          <span style={{ minWidth: '54px', textAlign: 'right', fontSize: '15px', fontFamily: 'Georgia, serif', color: accent }}>{loadFor(h)}</span>
+          {/* Remove */}
+          <button style={styles.removeBtn} onClick={() => removeHabit(h.id)}>✕</button>
+        </div>
+      </div>
     );
-  }
-
-  const hasAlternatives = data.levels.some(l => l.behaviors.some(b => getAlternatives(b).length > 0));
+  };
 
   return (
-    <div style={styles.container} onClick={() => setPopup(null)}>
-
-      {showComplexModal && viewComplex && (
-        <ComplexViewModal complex={viewComplex} onClose={() => { setShowComplexModal(false); setViewComplex(null); }} />
-      )}
-
-      {popup && (
-        <div style={{ position: 'fixed', top: popup.y, left: popup.x, background: '#162534', border: '1px solid rgba(142,196,224,0.2)', borderRadius: '3px', zIndex: 300, minWidth: '200px', boxShadow: '0 4px 24px rgba(0,0,0,0.4)' }} onClick={e => e.stopPropagation()}>
-          <button style={{ ...styles.popupBtn, color: '#8EC4E0' }} onClick={() => { setInsightData({ name: popup.name, level: popup.levelIdx, idx: popup.behaviorIdx }); setShowInsightModal(true); setPopup(null); }}>See Insight</button>
-          <button style={{ ...styles.popupBtn, borderTop: '1px solid rgba(142,196,224,0.1)' }} onClick={() => { const b = data.levels[popup.levelIdx].behaviors[popup.behaviorIdx]; setEditForm({ name: b.name, level: popup.levelIdx }); setEditTarget({ level: popup.levelIdx, idx: popup.behaviorIdx }); setShowEditModal(true); setPopup(null); }}>Edit</button>
-          <button style={{ ...styles.popupBtn, borderTop: '1px solid rgba(142,196,224,0.1)', color: '#4AAE88' }} onClick={() => { const b = data.levels[popup.levelIdx].behaviors[popup.behaviorIdx]; setAltTarget({ level: popup.levelIdx, idx: popup.behaviorIdx, name: popup.name }); setAltList(getAlternatives(b)); setAltInput(''); setShowAltModal(true); setPopup(null); }}>Alternatives</button>
-          <div style={{ borderTop: '1px solid rgba(142,196,224,0.1)' }}>
-            <button style={{ ...styles.popupBtn, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} onClick={e => { e.stopPropagation(); setPopup({ ...popup, showMove: !popup.showMove }); }}>
-              Move to Level <span style={{ opacity: 0.5 }}>{popup.showMove ? '▲' : '▼'}</span>
-            </button>
-            {popup.showMove && (
-              <div style={{ borderTop: '1px solid rgba(142,196,224,0.1)' }}>
-                {LEVEL_NAMES.map((name, i) => i !== popup.levelIdx ? (
-                  <button key={i} style={{ ...styles.popupBtn, paddingLeft: '28px', fontSize: '10px', color: '#8BAFC8' }} onClick={() => { moveBehavior(popup.levelIdx, popup.behaviorIdx, i); setPopup(null); }}>{name} ({i + 1})</button>
-                ) : null)}
-              </div>
-            )}
-          </div>
-          <button style={{ ...styles.popupBtn, borderTop: '1px solid rgba(142,196,224,0.1)' }} onClick={() => { setLinkTarget({ level: popup.levelIdx, idx: popup.behaviorIdx, name: popup.name }); setSelectedComplex(data.levels[popup.levelIdx].behaviors[popup.behaviorIdx]?.complexLink || ''); setShowLinkModal(true); setPopup(null); }}>Link to Complex</button>
-          <button style={{ ...styles.popupBtn, borderTop: '1px solid rgba(142,196,224,0.1)' }} onClick={() => { setPopup(null); navigate('/cpm', { state: { buildFromBehavior: popup.name } }); }}>Build Complex</button>
-          <button style={{ ...styles.popupBtn, borderTop: '1px solid rgba(142,196,224,0.1)', color: '#C87878' }} onClick={() => { deleteBehavior(popup.levelIdx, popup.behaviorIdx); setPopup(null); }}>Delete</button>
-        </div>
-      )}
-
-      {showLogModal && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modal}>
-            <div style={styles.modalHeader}>
-              <div style={styles.modalTitle}>Log Entry</div>
-              <button style={styles.modalClose} onClick={() => setShowLogModal(false)}>✕</button>
-            </div>
-            <div style={styles.modalBody}>
-              <div style={{ fontSize: '12px', color: '#8BAFC8', marginBottom: '24px' }}>Select the highest level you reached. You can log multiple times today.</div>
-              <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8', textAlign: 'center', opacity: 0.6, marginBottom: '6px' }}>Higher Dysregulation</div>
-              {[4, 3, 2, 1, 0].map(i => {
-                const cfg = LOG_CONFIGS[i];
-                const behaviors = data.levels[i] ? data.levels[i].behaviors : [];
-                const behaviorNames = behaviors.map(b => b.name).join(', ');
-                const isSelected = selectedLogLevel === (i + 1);
-                return (
-                  <div key={i} style={{ border: `1px solid ${cfg.border}`, background: cfg.color, borderRadius: '3px', padding: '12px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px', outline: isSelected ? '2px solid rgba(142,196,224,0.8)' : 'none', boxShadow: isSelected ? '0 0 12px rgba(142,196,224,0.15)' : 'none' }} onClick={() => setSelectedLogLevel(i + 1)}>
-                    <div>
-                      <span style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)' }}>{cfg.label}</span>
-                      {behaviorNames && <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginTop: '3px' }}>{behaviorNames}</div>}
-                    </div>
-                    <span style={{ fontSize: '11px', fontWeight: '600', color: 'rgba(255,255,255,0.5)' }}>{cfg.num}</span>
-                  </div>
-                );
-              })}
-              <div style={{ border: '1px solid rgba(142,196,224,0.2)', background: 'rgba(142,196,224,0.06)', borderRadius: '3px', padding: '12px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px', outline: selectedLogLevel === 0 ? '2px solid rgba(142,196,224,0.8)' : 'none' }} onClick={() => setSelectedLogLevel(0)}>
-                <span style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#8BAFC8' }}>Regulated · None</span>
-                <span style={{ fontSize: '11px', fontWeight: '600', color: 'rgba(142,196,224,0.5)' }}>0</span>
-              </div>
-              <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8', textAlign: 'center', opacity: 0.6, marginTop: '6px', marginBottom: '20px' }}>Lower Dysregulation</div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Note (optional)</label>
-                <input style={styles.input} value={logNote} onChange={e => setLogNote(e.target.value)} placeholder="What happened? What triggered it?" />
-              </div>
-            </div>
-            <div style={styles.modalFooter}>
-              <button style={styles.cancelBtn} onClick={() => setShowLogModal(false)}>Cancel</button>
-              <button style={styles.btn} onClick={logEntry} disabled={selectedLogLevel === null}>Log It</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showEditModal && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modal}>
-            <div style={styles.modalHeader}>
-              <div style={styles.modalTitle}>Edit Behavior</div>
-              <button style={styles.modalClose} onClick={() => setShowEditModal(false)}>✕</button>
-            </div>
-            <div style={styles.modalBody}>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Behavior Name</label>
-                <input style={styles.input} value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} autoFocus />
-              </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Level</label>
-                <select style={styles.input} value={editForm.level} onChange={e => setEditForm({ ...editForm, level: parseInt(e.target.value) })}>
-                  {LEVEL_CONFIGS.map((cfg, i) => <option key={i} value={i}>Level {cfg.num} · {cfg.label}</option>)}
-                </select>
-              </div>
-            </div>
-            <div style={styles.modalFooter}>
-              <button style={styles.cancelBtn} onClick={() => setShowEditModal(false)}>Cancel</button>
-              <button style={styles.btn} onClick={saveEdit}>Save</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showAltModal && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modal}>
-            <div style={styles.modalHeader}>
-              <div>
-                <div style={styles.modalTitle}>Alternatives</div>
-                <div style={{ fontSize: '12px', color: '#8BAFC8', marginTop: '4px' }}>{altTarget?.name}</div>
-              </div>
-              <button style={styles.modalClose} onClick={() => setShowAltModal(false)}>✕</button>
-            </div>
-            <div style={styles.modalBody}>
-              <div style={{ fontSize: '12px', color: '#8BAFC8', marginBottom: '16px' }}>What could you do instead? Add one or more alternatives.</div>
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-                <input style={{ ...styles.input, borderColor: 'rgba(74,174,136,0.25)', flex: 1 }} value={altInput} onChange={e => setAltInput(e.target.value)} placeholder="Add an alternative..." onKeyDown={e => { if (e.key === 'Enter' && altInput.trim()) { setAltList([...altList, altInput.trim()]); setAltInput(''); } }} autoFocus />
-                <button style={{ ...styles.btn, padding: '8px 16px', background: 'rgba(74,174,136,0.1)', border: '1px solid rgba(74,174,136,0.3)', color: '#4AAE88' }} onClick={() => { if (altInput.trim()) { setAltList([...altList, altInput.trim()]); setAltInput(''); } }}>Add</button>
-              </div>
-              {altList.length === 0 && <div style={{ fontSize: '12px', color: '#8BAFC8', fontStyle: 'italic', padding: '12px 0' }}>No alternatives yet.</div>}
-              {altList.map((a, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', background: 'rgba(74,174,136,0.06)', border: '1px solid rgba(74,174,136,0.2)', borderRadius: '3px', marginBottom: '6px' }}>
-                  <span style={{ flex: 1, fontSize: '13px', color: '#4AAE88', fontFamily: 'Georgia, serif' }}>{a}</span>
-                  <button style={{ background: 'none', border: 'none', color: '#C87878', cursor: 'pointer', fontSize: '14px' }} onClick={() => setAltList(altList.filter((_, j) => j !== i))}>✕</button>
-                </div>
-              ))}
-            </div>
-            <div style={styles.modalFooter}>
-              <button style={styles.cancelBtn} onClick={() => setShowAltModal(false)}>Cancel</button>
-              <button style={styles.btn} onClick={saveAlternatives}>Save</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showInsightModal && insightData && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modal}>
-            <div style={styles.modalHeader}>
-              <div style={styles.modalTitle}>Insight</div>
-              <button style={styles.modalClose} onClick={() => setShowInsightModal(false)}>✕</button>
-            </div>
-            <div style={styles.modalBody}>
-              {(() => {
-                const b = data.levels[insightData.level]?.behaviors[insightData.idx];
-                const alternatives = getAlternatives(b);
-                const complexLink = b?.complexLink;
-                const complex = complexLink ? complexes.find(c => c.name === complexLink) : null;
-                const BURDEN_COLORS = { Fear: '#8B5A3C', Guilt: '#B4A03C', Shame: '#C87832', Anger: '#B05A5A', Envy: '#825AB4', Grief: '#A07882' };
-                return (
-                  <>
-                    <div style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase', color: '#8EC4E0', marginBottom: '4px' }}>{LEVEL_NAMES[insightData.level]}</div>
-                    <div style={{ fontFamily: 'Georgia, serif', fontSize: '20px', fontWeight: '300', color: '#D8E6F0', marginBottom: alternatives.length > 0 ? '12px' : '28px' }}>{insightData.name}</div>
-                    {alternatives.length > 0 && (
-                      <div style={{ padding: '12px 16px', border: '1px solid rgba(74,174,136,0.3)', borderRadius: '3px', background: 'rgba(74,174,136,0.06)', marginBottom: '24px' }}>
-                        <div style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase', color: '#4AAE88', marginBottom: '10px' }}>Alternatives</div>
-                        {alternatives.map((a, i) => (
-                          <div key={i} style={{ fontSize: '15px', color: '#4AAE88', fontFamily: 'Georgia, serif', marginBottom: i < alternatives.length - 1 ? '8px' : 0, paddingBottom: i < alternatives.length - 1 ? '8px' : 0, borderBottom: i < alternatives.length - 1 ? '1px solid rgba(74,174,136,0.15)' : 'none' }}>{a}</div>
-                        ))}
-                      </div>
-                    )}
-                    {!complexLink ? (
-                      <div style={{ padding: '20px', border: '1px solid rgba(142,196,224,0.15)', borderRadius: '3px', background: 'rgba(142,196,224,0.04)', textAlign: 'center' }}>
-                        <div style={{ fontSize: '13px', color: '#8BAFC8', fontFamily: 'Georgia, serif', fontStyle: 'italic', marginBottom: '12px' }}>No complex linked to this behavior yet.</div>
-                        <div style={{ fontSize: '11px', color: '#8BAFC8' }}>Use <strong>Link to Complex</strong> to connect this behavior to its pattern.</div>
-                      </div>
-                    ) : (
-                      <>
-                        <div style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8', marginBottom: '12px' }}>Linked Complex</div>
-                        {complex ? (
-                          <>
-                            <div style={{ cursor: 'pointer', padding: '14px 16px', border: '1px solid rgba(142,196,224,0.2)', borderRadius: '3px', background: 'rgba(142,196,224,0.04)', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} onClick={() => { setShowInsightModal(false); setViewComplex(complex); setShowComplexModal(true); }}>
-                              <div>
-                                <div style={{ fontSize: '15px', fontWeight: '600', color: '#D8E6F0', marginBottom: '4px' }}>{complex.name}</div>
-                                {complex.burden && <div style={{ fontSize: '9px', letterSpacing: '2px', textTransform: 'uppercase', color: BURDEN_COLORS[complex.burden] || '#8EC4E0' }}>{complex.burden}</div>}
-                              </div>
-                              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4 2 L9 6 L4 10" stroke="rgba(142,196,224,0.5)" strokeWidth="1.5" strokeLinecap="round" /></svg>
-                            </div>
-                            {complex.counterBehavior && <div style={{ padding: '14px 16px', border: '1px solid rgba(74,174,136,0.25)', borderRadius: '3px', background: 'rgba(74,174,136,0.05)', marginBottom: '12px' }}>
-                              <div style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase', color: '#4AAE88', marginBottom: '8px' }}>Counter Behavior</div>
-                              <div style={{ fontSize: '14px', color: '#A0C4D8', fontFamily: 'Georgia, serif', lineHeight: 1.7 }}>{complex.counterBehavior}</div>
-                            </div>}
-                            {complex.counter && <div style={{ padding: '14px 16px', border: '1px solid rgba(74,174,136,0.15)', borderRadius: '3px', background: 'rgba(74,174,136,0.03)' }}>
-                              <div style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase', color: '#4AAE88', marginBottom: '8px' }}>Counter Belief</div>
-                              <div style={{ fontSize: '14px', color: '#A0C4D8', fontFamily: 'Georgia, serif', lineHeight: 1.7 }}>{complex.counter}</div>
-                            </div>}
-                          </>
-                        ) : (
-                          <div style={{ fontSize: '14px', color: '#8EC4E0', fontFamily: 'Georgia, serif' }}>{complexLink}</div>
-                        )}
-                      </>
-                    )}
-                  </>
-                );
-              })()}
-            </div>
-            <div style={styles.modalFooter}>
-              <button style={styles.btn} onClick={() => setShowInsightModal(false)}>Close</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showLinkModal && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modal}>
-            <div style={styles.modalHeader}>
-              <div style={styles.modalTitle}>Link to Complex</div>
-              <button style={styles.modalClose} onClick={() => setShowLinkModal(false)}>✕</button>
-            </div>
-            <div style={styles.modalBody}>
-              <div style={{ fontSize: '13px', color: '#8BAFC8', marginBottom: '20px' }}>Link <strong style={{ color: '#D8E6F0' }}>{linkTarget?.name}</strong> to a complex pattern.</div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Select Complex</label>
-                <select style={styles.input} value={selectedComplex} onChange={e => setSelectedComplex(e.target.value)}>
-                  <option value="">-- Select complex --</option>
-                  {complexes.map((c, i) => <option key={i} value={c.name}>{c.name}</option>)}
-                </select>
-              </div>
-            </div>
-            <div style={styles.modalFooter}>
-              <button style={styles.cancelBtn} onClick={() => setShowLinkModal(false)}>Cancel</button>
-              <button style={styles.btn} onClick={saveLink} disabled={!selectedComplex}>Link</button>
-            </div>
-          </div>
-        </div>
-      )}
-
+    <Page>
       <AppHeader
-        title="Compulsive Behavior Map"
-        right={
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#8BAFC8' }} onClick={() => navigate('/progress')}>View Progress →</button>
-            <button style={{ ...styles.btn, background: 'rgba(255,200,80,0.08)', border: '1px solid rgba(255,200,80,0.25)', color: 'rgba(255,200,80,0.9)' }} onClick={() => navigate('/yesterday')}>Log Yesterday</button>
-            <button style={styles.btn} onClick={() => setShowAdd(true)}>+ Add Behavior</button>
-          </div>
-        }
+        title="Behavior Log"
       />
-
       <PageBody width="content">
 
-        
-
-        <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid rgba(142,196,224,0.15)', marginBottom: '20px' }}>
-          <button style={{ ...styles.tabBtn, ...(view === 'dysregulated' ? styles.tabBtnActive : {}) }} onClick={() => setView('dysregulated')}>Dysregulated</button>
-          <button style={{ ...styles.tabBtn, ...(view === 'regulated' ? { ...styles.tabBtnActive, color: '#4AAE88', borderBottomColor: '#4AAE88' } : {}) }} onClick={() => setView('regulated')}>Regulated Self</button>
+        {/* SCORE DASHBOARD */}
+        <div style={styles.dash}>
+          <div style={styles.dashCol}>
+            <div style={{ ...styles.dashLabel, color: '#C87878' }}>Dysregulated</div>
+            <div style={{ ...styles.dashNum, color: '#C87878' }}>{dTotal}</div>
+            <div style={styles.dashSub}>AUC load</div>
+          </div>
+          <div style={styles.dashCol}>
+            <div style={{ ...styles.dashLabel, color: '#4AAE88' }}>Regulated</div>
+            <div style={{ ...styles.dashNum, color: '#4AAE88' }}>{rTotal}</div>
+            <div style={styles.dashSub}>AUC load</div>
+          </div>
+          <div style={{ ...styles.dashCol, borderLeft: '1px solid rgba(142,196,224,0.15)' }}>
+            <div style={{ ...styles.dashLabel, color: '#8EC4E0' }}>Score</div>
+            <div style={{ ...styles.dashNum, color: score >= 0 ? '#4AAE88' : '#C87878' }}>{score >= 0 ? '+' : ''}{score}</div>
+            <div style={styles.dashSub}>R − D</div>
+          </div>
         </div>
 
-        {view === 'regulated' && !hasAlternatives ? (
-          <div style={{ textAlign: 'center', padding: '40px 24px', fontFamily: 'Georgia, serif', fontStyle: 'italic', color: '#8BAFC8' }}>
-            Add alternative behaviors to your compulsive behaviors to build your regulated self map.
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginBottom: '32px' }}>
+          <button style={styles.logBtn} onClick={logToday}>
+            {logStatus === 'saving' ? 'Saving…' : logStatus === 'error' ? 'Failed — retry' : loggedToday ? 'Update Today' : 'Log Today'}
+          </button>
+          {loggedToday && (
+            <button style={styles.resultsBtn} onClick={() => navigate('/cbmresults')}>View Today's Results</button>
+          )}
+        </div>
+
+        {/* TWO COLUMNS */}
+        <div style={styles.cols}>
+          <div>
+            <div style={styles.colHead}>
+              <span style={{ color: '#C87878' }}>Dysregulating</span>
+              <button style={styles.addBtn} onClick={() => setAdding('D')}>+ Add</button>
+            </div>
+            {dHabits.length === 0 ? <div style={styles.emptyCol}>No dysregulating habits yet.</div> : dHabits.map(h => <HabitRow key={h.id} h={h} />)}
           </div>
-        ) : (
-          <>
-            <div style={{ textAlign: 'center', fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: view === 'regulated' ? '#4AAE88' : '#8BAFC8', marginBottom: '12px', opacity: 0.7 }}>
-              {view === 'regulated' ? 'Higher Regulation' : 'Higher Dysregulation'}
+          <div>
+            <div style={styles.colHead}>
+              <span style={{ color: '#4AAE88' }}>Regulating</span>
+              <button style={styles.addBtn} onClick={() => setAdding('R')}>+ Add</button>
             </div>
-            <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', maxWidth: '700px', margin: '0 auto' }}>
-              {[4, 3, 2, 1, 0].map(i => {
-                const cfg = view === 'dysregulated' ? LEVEL_CONFIGS[i] : REG_CONFIGS[i];
-                const behaviors = data.levels[i].behaviors || [];
-                const isReg = view === 'regulated';
-                const alternatives = behaviors.flatMap(b => getAlternatives(b));
-                return (
-                  <React.Fragment key={i}>
-                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '2px', minHeight: '72px', width: cfg.width, background: cfg.color, border: `1px solid ${cfg.border}` }}>
-                      <span style={{ position: 'absolute', left: '-80px', fontSize: '9px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: isReg ? '#4AAE88' : '#8BAFC8', whiteSpace: 'nowrap' }}>{cfg.label}</span>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center', alignItems: 'center', minHeight: '40px', padding: '12px 24px' }}>
-                        {isReg ? (
-                          alternatives.length === 0
-                            ? <span style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', pointerEvents: 'none' }}>Level {i + 1}</span>
-                            : alternatives.map((a, ai) => (
-                              <span key={ai} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '5px 10px', borderRadius: '2px', fontSize: '11px', fontWeight: '500', border: `1px solid ${cfg.border}`, background: 'rgba(74,174,136,0.08)', color: '#4AAE88', margin: '3px' }}>{a}</span>
-                            ))
-                        ) : (
-                          behaviors.length === 0
-                            ? <span style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', pointerEvents: 'none' }}>Level {i + 1}</span>
-                            : behaviors.map((b, bi) => (
-                              <span key={bi} style={{ fontSize: '11px', fontWeight: '500', letterSpacing: '1px', padding: '5px 14px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.9)', background: 'rgba(0,0,0,0.15)', cursor: 'default', position: 'relative' }}
-                                onClick={e => { e.stopPropagation(); const rect = e.currentTarget.getBoundingClientRect(); setPopup({ levelIdx: i, behaviorIdx: bi, name: b.name, y: rect.bottom + 6, x: rect.left, showMove: false }); }}>
-                                {b.name}
-                                {b.complexLink && <span style={{ fontSize: '8px', opacity: 0.7, marginLeft: '4px' }}>⟡</span>}
-                                {getAlternatives(b).length > 0 && <span style={{ fontSize: '8px', opacity: 0.7, marginLeft: '4px', color: '#4AAE88' }}>✓</span>}
-                              </span>
-                            ))
-                        )}
-                      </div>
-                      <span style={{ position: 'absolute', right: '-40px', fontSize: '11px', fontWeight: '600', color: isReg ? 'rgba(74,174,136,0.5)' : 'rgba(255,255,255,0.5)' }}>{i + 1}</span>
-                    </div>
-                    {i > 0 && <div style={{ width: cfg.width, height: '3px', background: `linear-gradient(to bottom, ${cfg.border}, transparent)` }} />}
-                  </React.Fragment>
-                );
-              })}
-            </div>
+            {rHabits.length === 0 ? <div style={styles.emptyCol}>No regulating habits yet.</div> : rHabits.map(h => <HabitRow key={h.id} h={h} />)}
+          </div>
+        </div>
 
-            {view === 'dysregulated' && (
-              <div style={{ textAlign: 'center', fontSize: '9px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8', marginTop: '12px', opacity: 0.7 }}>
-                Lower Dysregulation
-              </div>
-            )}
-
-            {view === 'dysregulated' && todayCeiling !== null && (
-              <div style={{ marginTop: '16px', fontSize: '11px', color: '#8BAFC8', letterSpacing: '1px', textAlign: 'center' }}>
-                Today: <span style={{ color: '#D8E6F0' }}>Level {todayCeiling} ({LEVEL_NAMES[Math.min(todayCeiling - 1, 4)] || 'Regulated'})</span>
-              </div>
-            )}
-          </>
-        )}
       </PageBody>
-    </div>
+
+      {adding && (
+        <AddHabitModal
+          side={adding}
+          existingNames={adding === 'D' ? existingD : existingR}
+          onAdd={(entry) => addHabit(entry, adding)}
+          onClose={() => setAdding(null)}
+        />
+      )}
+    </Page>
   );
 }
 
 const styles = {
-  container: { minHeight: '100vh', background: '#0d1b2a', display: 'flex', flexDirection: 'column' },
-  header: { display: 'flex', alignItems: 'center', gap: '8px', padding: '16px 32px', borderBottom: '1px solid rgba(142,196,224,0.15)', background: '#0f2236' },
-  backBtn: { background: 'none', border: 'none', color: '#8BAFC8', fontSize: '12px', fontWeight: '600', letterSpacing: '1px', cursor: 'pointer', padding: 0, marginRight: '8px' },
-  toolbarTitle: { fontSize: '11px', fontWeight: '600', letterSpacing: '4px', textTransform: 'uppercase', color: '#8BAFC8', flex: 1, textAlign: 'center' },
-  btn: { background: 'rgba(142,196,224,0.15)', border: '1px solid rgba(142,196,224,0.4)', borderRadius: '3px', padding: '8px 16px', color: '#8EC4E0', fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', cursor: 'pointer', whiteSpace: 'nowrap' },
-  tabBtn: { background: 'none', border: 'none', borderBottom: '2px solid transparent', padding: '10px 20px', color: '#8BAFC8', fontSize: '10px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', cursor: 'pointer', marginBottom: '-1px' },
-  tabBtnActive: { color: '#D8E6F0', borderBottomColor: '#8EC4E0' },
-  popupBtn: { display: 'block', width: '100%', background: 'none', border: 'none', padding: '10px 16px', color: '#D8E6F0', fontSize: '12px', cursor: 'pointer', textAlign: 'left' },
-  card: { background: '#162534', border: '1px solid rgba(142,196,224,0.15)', borderRadius: '4px', padding: '32px' },
-  formGroup: { marginBottom: '20px' },
-  label: { display: 'block', fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#8BAFC8', marginBottom: '8px' },
+  dash: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0', border: '1px solid rgba(142,196,224,0.5)', borderRadius: '4px', background: '#162534', padding: '24px', marginBottom: '20px', boxShadow: '0 0 24px rgba(142,196,224,0.12)' },
+  dashCol: { textAlign: 'center', padding: '0 16px' },
+  dashLabel: { fontSize: '10px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '8px' },
+  dashNum: { fontFamily: 'Georgia, serif', fontSize: '40px', fontWeight: '300', lineHeight: 1 },
+  dashSub: { fontSize: '10px', color: '#8BAFC8', marginTop: '6px' },
+  logBtn: { background: 'rgba(142,196,224,0.15)', border: '1px solid rgba(142,196,224,0.4)', borderRadius: '3px', padding: '12px 32px', color: '#8EC4E0', fontSize: '11px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', cursor: 'pointer' },
+  resultsBtn: { background: 'none', border: '1px solid rgba(142,196,224,0.3)', borderRadius: '3px', padding: '12px 24px', color: '#8BAFC8', fontSize: '11px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', cursor: 'pointer' },
+  cols: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' },
+  colHead: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '12px', marginBottom: '12px', borderBottom: '1px solid rgba(142,196,224,0.15)', fontSize: '11px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase' },
+  addBtn: { background: 'none', border: '1px solid rgba(142,196,224,0.25)', borderRadius: '2px', padding: '4px 10px', color: '#8BAFC8', fontSize: '10px', cursor: 'pointer', letterSpacing: '1px' },
+  emptyCol: { fontSize: '12px', color: '#8BAFC8', fontStyle: 'italic', padding: '20px', textAlign: 'center' },
+  habitRow: { display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', borderBottom: '1px solid rgba(142,196,224,0.08)' },
+  stepBtn: { background: 'rgba(142,196,224,0.08)', border: '1px solid rgba(142,196,224,0.2)', borderRadius: '2px', width: '24px', height: '24px', color: '#8EC4E0', fontSize: '14px', cursor: 'pointer', lineHeight: 1, padding: 0 },
+  qtyInput: { width: '48px', background: '#0f2236', border: '1px solid rgba(142,196,224,0.2)', borderRadius: '3px', padding: '6px', color: '#D8E6F0', fontSize: '13px', textAlign: 'center', outline: 'none' },
+  miniSelect: { background: '#0f2236', border: '1px solid rgba(142,196,224,0.2)', borderRadius: '3px', padding: '5px 6px', color: '#D8E6F0', fontSize: '11px', outline: 'none', cursor: 'pointer' },
+  fieldTag: { fontSize: '8px', fontWeight: '600', letterSpacing: '1px', textTransform: 'uppercase', color: '#8BAFC8' },
+  usageBtn: { background: 'rgba(142,196,224,0.08)', border: '1px solid rgba(142,196,224,0.25)', borderRadius: '3px', padding: '5px 10px', color: '#8EC4E0', fontSize: '11px', cursor: 'pointer', whiteSpace: 'nowrap', letterSpacing: '0.5px' },
+  removeBtn: { background: 'none', border: '1px solid rgba(176,90,90,0.3)', borderRadius: '2px', width: '24px', height: '24px', color: '#C87878', fontSize: '12px', cursor: 'pointer', padding: 0 },
+  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 200, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '40px 20px' },
+  modal: { background: '#162534', border: '1px solid rgba(142,196,224,0.3)', borderRadius: '4px', width: '100%', maxWidth: '480px', padding: '28px', boxShadow: '0 0 40px rgba(0,0,0,0.6)', margin: 'auto' },
+  x: { background: 'none', border: 'none', color: '#8BAFC8', cursor: 'pointer', fontSize: '18px' },
   input: { width: '100%', background: '#0f2236', border: '1px solid rgba(142,196,224,0.2)', borderRadius: '3px', padding: '10px 14px', color: '#D8E6F0', fontSize: '14px', outline: 'none', boxSizing: 'border-box' },
-  formFooter: { display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' },
-  cancelBtn: { background: 'none', border: '1px solid rgba(142,196,224,0.2)', borderRadius: '3px', padding: '10px 20px', color: '#8BAFC8', fontSize: '11px', cursor: 'pointer' },
-  modalOverlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  modal: { background: '#162534', border: '1px solid rgba(142,196,224,0.3)', borderRadius: '4px', width: '100%', maxWidth: '480px', padding: 0, boxShadow: '0 0 40px rgba(0,0,0,0.6)', maxHeight: '90vh', overflowY: 'auto' },
-  modalHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px 28px 16px' },
-  modalTitle: { fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: '300', color: '#D8E6F0' },
-  modalClose: { background: 'none', border: 'none', color: '#8BAFC8', cursor: 'pointer', fontSize: '18px' },
-  modalBody: { padding: '0 28px 16px' },
-  modalFooter: { display: 'flex', gap: '12px', padding: '16px 28px 24px', justifyContent: 'flex-end' },
+  pickRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderBottom: '1px solid rgba(142,196,224,0.08)', cursor: 'pointer' },
 };
 
 export default CBM;

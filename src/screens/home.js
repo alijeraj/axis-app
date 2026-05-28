@@ -180,7 +180,7 @@ function Home(props) {
       )
     },
     {
-      id: 'cbm', label: 'Behavior\nMap',
+      id: 'cbm', label: 'Behavior\nLog',
       svg: (
         <svg width="64" height="64" viewBox="0 0 80 80" fill="none">
           <rect x="24" y="66" width="32" height="8" rx="1" stroke="#8EC4E0" strokeWidth="1.5" fill="rgba(142,196,224,0.1)"/>
@@ -267,8 +267,8 @@ function Home(props) {
   ];
 
   const byId = (id) => menuItems.find(m => m.id === id);
-  const measureRow = [byId('scan'), byId('progress')];
-  const mapRow = [byId('cpm'), byId('cbm'), byId('people')];
+  const measureRow = [byId('scan'), byId('cbm'), byId('progress')];
+  const mapRow = [byId('cpm'), byId('people')];
   const reflectRow = [byId('patterns'), byId('journal')];
 
   return (
