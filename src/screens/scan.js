@@ -7,19 +7,19 @@ const API = 'https://axis-backend-production-5e9b.up.railway.app';
 
 const ISM_DIMS = [
   { id: 'attention', label: 'Attention', liberated: 'Focused',    burdened: 'Distracted',   questions: [
-    { text: 'Can you direct your attention where you choose right now?', positive: true },
-    { text: 'How fully is your attention available to what matters right now?', positive: true },
-    { text: 'How free is your mind from distracting thoughts, past or future?', positive: true },
+    { text: 'How well can you steer your focus to where you want it right now?', positive: true },
+    { text: 'How well can you hold your focus without it fragmenting or slipping?', positive: true },
+    { text: 'How easily can you pull your focus back once it drifts?', positive: true },
   ]},
   { id: 'location',  label: 'Location',  liberated: 'Presence',   burdened: 'Absence',      questions: [
-    { text: 'Can you feel yourself present in your body?', positive: true },
-    { text: 'Is your mind here in the now, or is it elsewhere?', positive: true },
-    { text: 'Do you feel connected to what is happening around you right now?', positive: true },
+    { text: 'How present are you in your body right now, rather than lost in your head?', positive: true },
+    { text: 'How anchored are you in the present moment, rather than the past or future?', positive: true },
+    { text: 'How connected are you to what is actually happening around you right now?', positive: true },
   ]},
   { id: 'drive',     label: 'Drive',     liberated: 'Purposeful', burdened: 'Compulsive',   questions: [
-    { text: 'Is your energy deployed towards meaningful and important tasks?', positive: true },
-    { text: 'How purposefully is your energy directing itself right now?', positive: true },
-    { text: 'Does your energy feel like it comes from intention, or from restlessness and anxiety?', positive: true },
+    { text: 'How much is your energy directed toward what genuinely matters to you?', positive: true },
+    { text: 'How purposeful does your energy feel right now?', positive: true },
+    { text: 'How much does your energy come from intention, rather than restlessness or anxiety?', positive: true },
   ]},
   { id: 'emotions',  label: 'Emotions',  liberated: 'Regulated',  burdened: 'Dysregulated', questions: [
     { text: 'How emotionally stable do you feel right now?', positive: true },
@@ -30,46 +30,45 @@ const ISM_DIMS = [
 
 const ESM_DIMS = [
   { id: 'fear',   label: 'Survival',   liberated: 'Secure',    burdened: 'Fear',   right: 'The right to feel safe', questions: [
-    { text: 'How do you feel vs the uncertainties in your life right now?', positive: true },
-    { text: 'How do you feel about your short term future?', positive: true },
-    { text: 'Do you trust that life will provide what you need?', positive: true },
+    { text: 'How secure do you feel facing the uncertainties in your life right now?', positive: true },
+    { text: 'How secure do you feel about your near future?', positive: true },
+    { text: 'How much do you trust that life will provide what you need?', positive: true },
     { text: 'How safe and stable does your environment feel right now?', positive: true },
-    { text: 'How settled does your nervous system feel in your daily life?', positive: true },
+    { text: 'How settled does your nervous system feel right now?', positive: true },
   ]},
   { id: 'guilt',  label: 'Action',     liberated: 'Free',      burdened: 'Guilt',  right: 'The right to autonomous expression', questions: [
-    { text: 'How kind and compassionate is your internal dialog?', positive: true },
-    { text: 'How at peace are you with your past actions and choices?', positive: true },
+    { text: 'How kind and compassionate is your internal dialogue?', positive: true },
+    { text: 'How at peace do you feel with your past actions and choices?', positive: true },
     { text: 'How free do you feel from any sense of debt toward others?', positive: true },
-    { text: 'How freely do you move in your life?', positive: true },
+    { text: 'How free do you feel to act as your authentic self right now, rather than holding back?', positive: true },
     { text: 'How free do you feel from the expectations of others?', positive: true },
   ]},
   { id: 'shame',  label: 'Identity',   liberated: 'Empowered', burdened: 'Shame',  right: 'The right to be', questions: [
-    { text: 'How much willpower do you have to accomplish what is necessary?', positive: true },
+    { text: 'How much willpower rather than powerlessness do you feel right now?', positive: true },
     { text: 'How worthy do you feel of the things you desire?', positive: true },
     { text: 'How confident do you feel in your own voice and presence?', positive: true },
-    { text: 'How do you feel about who you are?', positive: true },
-    { text: 'How comfortable are you being seen and known by others?', positive: true },
+    { text: 'How at peace do you feel with who you are?', positive: true },
+    { text: 'How much do you feel you deserve to exist as you are?', positive: true },
   ]},
   { id: 'anger',  label: 'Boundary',   liberated: 'At Peace',  burdened: 'Anger',  right: 'The right to be respected', questions: [
-    { text: 'How much respect do you show to yourself?', positive: true },
+    { text: 'How much respect do you feel for yourself right now?', positive: true },
     { text: 'How free do you feel from a victim mindset?', positive: true },
-    { text: 'How free do you feel from the need for amends or justice from others?', positive: true },
-    { text: 'How able are you to let go of those who have trespassed against you?', positive: true },
-    { text: 'How calm and settled do you feel in your body right now?', positive: true },
+    { text: 'How free do you feel from needing amends or justice from others?', positive: true },
+    { text: 'How easily can you let go of those who have wronged you?', positive: true },
+    { text: 'How free do you feel from resentment right now?', positive: true },
   ]},
   { id: 'envy',   label: 'Comparison', liberated: 'Abundant',  burdened: 'Envy',   right: 'The right to be seen', questions: [
     { text: 'How enough do you feel just as you are right now?', positive: true },
     { text: 'How genuine is the joy you feel for others who are succeeding?', positive: true },
-    { text: 'How secure do you feel in your own worth without needing to measure it against others?', positive: true },
-    { text: 'How free do you feel from the need to prove yourself today?', positive: true },
-    { text: 'How abundant does your life feel to you right now?', positive: true },
+    { text: 'How secure do you feel in your own worth, without measuring it against others?', positive: true },
+    { text: 'How free do you feel from wanting what others have?', positive: true },
   ]},
   { id: 'grief',  label: 'Love',       liberated: 'Connected', burdened: 'Grief',  right: 'The right to love and be loved', questions: [
     { text: 'How whole and complete do you feel within yourself?', positive: true },
-    { text: 'How full and alive does your inner world feel right now?', positive: true },
-    { text: 'Can you genuinely connect with yourself?', positive: true },
-    { text: 'Can you genuinely connect with others?', positive: true },
-    { text: 'To which degree do you feel love on a day to day?', positive: true },
+    { text: 'How loved do you feel right now?', positive: true },
+    { text: 'How genuinely connected do you feel to yourself?', positive: true },
+    { text: 'How genuinely connected do you feel to others?', positive: true },
+    { text: 'How much love do you feel in your life?', positive: true },
   ]},
 ];
 
@@ -194,7 +193,7 @@ function QuestionnaireMode({ phase, ismScores, esmScores, onIsmChange, onEsmChan
 
     return (
       <div style={styles.qWrap}>
-        <div style={styles.qProgress}>ISM · Dimension {ismDimIdx + 1} of {ISM_DIMS.length} — Question {ismQIdx + 1} of {dim.questions.length}</div>
+        <div style={styles.qProgress}>ISM · Dimension {ismDimIdx + 1} of {ISM_DIMS.length} · Question {ismQIdx + 1} of {dim.questions.length}</div>
         <div style={styles.qDimHeader}>
           <span style={styles.qDimLabel}>{dim.label}</span>
           <span style={styles.qDimLib}>{dim.liberated}</span>
@@ -243,7 +242,7 @@ function QuestionnaireMode({ phase, ismScores, esmScores, onIsmChange, onEsmChan
 
   return (
     <div style={styles.qWrap}>
-      <div style={styles.qProgress}>ESM · Dimension {esmDimIdx + 1} of {ESM_DIMS.length} — Question {esmQIdx + 1} of {dim.questions.length}</div>
+      <div style={styles.qProgress}>ESM · Dimension {esmDimIdx + 1} of {ESM_DIMS.length} · Question {esmQIdx + 1} of {dim.questions.length}</div>
       <div style={styles.qDimHeader}>
         <span style={styles.qDimLabel}>{dim.label}</span>
         <span style={styles.qDimLib}>{dim.liberated}</span>
@@ -452,11 +451,11 @@ function Scan() {
         )}
 
         {ismLogged && esmLogged && (
-          <div style={styles.bothNote}>Both maps logged today — your AXIS score is complete.</div>
+          <div style={styles.bothNote}>Both maps logged today. Your AXIS score is complete.</div>
         )}
         {(ismLogged !== esmLogged) && (
           <div style={styles.partialNote}>
-            {ismLogged ? 'ESM not yet logged' : 'ISM not yet logged'} — AXIS score pending until both are logged.
+            {ismLogged ? 'ESM not yet logged' : 'ISM not yet logged'}. AXIS score pending until both are logged.
           </div>
         )}
       </PageBody>

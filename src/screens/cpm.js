@@ -77,7 +77,7 @@ const SEQUENCES = {
 
 const STEP_CONFIGS = {
   name:            { label: 'Name', q: 'Give this pattern a name.', hint: 'A name you will recognize. It can be simple.', type: 'input' },
-  trigger:         { label: 'Trigger', q: 'What triggered you? Describe what happened.', hint: 'It can be a situation, a word, a moment — whatever activated this.', type: 'textarea' },
+  trigger:         { label: 'Trigger', q: 'What triggered you? Describe what happened.', hint: 'It can be a situation, a word, a moment. Whatever activated this.', type: 'textarea' },
   behaviors:       { label: 'Behavior', q: 'How are you acting or reacting when this complex is triggered?', hint: 'What are you doing, avoiding, or compelled toward?', type: 'textarea' },
   thoughts:        { label: 'Thoughts', q: 'What thoughts are arising?', hint: 'What is the mind saying? Follow the thread.', type: 'textarea' },
   feelings:        { label: 'Feelings', q: 'What do you feel as these thoughts arise?', hint: 'Optional. Name the felt sense — not the thought, not the action. The raw feeling.', type: 'textarea', optional: true },
@@ -160,7 +160,7 @@ const RootComplexSelector = ({ value, onChange, availableRoots }) => {
       </select>
       {primary && availableRoots.filter(c => c.name !== primary).length > 0 && (
         <div style={{ marginTop: '10px' }}>
-          <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#8BAFC8', marginBottom: '8px' }}>Secondary Roots <span style={{ fontStyle: 'italic', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>optional — draws dashed lines in tree</span></div>
+          <div style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#8BAFC8', marginBottom: '8px' }}>Secondary Roots <span style={{ fontStyle: 'italic', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>optional, draws dashed lines in tree</span></div>
           <select style={styles.input} value="" onChange={e => { if (e.target.value) toggleSecondary(e.target.value); }}>
             <option value="">Add secondary root...</option>
             {availableRoots.filter(c => c.name !== primary).map((c, i) => (
@@ -1081,7 +1081,7 @@ function CPM() {
               <div style={styles.formGroup}><label style={styles.label}>Behaviors <ArrowRight /></label><textarea style={styles.textarea} value={form.behaviors} onChange={e => setForm({ ...form, behaviors: e.target.value })} placeholder="How do you act while this complex is active?" rows={3} /></div>
               <div style={styles.formGroup}><label style={styles.label}>Trigger</label><input style={styles.input} value={form.trigger} onChange={e => setForm({ ...form, trigger: e.target.value })} placeholder="What activates this complex?" /></div>
               <div style={styles.formGroup}>
-                <label style={styles.label}>Life Period <span style={{ fontStyle: 'italic', fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: '6px' }}>optional — select all that apply</span></label>
+                <label style={styles.label}>Life Period <span style={{ fontStyle: 'italic', fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: '6px' }}>optional, select all that apply</span></label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                   {LIFE_PERIODS.map(p => {
                     const periods = Array.isArray(form.period) ? form.period : (form.period ? [form.period] : []);
@@ -1090,30 +1090,9 @@ function CPM() {
                   })}
                 </div>
               </div>
+              
               <div style={styles.formGroup}>
-                <label style={styles.label}>Source <span style={{ fontStyle: 'italic', fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: '6px' }}>optional</span></label>
-                <select
-                  style={styles.input}
-                  value={form.source && SOURCES.includes(form.source) && form.source !== 'Custom' ? form.source : (form.source ? 'Custom' : '')}
-                  onChange={e => {
-                    if (e.target.value === 'Custom') setForm({ ...form, source: 'Custom' });
-                    else setForm({ ...form, source: e.target.value });
-                  }}
-                >
-                  <option value="">None / Unknown</option>
-                  {SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-                {(form.source === 'Custom' || (form.source && !SOURCES.includes(form.source))) && (
-                  <input
-                    style={{ ...styles.input, marginTop: '8px' }}
-                    value={form.source === 'Custom' ? '' : form.source}
-                    onChange={e => setForm({ ...form, source: e.target.value || 'Custom' })}
-                    placeholder="Type the source (e.g., 'Aunt Marie', 'High School Coach')..."
-                  />
-                )}
-              </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Person <span style={{ fontStyle: 'italic', fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: '6px' }}>optional — who is this complex about?</span></label>
+                <label style={styles.label}>Person <span style={{ fontStyle: 'italic', fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: '6px' }}>optional, who is this complex about?</span></label>
                 <PersonPicker value={form.person || ''} onChange={(name) => setForm({ ...form, person: name })} people={people} onAddPerson={savePerson} />
               </div>
               <div style={{ ...styles.woundToggle, ...(form.originalWound ? styles.woundActive : {}) }} onClick={() => {
@@ -1123,12 +1102,40 @@ function CPM() {
                 <div style={{ ...styles.woundDot, ...(form.originalWound ? styles.woundDotActive : {}) }} />
                 <div><div style={styles.woundLabel}>Original Wound</div><div style={styles.woundDesc}>Mark this complex as the origin, where the pattern first formed.</div></div>
               </div>
-              {!form.originalWound && (
-                <div style={styles.formGroup}>
-                  <label style={styles.label}>Root Complex <span style={{ fontStyle: 'italic', fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: '6px' }}>optional</span></label>
-                  <RootComplexSelector value={form.rootComplex} onChange={(updated) => setForm({ ...form, rootComplex: updated })} availableRoots={availableRoots} />
+              <div style={{ marginBottom: '20px', padding: '20px', border: '1px solid rgba(142,196,224,0.15)', borderRadius: '4px', background: 'rgba(142,196,224,0.02)' }}>
+                <div style={{ fontSize: '10px', fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase', color: '#8EC4E0', marginBottom: '4px' }}>Placement on the Tree</div>
+                <div style={{ fontSize: '11px', color: '#8BAFC8', fontStyle: 'italic', lineHeight: 1.5, marginBottom: '18px' }}>These fields decide where this complex sits in your tree. Both optional.</div>
+
+                <div style={{ marginBottom: form.originalWound ? 0 : '20px' }}>
+                  <label style={styles.label}>Source <span style={{ fontStyle: 'italic', fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: '6px' }}>which column it sits under</span></label>
+                  <select
+                    style={styles.input}
+                    value={form.source && SOURCES.includes(form.source) && form.source !== 'Custom' ? form.source : (form.source ? 'Custom' : '')}
+                    onChange={e => {
+                      if (e.target.value === 'Custom') setForm({ ...form, source: 'Custom' });
+                      else setForm({ ...form, source: e.target.value });
+                    }}
+                  >
+                    <option value="">None / Unknown</option>
+                    {SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                  {(form.source === 'Custom' || (form.source && !SOURCES.includes(form.source))) && (
+                    <input
+                      style={{ ...styles.input, marginTop: '8px' }}
+                      value={form.source === 'Custom' ? '' : form.source}
+                      onChange={e => setForm({ ...form, source: e.target.value || 'Custom' })}
+                      placeholder="Type the source (e.g., 'Aunt Marie', 'High School Coach')..."
+                    />
+                  )}
                 </div>
-              )}
+
+                {!form.originalWound && (
+                  <div style={{ marginBottom: 0 }}>
+                    <label style={styles.label}>Root Complex <span style={{ fontStyle: 'italic', fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: '6px' }}>which complex it grows from</span></label>
+                    <RootComplexSelector value={form.rootComplex} onChange={(updated) => setForm({ ...form, rootComplex: updated })} availableRoots={availableRoots} />
+                  </div>
+                )}
+              </div>
               <div style={styles.formGroup}>
                 <label style={{ ...styles.label, color: '#4AAE88' }}>Counter Belief</label>
                 {isInnerChildForm && <div style={{ fontSize: '11px', fontStyle: 'italic', color: 'rgba(200,168,80,0.6)', marginBottom: '8px' }}>You are speaking to your inner child.</div>}
