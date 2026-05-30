@@ -80,10 +80,34 @@ function ComplexViewModal({ complex, onClose }) {
   );
 }
 
+function HowItWorksModal({ onClose }) {
+  const para = { fontSize: '13px', lineHeight: 1.75, color: '#B3C9DA', margin: '0 0 14px' };
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 300, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '40px 20px' }} onClick={onClose}>
+      <div style={{ background: '#162534', border: '1px solid rgba(142,196,224,0.3)', borderRadius: '4px', width: '100%', maxWidth: '720px', padding: '32px', boxShadow: '0 0 40px rgba(0,0,0,0.6)' }} onClick={e => e.stopPropagation()}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '4px' }}>
+          <div>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: '300', color: '#D8E6F0' }}>How It Works</div>
+            <div style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8', marginTop: '4px' }}>Journal</div>
+          </div>
+          <button style={{ background: 'none', border: 'none', color: '#8BAFC8', cursor: 'pointer', fontSize: '18px' }} onClick={onClose}>✕</button>
+        </div>
+        <p style={{ ...para, marginTop: '18px' }}>
+          Dreams can be linked to complexes and to people from your Relational Map. They are listed chronologically and can be filtered by person or complex.
+        </p>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+          <button style={{ background: 'rgba(142,196,224,0.15)', border: '1px solid rgba(142,196,224,0.4)', borderRadius: '3px', padding: '10px 24px', color: '#8EC4E0', fontSize: '11px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', cursor: 'pointer' }} onClick={onClose}>Close</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Journal() {
   
   const token = localStorage.getItem('axis_token');
   const [tab, setTab] = useState('dreams');
+  const [showInfo, setShowInfo] = useState(false);
   const [dreams, setDreams] = useState([]);
   const [freeEntries, setFreeEntries] = useState([]);
   const [complexes, setComplexes] = useState([]);
@@ -237,7 +261,7 @@ function Journal() {
               <input style={styles.input} value={dreamForm.title} onChange={e => setDreamForm({ ...dreamForm, title: e.target.value })} placeholder="Give this dream a name..." autoFocus />
             </div>
             <div style={styles.formGroup}>
-              <label style={styles.label}>Year <span style={{ color: '#8BAFC8', fontWeight: 400 }}>— optional</span></label>
+              <label style={styles.label}>Year <span style={{ color: '#8BAFC8', fontWeight: 400 }}> - optional</span></label>
               <select style={styles.input} value={dreamForm.year || ''} onChange={e => setDreamForm({ ...dreamForm, year: e.target.value })}>
                 <option value="">-- Unknown --</option>
                 {(() => {
@@ -302,7 +326,7 @@ function Journal() {
               <textarea style={styles.textarea} value={dreamForm.reflection || ''} onChange={e => setDreamForm({ ...dreamForm, reflection: e.target.value })} placeholder="What does this dream mean to you?" rows={3} />
             </div>
             <div style={styles.formGroup}>
-              <label style={styles.label}>Link to Complexes <span style={{ color: '#8BAFC8', fontWeight: 400 }}>— optional</span></label>
+              <label style={styles.label}>Link to Complexes <span style={{ color: '#8BAFC8', fontWeight: 400 }}>-optional</span></label>
               {(() => {
                 const selected = Array.isArray(dreamForm.complexLinks) ? dreamForm.complexLinks : (dreamForm.complexLink ? [dreamForm.complexLink] : []);
                 const available = complexes.filter(c => !selected.includes(c.name));
@@ -368,6 +392,8 @@ function Journal() {
 
   return (
     <Page>
+
+      {showInfo && <HowItWorksModal onClose={() => setShowInfo(false)} />}
 
       {viewComplex && (
         <ComplexViewModal complex={viewComplex} onClose={() => setViewComplex(null)} />
@@ -467,6 +493,11 @@ function Journal() {
       />
 
       <PageBody width="content">
+        <div style={{ marginBottom: '16px' }}>
+          <button style={styles.infoTrigger} onClick={() => setShowInfo(true)}>
+            <span style={styles.infoTriggerIcon}>i</span> How it works
+          </button>
+        </div>
         <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid rgba(142,196,224,0.15)', marginBottom: '32px' }}>
           <button style={{ ...styles.tabBtn, ...(tab === 'dreams' ? styles.tabBtnActive : {}) }} onClick={() => setTab('dreams')}>Dream Journal</button>
           <button style={{ ...styles.tabBtn, ...(tab === 'free' ? styles.tabBtnActive : {}) }} onClick={() => setTab('free')}>Free Journal</button>
@@ -673,6 +704,8 @@ const styles = {
   modalClose: { background: 'none', border: 'none', color: '#8BAFC8', cursor: 'pointer', fontSize: '18px' },
   modalBody: { padding: '24px 32px' },
   modalFooter: { display: 'flex', gap: '10px', padding: '16px 32px 24px', borderTop: '1px solid rgba(142,196,224,0.1)' },
+  infoTrigger: { display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(142,196,224,0.06)', border: '1px solid rgba(142,196,224,0.3)', borderRadius: '20px', padding: '7px 16px', color: '#8EC4E0', fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', cursor: 'pointer' },
+  infoTriggerIcon: { width: '15px', height: '15px', borderRadius: '50%', border: '1px solid rgba(142,196,224,0.5)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '10px', lineHeight: 1 },
 };
 
 export default Journal;

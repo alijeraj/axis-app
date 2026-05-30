@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import LegalModal from '../components/LegalModal';
 
 const API = 'https://axis-backend-production-5e9b.up.railway.app';
 
@@ -9,6 +10,7 @@ function Register(props) {
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [agreed, setAgreed] = useState(false);
+  const [legalModal, setLegalModal] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -131,9 +133,9 @@ function Register(props) {
             />
             <label htmlFor="agree" style={styles.agreeLabel}>
               I agree to the{' '}
-              <a href="https://introspection.life/terms" target="_blank" rel="noopener noreferrer" style={styles.linkText}>Terms of Service</a>
+              <span onClick={(e) => { e.preventDefault(); setLegalModal('terms'); }} style={{ ...styles.linkText, cursor: 'pointer', textDecoration: 'underline' }}>Terms of Service</span>
               {' '}and{' '}
-              <a href="https://introspection.life/privacy" target="_blank" rel="noopener noreferrer" style={styles.linkText}>Privacy Policy</a>
+              <span onClick={(e) => { e.preventDefault(); setLegalModal('privacy'); }} style={{ ...styles.linkText, cursor: 'pointer', textDecoration: 'underline' }}>Privacy Policy</span>
             </label>
           </div>
           {error && <div style={styles.error}>{error}</div>}
@@ -145,6 +147,7 @@ function Register(props) {
           Already have an account? <Link to="/login" style={styles.linkText}>Sign In</Link>
         </div>
       </div>
+      <LegalModal type={legalModal} onClose={() => setLegalModal(null)} />
     </div>
   );
 }

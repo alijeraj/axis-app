@@ -79,9 +79,9 @@ const STEP_CONFIGS = {
   name:            { label: 'Name', q: 'Give this pattern a name.', hint: 'A name you will recognize. It can be simple.', type: 'input' },
   trigger:         { label: 'Trigger', q: 'What triggered you? Describe what happened.', hint: 'It can be a situation, a word, a moment. Whatever activated this.', type: 'textarea' },
   behaviors:       { label: 'Behavior', q: 'How are you acting or reacting when this complex is triggered?', hint: 'What are you doing, avoiding, or compelled toward?', type: 'textarea' },
-  thoughts:        { label: 'Thoughts', q: 'What thoughts are arising?', hint: 'What is the mind saying? Follow the thread.', type: 'textarea' },
-  feelings:        { label: 'Feelings', q: 'What do you feel as these thoughts arise?', hint: 'Optional. Name the felt sense — not the thought, not the action. The raw feeling.', type: 'textarea', optional: true },
-  beliefs:         { label: 'Beliefs', q: 'What do you believe when this pattern is active?', hint: 'Write it in the first person. What feels true in this moment?', type: 'textarea' },
+  thoughts:        { label: 'Thoughts', q: 'What thoughts are arising?', hint: 'What is the mind saying?', type: 'textarea' },
+  feelings:        { label: 'Feelings', q: 'What do you feel as these thoughts arise?', hint: 'How does it make you feel?', type: 'textarea', optional: true },
+  beliefs:         { label: 'Beliefs', q: 'What do you believe when this pattern is active?', hint: 'Explore what you believe while this complex is active.', type: 'textarea' },
   burden:          { label: 'Underlying Emotional Burden', q: 'What is the underlying emotion at the root of this?', hint: 'This is the emotional wound the complex is built around.', type: 'select' },
   period:          { label: 'Life Period', q: 'When in your life did this pattern first emerge?', hint: 'Optional. Select all that apply.', type: 'period', optional: true },
   source:          { label: 'Source', q: 'Who or what was the source of this pattern?', hint: 'Optional. The person or origin this complex formed around.', type: 'sourceSelect', optional: true },
@@ -666,7 +666,6 @@ function TreeView({ complexes, people, patterns, activeCategoryId, onViewComplex
   const sourceGroups = {};
   rootNames.forEach(name => { const c = complexes[nameToIdx[name]]; const src = (c && c.source) || ''; if (!sourceGroups[src]) sourceGroups[src] = []; sourceGroups[src].push(name); });
   const namedSources = Object.keys(sourceGroups).filter(s => s !== '');
-  // Sort: predefined sources by developmental priority, custom names alphabetically after, then unnamed last
   namedSources.sort((a, b) => {
     const aIsPredef = SOURCE_ORDER[a] !== undefined && a !== 'Custom';
     const bIsPredef = SOURCE_ORDER[b] !== undefined && b !== 'Custom';
@@ -797,7 +796,6 @@ function TreeView({ complexes, people, patterns, activeCategoryId, onViewComplex
     const resolved = c && c.status === 'resolved';
     const isRoot = !c || !c.rootComplex || (Array.isArray(c.rootComplex) ? c.rootComplex.length === 0 : !c.rootComplex);
 
-    // Pattern coloring takes priority when category is active
     let patternBorder = null;
     let patternBg = null;
     if (activeCategoryId && c && c.person && people && patterns) {
@@ -911,8 +909,111 @@ function TreeView({ complexes, people, patterns, activeCategoryId, onViewComplex
   );
 }
 
+function HowItWorksModal({ onClose }) {
+  const head = { fontFamily: 'Georgia, serif', fontSize: '17px', fontWeight: '400', color: '#8EC4E0', margin: '26px 0 10px', letterSpacing: '0.5px' };
+  const para = { fontSize: '13px', lineHeight: 1.75, color: '#B3C9DA', margin: '0 0 14px' };
+
+  const esmRows = [
+    ['Survival', 'Secure', 'Fear', 'The right to feel safe'],
+    ['Action', 'Free', 'Guilt', 'The right to autonomous expression'],
+    ['Identity', 'Empowered', 'Shame', 'The right to be'],
+    ['Boundary', 'At Peace', 'Anger', 'The right to be respected'],
+    ['Comparison', 'Abundant', 'Envy', 'The right to be seen'],
+    ['Love', 'Connected', 'Grief', 'The right to love and be loved'],
+  ];
+  const esmGrid = { display: 'grid', gridTemplateColumns: '92px 1fr 1fr 1.6fr', gap: '12px', alignItems: 'center' };
+
+  const SpineRow = ({ label, color, border, bg, counter, note }) => (
+    <div style={{ display: 'flex', alignItems: 'center' }}>
+      <div style={{ width: '150px', flexShrink: 0, border: '1px solid ' + border, background: bg, borderRadius: '3px', padding: '9px 12px', textAlign: 'center', boxSizing: 'border-box' }}>
+        <span style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '2px', textTransform: 'uppercase', color: color }}>{label}</span>
+      </div>
+      {counter && <div style={{ width: '28px', height: '1px', background: 'rgba(74,174,136,0.4)', flexShrink: 0 }} />}
+      {counter && (
+        <div style={{ width: '150px', flexShrink: 0, border: '1px solid rgba(74,174,136,0.35)', background: 'rgba(74,174,136,0.06)', borderRadius: '3px', padding: '9px 12px', textAlign: 'center', boxSizing: 'border-box' }}>
+          <span style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '2px', textTransform: 'uppercase', color: '#4AAE88' }}>{counter}</span>
+        </div>
+      )}
+      {note && <span style={{ marginLeft: '12px', fontSize: '10px', fontStyle: 'italic', color: '#8BAFC8', whiteSpace: 'nowrap' }}>{note}</span>}
+    </div>
+  );
+
+  const Down = () => <div style={{ width: '150px', textAlign: 'center', color: 'rgba(142,196,224,0.45)', fontSize: '10px', margin: '5px 0' }}>▼</div>;
+  const Up = ({ note }) => (
+    <div style={{ display: 'flex', alignItems: 'center', margin: '5px 0' }}>
+      <div style={{ width: '150px', textAlign: 'center', color: 'rgba(200,168,80,0.6)', fontSize: '10px' }}>▲</div>
+      {note && <span style={{ marginLeft: '12px', fontSize: '10px', fontStyle: 'italic', color: '#8BAFC8' }}>{note}</span>}
+    </div>
+  );
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 300, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '40px 20px' }} onClick={onClose}>
+      <div style={{ background: '#162534', border: '1px solid rgba(142,196,224,0.3)', borderRadius: '4px', width: '100%', maxWidth: '720px', padding: '32px', boxShadow: '0 0 40px rgba(0,0,0,0.6)' }} onClick={e => e.stopPropagation()}>
+
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '4px' }}>
+          <div>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: '300', color: '#D8E6F0' }}>How It Works</div>
+            <div style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8', marginTop: '4px' }}>Complex Pattern Map</div>
+          </div>
+          <button style={{ background: 'none', border: 'none', color: '#8BAFC8', cursor: 'pointer', fontSize: '18px' }} onClick={onClose}>✕</button>
+        </div>
+
+        <p style={{ ...para, marginTop: '18px' }}>
+          The emotional burden is at the root of the complex. Each emotional burden can hold multiple complexes; they can be seen as psychic knots. To untie the knot, to dissolve the burden, the tool is awareness. Once the complexes are dissolved, the emotional burden lifts, and you can access its liberated state.
+        </p>
+
+        <h3 style={head}>The Emotional Spectrum</h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 14px' }}>
+          <span style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '2px', textTransform: 'uppercase', color: '#4AAE88' }}>Liberated</span>
+          <div style={{ flex: 1, height: '3px', borderRadius: '2px', background: 'linear-gradient(90deg, #4AAE88, #C87878)' }} />
+          <span style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '2px', textTransform: 'uppercase', color: '#C87878' }}>Burden</span>
+        </div>
+        <div style={{ ...esmGrid, paddingBottom: '8px', borderBottom: '1px solid rgba(142,196,224,0.15)' }}>
+          {['Dimension', 'Liberated', 'Burden', 'Fundamental Right'].map((h, i) => (
+            <span key={i} style={{ fontSize: '8px', fontWeight: '700', letterSpacing: '2px', textTransform: 'uppercase', color: '#8BAFC8' }}>{h}</span>
+          ))}
+        </div>
+        {esmRows.map((r, i) => (
+          <div key={i} style={{ ...esmGrid, padding: '9px 0', borderBottom: i < esmRows.length - 1 ? '1px solid rgba(142,196,224,0.07)' : 'none' }}>
+            <span style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#A0C4D8' }}>{r[0]}</span>
+            <span style={{ fontSize: '13px', color: '#4AAE88', fontFamily: 'Georgia, serif' }}>{r[1]}</span>
+            <span style={{ fontSize: '13px', color: '#C87878', fontFamily: 'Georgia, serif' }}>{r[2]}</span>
+            <span style={{ fontSize: '11px', fontStyle: 'italic', color: '#8BAFC8' }}>{r[3]}</span>
+          </div>
+        ))}
+
+        <p style={{ ...para, marginTop: '22px' }}>
+          A complex is composed of beliefs, thoughts, and feelings, which receive their input from the emotion. In its attempt to regulate, the complex needs an output, expressed through behaviors. Triggers activate the complex.
+        </p>
+
+        <h3 style={head}>Anatomy of a Complex</h3>
+        <div style={{ overflowX: 'auto', padding: '6px 0 2px' }}>
+          <SpineRow label="Emotional Burden" color="#C87878" border="rgba(176,90,90,0.4)" bg="rgba(176,90,90,0.08)" note="← the root wound" />
+          <Down />
+          <SpineRow label="Beliefs" color="#8EC4E0" border="rgba(142,196,224,0.3)" bg="rgba(142,196,224,0.05)" counter="Counter Belief" note="← emotional input" />
+          <Down />
+          <SpineRow label="Thoughts" color="#8EC4E0" border="rgba(142,196,224,0.3)" bg="rgba(142,196,224,0.05)" />
+          <Down />
+          <SpineRow label="Behaviors" color="#8EC4E0" border="rgba(142,196,224,0.3)" bg="rgba(142,196,224,0.05)" counter="Counter Behavior" note="← emotional output" />
+          <Up />
+          <SpineRow label="Trigger" color="#C8A840" border="rgba(200,168,80,0.4)" bg="rgba(200,168,80,0.06)" />
+        </div>
+
+        <p style={{ ...para, marginTop: '22px' }}>
+          Mapping a complex, and building the map of complexes, is what allows you to dissolve them.
+        </p>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+          <button style={{ background: 'rgba(142,196,224,0.15)', border: '1px solid rgba(142,196,224,0.4)', borderRadius: '3px', padding: '10px 24px', color: '#8EC4E0', fontSize: '11px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', cursor: 'pointer' }} onClick={onClose}>Close</button>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
 function CPM() {
-  
+
   const location = useLocation();
   const token = localStorage.getItem('axis_token');
   const initialTab = (() => {
@@ -933,6 +1034,7 @@ function CPM() {
   const [treeOrder, setTreeOrder] = useState({});
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState(initialTab);
+  const [showInfo, setShowInfo] = useState(false);
   const [filter, setFilter] = useState('active');
   const [showBuilder, setShowBuilder] = useState(false);
   const [builderMode, setBuilderMode] = useState('guided');
@@ -1081,6 +1183,16 @@ function CPM() {
               <div style={styles.formGroup}><label style={styles.label}>Behaviors <ArrowRight /></label><textarea style={styles.textarea} value={form.behaviors} onChange={e => setForm({ ...form, behaviors: e.target.value })} placeholder="How do you act while this complex is active?" rows={3} /></div>
               <div style={styles.formGroup}><label style={styles.label}>Trigger</label><input style={styles.input} value={form.trigger} onChange={e => setForm({ ...form, trigger: e.target.value })} placeholder="What activates this complex?" /></div>
               <div style={styles.formGroup}>
+                <label style={{ ...styles.label, color: '#4AAE88' }}>Counter Belief</label>
+                {isInnerChildForm && <div style={{ fontSize: '11px', fontStyle: 'italic', color: 'rgba(200,168,80,0.6)', marginBottom: '8px' }}>You are speaking to your inner child.</div>}
+                <textarea style={{ ...styles.textarea, borderColor: 'rgba(74,174,136,0.2)' }} value={form.counter} onChange={e => setForm({ ...form, counter: e.target.value })} placeholder="What else could also be true?" rows={3} />
+              </div>
+              <div style={styles.formGroup}>
+                <label style={{ ...styles.label, color: '#4AAE88' }}>Counter Behavior</label>
+                {isInnerChildForm && <div style={{ fontSize: '11px', fontStyle: 'italic', color: 'rgba(200,168,80,0.6)', marginBottom: '8px' }}>You are speaking to your inner child.</div>}
+                <textarea style={{ ...styles.textarea, borderColor: 'rgba(74,174,136,0.2)' }} value={form.counterBehavior} onChange={e => setForm({ ...form, counterBehavior: e.target.value })} placeholder="What would be alternative behaviors?" rows={3} />
+              </div>
+              <div style={styles.formGroup}>
                 <label style={styles.label}>Life Period <span style={{ fontStyle: 'italic', fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: '6px' }}>optional, select all that apply</span></label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                   {LIFE_PERIODS.map(p => {
@@ -1090,7 +1202,6 @@ function CPM() {
                   })}
                 </div>
               </div>
-              
               <div style={styles.formGroup}>
                 <label style={styles.label}>Person <span style={{ fontStyle: 'italic', fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: '6px' }}>optional, who is this complex about?</span></label>
                 <PersonPicker value={form.person || ''} onChange={(name) => setForm({ ...form, person: name })} people={people} onAddPerson={savePerson} />
@@ -1136,16 +1247,6 @@ function CPM() {
                   </div>
                 )}
               </div>
-              <div style={styles.formGroup}>
-                <label style={{ ...styles.label, color: '#4AAE88' }}>Counter Belief</label>
-                {isInnerChildForm && <div style={{ fontSize: '11px', fontStyle: 'italic', color: 'rgba(200,168,80,0.6)', marginBottom: '8px' }}>You are speaking to your inner child.</div>}
-                <textarea style={{ ...styles.textarea, borderColor: 'rgba(74,174,136,0.2)' }} value={form.counter} onChange={e => setForm({ ...form, counter: e.target.value })} placeholder="What else could also be true?" rows={3} />
-              </div>
-              <div style={styles.formGroup}>
-                <label style={{ ...styles.label, color: '#4AAE88' }}>Counter Behavior</label>
-                {isInnerChildForm && <div style={{ fontSize: '11px', fontStyle: 'italic', color: 'rgba(200,168,80,0.6)', marginBottom: '8px' }}>You are speaking to your inner child.</div>}
-                <textarea style={{ ...styles.textarea, borderColor: 'rgba(74,174,136,0.2)' }} value={form.counterBehavior} onChange={e => setForm({ ...form, counterBehavior: e.target.value })} placeholder="What would be alternative behaviors?" rows={3} />
-              </div>
               <div style={styles.formGroup}><label style={styles.label}>Notes</label><textarea style={styles.textarea} value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="Any additional observations..." rows={3} /></div>
               <div style={styles.formFooter}>
                 <button style={styles.cancelBtn} onClick={closeBuilder}>Cancel</button>
@@ -1161,6 +1262,7 @@ function CPM() {
   if (tab === 'tree') {
     return (
       <Page>
+        {showInfo && <HowItWorksModal onClose={() => setShowInfo(false)} />}
         {viewIdx !== null && <ViewModal complex={complexes[viewIdx]} dreams={dreams} people={people} complexes={complexes} onClose={() => setViewIdx(null)} onEdit={() => { openBuilder(viewIdx); setViewIdx(null); }} />}
         {resolutionViewComplexes && <ResolutionModal resolvedComplexes={resolutionViewComplexes} onClose={() => setResolutionViewComplexes(null)} />}
         {resolutionFormIdx !== null && <ResolutionForm complex={complexes[resolutionFormIdx]} onSave={(data) => markResolved(resolutionFormIdx, data)} onCancel={() => setResolutionFormIdx(null)} />}
@@ -1168,6 +1270,11 @@ function CPM() {
           title="Complex Pattern Map"
           right={<button style={styles.btn} onClick={() => openBuilder()}>+ Build Complex</button>}
         />
+        <div style={{ padding: '16px 32px 0', flexShrink: 0 }}>
+          <button style={styles.infoTrigger} onClick={() => setShowInfo(true)}>
+            <span style={styles.infoTriggerIcon}>i</span> How it works
+          </button>
+        </div>
         <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid rgba(142,196,224,0.15)', padding: '0 32px', flexShrink: 0 }}>
           {[{ id: 'emotion', label: 'By Emotion' }, { id: 'tree', label: 'Tree View' }].map(t => (
             <button key={t.id} style={{ ...styles.tabBtn, ...(tab === t.id ? styles.tabBtnActive : {}) }} onClick={() => setTab(t.id)}>{t.label}</button>
@@ -1209,6 +1316,7 @@ function CPM() {
 
   return (
     <Page>
+      {showInfo && <HowItWorksModal onClose={() => setShowInfo(false)} />}
       {viewIdx !== null && <ViewModal complex={complexes[viewIdx]} dreams={dreams} people={people} complexes={complexes} onClose={() => setViewIdx(null)} onEdit={() => { openBuilder(viewIdx); setViewIdx(null); }} />}
       {resolutionFormIdx !== null && <ResolutionForm complex={complexes[resolutionFormIdx]} onSave={(data) => markResolved(resolutionFormIdx, data)} onCancel={() => setResolutionFormIdx(null)} />}
       <AppHeader
@@ -1216,6 +1324,11 @@ function CPM() {
         right={<button style={styles.btn} onClick={() => openBuilder()}>+ Build Complex</button>}
       />
       <PageBody width="content">
+        <div style={{ marginBottom: '16px' }}>
+          <button style={styles.infoTrigger} onClick={() => setShowInfo(true)}>
+            <span style={styles.infoTriggerIcon}>i</span> How it works
+          </button>
+        </div>
         <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid rgba(142,196,224,0.15)', marginBottom: '24px' }}>
           {[{ id: 'emotion', label: 'By Emotion' }, { id: 'tree', label: 'Tree View' }].map(t => (
             <button key={t.id} style={{ ...styles.tabBtn, ...(tab === t.id ? styles.tabBtnActive : {}) }} onClick={() => setTab(t.id)}>{t.label}</button>
@@ -1302,6 +1415,8 @@ const styles = {
   formFooter: { display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' },
   cancelBtn: { background: 'none', border: '1px solid rgba(142,196,224,0.2)', borderRadius: '3px', padding: '10px 20px', color: '#8BAFC8', fontSize: '11px', cursor: 'pointer' },
   treeCtrlBtn: { background: 'none', border: '1px solid rgba(142,196,224,0.2)', color: '#8BAFC8', cursor: 'pointer', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', borderRadius: '2px', padding: 0 },
+  infoTrigger: { display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(142,196,224,0.06)', border: '1px solid rgba(142,196,224,0.3)', borderRadius: '20px', padding: '7px 16px', color: '#8EC4E0', fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', cursor: 'pointer' },
+  infoTriggerIcon: { width: '15px', height: '15px', borderRadius: '50%', border: '1px solid rgba(142,196,224,0.5)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '10px', lineHeight: 1 },
 };
 
 export default CPM;

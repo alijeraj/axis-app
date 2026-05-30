@@ -106,7 +106,7 @@ async function drawContentsPage(pdf, config, pageNumber) {
     sections.push('Progress · ' + (labels[config.progressTimeframe] || ''));
   }
   if (config.complexes) sections.push('Complexes');
-  if (config.cbmSummary) sections.push('Behavioral Map');
+  if (config.cbmSummary) sections.push('Behavior Log');
 
   let y = 110;
 
@@ -176,6 +176,30 @@ const BURDEN_RGB = {
 const LIBERATED_RGB = [74, 174, 136];
 const COMPLEX_BURDEN_RGB = [200, 100, 100];
 const COMPLEX_BLUE_RGB = [107, 163, 200];
+
+// CBM AUC bands (must match cbmresults.js)
+const CBM_BANDS = [
+  { label: '50–150', min: 50, max: 200 },
+  { label: '200–300', min: 200, max: 400 },
+  { label: '400–600', min: 400, max: 600 },
+  { label: '600–800', min: 600, max: 800 },
+  { label: '800–1000', min: 800, max: 1000 },
+  { label: '1000–1500', min: 1000, max: 1500 },
+  { label: '1500–2000', min: 1500, max: 2000 },
+  { label: '2000–3000', min: 2000, max: 3000 },
+  { label: '3000–4000', min: 3000, max: 5000 },
+  { label: '5000–6000', min: 5000, max: 7000 },
+  { label: '7000–8000', min: 7000, max: 8000 },
+  { label: '8K+', min: 8000, max: Infinity },
+];
+
+const bandForLoad = (load) => {
+  if (load < 50) return null;
+  for (let i = 0; i < CBM_BANDS.length; i++) {
+    if (load >= CBM_BANDS[i].min && load < CBM_BANDS[i].max) return i;
+  }
+  return CBM_BANDS.length - 1;
+};
 
 async function fetchComplexes() {
   const token = localStorage.getItem('axis_token');
@@ -289,7 +313,7 @@ async function drawComplexes(pdf, pageNumber) {
         const rightBoxX = margin + boxW + gapH;
         const centerBoxX = leftBoxX;
         const centerArrowX = leftBoxX + boxW / 2;
-        
+
 
         const measureBox = (text, fontSize, w = boxW) => {
           if (!text) return 16;
@@ -515,16 +539,6 @@ async function fetchCBMLog() {
   return res.data || [];
 }
 
-async function fetchCBM() {
-  const token = localStorage.getItem('axis_token');
-  const axios = (await import('axios')).default;
-  const API = 'https://axis-backend-production-5e9b.up.railway.app';
-  const res = await axios.get(API + '/api/cbm', { headers: { Authorization: 'Bearer ' + token } });
-  return res.data || { levels: Array(5).fill(null).map(() => ({ behaviors: [] })) };
-}
-
-const CBM_LEVEL_NAMES = ['None', 'Mild', 'Low', 'Moderate', 'Intense', 'Severe'];
-
 function getEntryPct(e) {
   if (!e) return null;
   if (e.ismPct !== undefined) return e;
@@ -541,9 +555,11 @@ function getEntryPct(e) {
   };
 }
 
+const validCbmEntry = (e) => e && e.date && typeof e.dTotal === 'number' && typeof e.rTotal === 'number';
+
 async function drawProgress(pdf, pageNumber, timeframe) {
   const entries = await fetchEntries();
-  const { pageWidth, contentTop } = await startNewPage(pdf, pageNumber);
+  let { pageWidth, contentTop } = await startNewPage(pdf, pageNumber);
   pageNumber++;
 
   const margin = 18;
@@ -583,25 +599,11 @@ async function drawProgress(pdf, pageNumber, timeframe) {
       return data;
     } else if (timeframe === '4w') {
       const data = [];
-      for (let i = 3; i >= 0; i--) {
-        const ws = new Date(today); ws.setDate(today.getDate() - i * 7 - today.getDay());
-        const lbl = (ws.getMonth() + 1) + '/' + ws.getDate();
-        const weekEntries = [];
-        for (let j = 0; j <= 6; j++) {
-          const dd = new Date(ws); dd.setDate(ws.getDate() + j);
-          const k = dk(dd);
-          if (entries[k]) weekEntries.push(getEntryPct(entries[k]));
-        }
-        if (weekEntries.length > 0) {
-          data.push({
-            label: lbl,
-            entry: {
-              ismPct: Math.round(weekEntries.reduce((a, e) => a + e.ismPct, 0) / weekEntries.length),
-              esmPct: Math.round(weekEntries.reduce((a, e) => a + e.esmPct, 0) / weekEntries.length),
-              totalPct: Math.round(weekEntries.reduce((a, e) => a + e.totalPct, 0) / weekEntries.length),
-            }
-          });
-        } else { data.push({ label: lbl, entry: null }); }
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date(today); d.setDate(today.getDate() - i);
+        const key = dk(d);
+        const lbl = (d.getMonth() + 1) + '/' + d.getDate();
+        data.push({ label: lbl, key, entry: entries[key] ? getEntryPct(entries[key]) : null });
       }
       return data;
     } else {
@@ -826,37 +828,52 @@ async function drawProgress(pdf, pageNumber, timeframe) {
   drawLine('esmPct', [180, 140, 200]);
   drawLine('totalPct', [74, 174, 136]);
 
-  y += chartH + 8;
+  // ===== New page for Behavior Log =====
+  ({ pageWidth, contentTop } = await startNewPage(pdf, pageNumber));
+  pageNumber++;
 
-  const cbmLog = await fetchCBMLog();
+  y = contentTop + 8;
+  pdf.setFont('times', 'normal');
+  pdf.setFontSize(26);
+  pdf.setTextColor(26, 50, 80);
+  pdf.text('Behavior Log', pageWidth / 2, y + 8, { align: 'center' });
 
-  const buildCBMData = () => {
-    const dayCeiling = (key) => {
-      const dayLogs = cbmLog.filter(e => dk(new Date(e.date)) === key);
-      return dayLogs.length > 0 ? Math.max(...dayLogs.map(e => e.level)) : null;
-    };
+  pdf.setDrawColor(107, 163, 200);
+  pdf.setLineWidth(0.4);
+  pdf.line(pageWidth / 2 - 12, y + 13, pageWidth / 2 + 12, y + 13);
+
+  pdf.setFont('times', 'italic');
+  pdf.setFontSize(11);
+  pdf.setTextColor(120, 135, 150);
+  pdf.text(tfLabel, pageWidth / 2, y + 22, { align: 'center' });
+
+  y += 28;
+
+  // ===== BEHAVIOR LOG CHART (D / R / AXIS) =====
+  const cbmLog = (await fetchCBMLog()).filter(validCbmEntry);
+
+  const buildCBMSeries = () => {
+    const cbmByDate = {};
+    cbmLog.forEach(e => { cbmByDate[dk(new Date(e.date))] = e; });
+
     if (timeframe === '7d') {
       const out = [];
       for (let i = 6; i >= 0; i--) {
         const d = new Date(today); d.setDate(today.getDate() - i);
         const key = dk(d);
         const lbl = d.toLocaleDateString('en-US', { weekday: 'short' }).charAt(0) + d.getDate();
-        out.push({ label: lbl, ceiling: dayCeiling(key) });
+        const e = cbmByDate[key];
+        out.push({ label: lbl, d: e ? e.dTotal : null, r: e ? e.rTotal : null, score: e ? e.score : null });
       }
       return out;
     } else if (timeframe === '4w') {
       const out = [];
-      for (let w = 3; w >= 0; w--) {
-        const ws = new Date(today); ws.setDate(today.getDate() - w * 7 - today.getDay());
-        const lbl = (ws.getMonth() + 1) + '/' + ws.getDate();
-        const weekCeilings = [];
-        for (let j = 0; j <= 6; j++) {
-          const dd = new Date(ws); dd.setDate(ws.getDate() + j);
-          const c = dayCeiling(dk(dd));
-          if (c !== null) weekCeilings.push(c);
-        }
-        const avg = weekCeilings.length ? Math.round(weekCeilings.reduce((a, b) => a + b, 0) / weekCeilings.length * 10) / 10 : null;
-        out.push({ label: lbl, ceiling: avg });
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date(today); d.setDate(today.getDate() - i);
+        const key = dk(d);
+        const lbl = (d.getMonth() + 1) + '/' + d.getDate();
+        const e = cbmByDate[key];
+        out.push({ label: lbl, d: e ? e.dTotal : null, r: e ? e.rTotal : null, score: e ? e.score : null });
       }
       return out;
     } else {
@@ -865,120 +882,265 @@ async function drawProgress(pdf, pageNumber, timeframe) {
         const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
         const monthPrefix = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
         const lbl = d.toLocaleDateString('en-US', { month: 'short' });
-        const monthLogs = cbmLog.filter(e => {
-          const ld = new Date(e.date);
-          return (ld.getFullYear() + '-' + String(ld.getMonth() + 1).padStart(2, '0')) === monthPrefix;
-        });
-        const dayKeys = {};
-        monthLogs.forEach(e => {
-          const key = dk(new Date(e.date));
-          if (!dayKeys[key]) dayKeys[key] = [];
-          dayKeys[key].push(e.level);
-        });
-        const dayCeilings = Object.keys(dayKeys).map(k => Math.max(...dayKeys[k]));
-        const avg = dayCeilings.length ? Math.round(dayCeilings.reduce((a, b) => a + b, 0) / dayCeilings.length * 10) / 10 : null;
-        out.push({ label: lbl, ceiling: avg });
+        const monthEntries = Object.keys(cbmByDate).filter(k => k.startsWith(monthPrefix)).map(k => cbmByDate[k]);
+        if (monthEntries.length > 0) {
+          out.push({
+            label: lbl,
+            d: Math.round(monthEntries.reduce((a, e) => a + e.dTotal, 0) / monthEntries.length),
+            r: Math.round(monthEntries.reduce((a, e) => a + e.rTotal, 0) / monthEntries.length),
+            score: Math.round(monthEntries.reduce((a, e) => a + e.score, 0) / monthEntries.length),
+          });
+        } else {
+          out.push({ label: lbl, d: null, r: null, score: null });
+        }
       }
       return out;
     }
   };
 
-  const cbmData = buildCBMData();
-  const withData = cbmData.filter(d => d.ceiling !== null);
-  const resistance = withData.length ? Math.round(withData.reduce((a, d) => a + d.ceiling, 0) / withData.length * 10) / 10 : null;
+  const cbmSeries = buildCBMSeries();
+  const hasCbmData = cbmSeries.some(p => p.d !== null);
+
+  // Period averages for behavior dashboard
+  const periodCbm = [];
+  for (let i = 0; i < days; i++) {
+    const d = new Date(today); d.setDate(today.getDate() - i);
+    const key = dk(d);
+    const e = cbmLog.find(x => dk(new Date(x.date)) === key);
+    if (e) periodCbm.push(e);
+  }
+  const cn = periodCbm.length;
+  const avgD = cn ? Math.round(periodCbm.reduce((a, e) => a + e.dTotal, 0) / cn) : null;
+  const avgR = cn ? Math.round(periodCbm.reduce((a, e) => a + e.rTotal, 0) / cn) : null;
+  const avgAxisScore = cn ? Math.round(periodCbm.reduce((a, e) => a + e.score, 0) / cn) : null;
+
+  // Streak + best for behavior dashboard
+  const cbmByDate = {};
+  cbmLog.forEach(e => { cbmByDate[dk(new Date(e.date))] = e; });
+  let cbmStreak = 0;
+  const cbmCheck = new Date(today);
+  while (cbmByDate[dk(cbmCheck)]) { cbmStreak++; cbmCheck.setDate(cbmCheck.getDate() - 1); }
+  let cbmBest = null; let cbmBestKey = null;
+  Object.keys(cbmByDate).forEach(k => {
+    const sc = cbmByDate[k].score;
+    if (cbmBest === null || sc > cbmBest) { cbmBest = sc; cbmBestKey = k; }
+  });
+  let cbmBestDate = '';
+  if (cbmBestKey) {
+    const bp = cbmBestKey.split('-');
+    cbmBestDate = new Date(bp[0], bp[1] - 1, bp[2]).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  // ===== Behavior dashboard =====
+  const cbmOsBlockH = 32;
+  pdf.setFillColor(248, 250, 252);
+  pdf.setDrawColor(220, 230, 240);
+  pdf.setLineWidth(0.3);
+  pdf.roundedRect(margin, y, contentWidth, cbmOsBlockH, 2, 2, 'FD');
 
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(8);
   pdf.setTextColor(107, 163, 200);
-  pdf.text('COMPULSIVE BEHAVIOR LOG', margin, y);
+  pdf.text('AVERAGE AXIS', margin + 8, y + 9);
 
-  if (resistance !== null) {
+  const cbmSign = avgAxisScore !== null && avgAxisScore >= 0 ? '+' : '';
+  const cbmScoreRgb = avgAxisScore === null ? [120, 135, 150] : (avgAxisScore >= 0 ? [74, 174, 136] : [200, 120, 120]);
+  pdf.setFont('times', 'normal');
+  pdf.setFontSize(18);
+  pdf.setTextColor(cbmScoreRgb[0], cbmScoreRgb[1], cbmScoreRgb[2]);
+  pdf.text(avgAxisScore !== null ? cbmSign + avgAxisScore : '--', margin + 8, y + 21);
+
+  pdf.setFont('times', 'italic');
+  pdf.setFontSize(8);
+  pdf.setTextColor(120, 135, 150);
+  pdf.text(tfLabel + ' average', margin + 8, y + 27);
+
+  const cbmScoreColW = 38;
+  const cbmScoresStartX = margin + contentWidth - (cbmScoreColW * 2) - 6;
+  const cbmCols = [
+    { label: 'Dysregulated', value: avgD, rgb: [200, 120, 120] },
+    { label: 'Regulated', value: avgR, rgb: [74, 174, 136] },
+  ];
+  cbmCols.forEach((s, i) => {
+    const sx = cbmScoresStartX + i * cbmScoreColW;
+    pdf.setDrawColor(s.rgb[0], s.rgb[1], s.rgb[2]);
+    pdf.setLineWidth(0.8);
+    pdf.line(sx, y + 6, sx, y + cbmOsBlockH - 6);
+
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(8);
+    pdf.setTextColor(s.rgb[0], s.rgb[1], s.rgb[2]);
+    pdf.text(s.label, sx + cbmScoreColW / 2 + 1, y + 11, { align: 'center' });
+
+    pdf.setFont('times', 'normal');
+    pdf.setFontSize(17);
+    pdf.text(s.value !== null ? String(s.value) : '--', sx + cbmScoreColW / 2 + 1, y + 22, { align: 'center' });
+
     pdf.setFont('times', 'italic');
     pdf.setFontSize(8);
-    pdf.setTextColor(200, 160, 80);
-    pdf.text('Resistance: ' + resistance.toFixed(1) + ' (' + CBM_LEVEL_NAMES[Math.min(Math.round(resistance), 5)] + ')  rolling avg', margin + contentWidth, y, { align: 'right' });
+    pdf.setTextColor(140, 155, 170);
+    pdf.text('avg AUC', sx + cbmScoreColW / 2 + 1, y + 28, { align: 'center' });
+  });
+
+  y += cbmOsBlockH + 8;
+
+  const cbmStatBoxW = (contentWidth - 8) / 2;
+  const cbmStatBoxH = 24;
+
+  pdf.setFillColor(252, 253, 254);
+  pdf.setDrawColor(220, 230, 240);
+  pdf.setLineWidth(0.3);
+  pdf.roundedRect(margin, y, cbmStatBoxW, cbmStatBoxH, 2, 2, 'FD');
+
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(8);
+  pdf.setTextColor(107, 163, 200);
+  pdf.text('STREAK', margin + 8, y + 8);
+
+  pdf.setFont('times', 'normal');
+  pdf.setFontSize(22);
+  pdf.setTextColor(60, 95, 130);
+  pdf.text(String(cbmStreak), margin + 8, y + 19);
+
+  pdf.setFont('times', 'italic');
+  pdf.setFontSize(9);
+  pdf.setTextColor(120, 135, 150);
+  pdf.text(cbmStreak === 1 ? 'consecutive day' : 'consecutive days', margin + 24, y + 19);
+
+  if (cbmBestKey) {
+    pdf.setFillColor(252, 253, 254);
+    pdf.setDrawColor(220, 230, 240);
+    pdf.roundedRect(margin + cbmStatBoxW + 8, y, cbmStatBoxW, cbmStatBoxH, 2, 2, 'FD');
+
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(8);
+    pdf.setTextColor(74, 174, 136);
+    pdf.text('BEST AXIS', margin + cbmStatBoxW + 8 + 8, y + 8);
+
+    const bestSign = cbmBest >= 0 ? '+' : '';
+    pdf.setFont('times', 'normal');
+    pdf.setFontSize(22);
+    pdf.setTextColor(cbmBest >= 0 ? 74 : 200, cbmBest >= 0 ? 174 : 120, cbmBest >= 0 ? 136 : 120);
+    pdf.text(bestSign + cbmBest, margin + cbmStatBoxW + 8 + 8, y + 19);
+
+    pdf.setFont('times', 'italic');
+    pdf.setFontSize(9);
+    pdf.setTextColor(120, 135, 150);
+    pdf.text(cbmBestDate, margin + cbmStatBoxW + 8 + 36, y + 19);
   }
 
-  y += 5;
+  y += cbmStatBoxH + 8;
 
   const cbmChartW = contentWidth;
   const cbmChartH = 58;
-  const cbmPad = { top: 8, right: 16, bottom: 14, left: 32 };
+  const cbmPad = { top: 8, right: 12, bottom: 14, left: 22 };
 
   pdf.setFillColor(252, 253, 254);
   pdf.setDrawColor(220, 230, 240);
   pdf.setLineWidth(0.3);
   pdf.roundedRect(margin, y, cbmChartW, cbmChartH, 2, 2, 'FD');
 
-  const cbmTop = y + cbmPad.top;
+  // Legend
+  const cbmLegend = [
+    { label: 'Dysregulated', rgb: [200, 120, 120] },
+    { label: 'Regulated', rgb: [74, 174, 136] },
+    { label: 'AXIS', rgb: [142, 196, 224] },
+  ];
+  let clx = margin + cbmPad.left;
+  cbmLegend.forEach(item => {
+    pdf.setFillColor(item.rgb[0], item.rgb[1], item.rgb[2]);
+    pdf.circle(clx, y + 3, 1.2, 'F');
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(8);
+    pdf.setTextColor(100, 115, 130);
+    pdf.text(item.label, clx + 3, y + 4);
+    clx += pdf.getTextWidth(item.label) + 9;
+  });
+
+  const cbmTop = y + 6;
   const cbmLeft = margin + cbmPad.left;
   const cbmBottom = y + cbmChartH - cbmPad.bottom;
   const cbmRight = margin + cbmChartW - cbmPad.right;
   const cbmInnerW = cbmRight - cbmLeft;
   const cbmInnerH = cbmBottom - cbmTop;
 
-  const cbmXPos = (i) => cbmLeft + (cbmData.length > 1 ? (i / (cbmData.length - 1)) * cbmInnerW : cbmInnerW / 2);
-  const cbmYPos = (level) => cbmTop + cbmInnerH - (level / 5) * cbmInnerH;
+  if (hasCbmData) {
+    const allVals = [];
+    cbmSeries.forEach(p => { if (p.d !== null) { allVals.push(p.d, p.r, p.score); } });
+    const maxVal = Math.max(...allVals, 1);
+    const minVal = Math.min(...allVals, 0);
+    const range = (maxVal - minVal) || 1;
 
-  pdf.setDrawColor(230, 235, 240);
-  pdf.setLineWidth(0.15);
-  pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(6.5);
-  pdf.setTextColor(140, 155, 170);
-  for (let i = 0; i <= 5; i++) {
-    const yLine = cbmYPos(i);
-    pdf.line(cbmLeft, yLine, cbmRight, yLine);
-    pdf.text(CBM_LEVEL_NAMES[i], cbmLeft - 2, yLine + 1.5, { align: 'right' });
-  }
+    const cbmXPos = (i) => cbmLeft + (cbmSeries.length > 1 ? (i / (cbmSeries.length - 1)) * cbmInnerW : cbmInnerW / 2);
+    const cbmYPos = (val) => cbmTop + cbmInnerH - ((val - minVal) / range) * cbmInnerH;
 
-  pdf.setFontSize(6.5);
-  pdf.setTextColor(140, 155, 170);
-  cbmData.forEach((d, i) => {
-    pdf.text(d.label, cbmXPos(i), cbmBottom + 5, { align: 'center' });
-  });
-
-  if (resistance !== null) {
-    const ry = cbmYPos(resistance);
-    pdf.setDrawColor(220, 170, 80);
-    pdf.setLineWidth(0.4);
-    const dashLen = 2;
-    const gapLen = 1.5;
-    let curX = cbmLeft;
-    while (curX < cbmRight) {
-      const endX = Math.min(curX + dashLen, cbmRight);
-      pdf.line(curX, ry, endX, ry);
-      curX = endX + gapLen;
-    }
-    pdf.setFont('helvetica', 'bold');
+    // Gridlines + y labels (5 ticks)
+    pdf.setDrawColor(230, 235, 240);
+    pdf.setLineWidth(0.15);
+    pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(6.5);
-    pdf.setTextColor(200, 160, 80);
-    pdf.text('R', cbmRight + 2, ry + 1.5);
-  }
-
-  const cbmPts = cbmData.map((d, i) => d.ceiling !== null ? { x: cbmXPos(i), y: cbmYPos(d.ceiling), level: d.ceiling } : null).filter(Boolean);
-  pdf.setDrawColor(155, 126, 200);
-  pdf.setLineWidth(0.7);
-  for (let i = 1; i < cbmPts.length; i++) {
-    pdf.line(cbmPts[i - 1].x, cbmPts[i - 1].y, cbmPts[i].x, cbmPts[i].y);
-  }
-  cbmPts.forEach(p => {
-    const aboveR = resistance !== null && p.level > resistance;
-    if (aboveR) {
-      pdf.setFillColor(200, 106, 106);
-      pdf.circle(p.x, p.y, 1.5, 'F');
-    } else {
-      pdf.setFillColor(155, 126, 200);
-      pdf.circle(p.x, p.y, 1.2, 'F');
+    pdf.setTextColor(150, 165, 180);
+    for (let g = 0; g <= 4; g++) {
+      const yLine = cbmTop + (g / 4) * cbmInnerH;
+      const val = Math.round(maxVal - (g / 4) * range);
+      pdf.line(cbmLeft, yLine, cbmRight, yLine);
+      pdf.text(String(val), cbmLeft - 2, yLine + 1.5, { align: 'right' });
     }
-  });
+
+    // Zero baseline if range crosses zero
+    if (minVal < 0) {
+      const zeroY = cbmYPos(0);
+      pdf.setDrawColor(180, 195, 210);
+      pdf.setLineWidth(0.3);
+      const dashLen = 1.8; const gapLen = 1.2;
+      let cx = cbmLeft;
+      while (cx < cbmRight) {
+        const ex = Math.min(cx + dashLen, cbmRight);
+        pdf.line(cx, zeroY, ex, zeroY);
+        cx = ex + gapLen;
+      }
+    }
+
+    pdf.setFontSize(6.5);
+    pdf.setTextColor(140, 155, 170);
+    cbmSeries.forEach((p, i) => {
+      pdf.text(p.label, cbmXPos(i), cbmBottom + 5, { align: 'center' });
+    });
+
+    const drawCbmLine = (key, rgb) => {
+      const pts = cbmSeries.map((p, i) => p[key] !== null ? { x: cbmXPos(i), y: cbmYPos(p[key]) } : null).filter(Boolean);
+      if (pts.length === 0) return;
+      pdf.setDrawColor(rgb[0], rgb[1], rgb[2]);
+      pdf.setLineWidth(0.8);
+      for (let i = 1; i < pts.length; i++) {
+        pdf.line(pts[i - 1].x, pts[i - 1].y, pts[i].x, pts[i].y);
+      }
+      pdf.setFillColor(rgb[0], rgb[1], rgb[2]);
+      pts.forEach(p => { pdf.circle(p.x, p.y, 1.2, 'F'); });
+    };
+
+    drawCbmLine('d', [200, 120, 120]);
+    drawCbmLine('r', [74, 174, 136]);
+    drawCbmLine('score', [142, 196, 224]);
+  } else {
+    pdf.setFont('times', 'italic');
+    pdf.setFontSize(10);
+    pdf.setTextColor(160, 175, 190);
+    pdf.text('No behavior logs in this period.', margin + cbmChartW / 2, y + cbmChartH / 2 + 2, { align: 'center' });
+  }
 
   return pageNumber;
 }
 
-// ===== CBM SUMMARY (dual pyramid, landscape) =====
+// ===== BEHAVIOR LOG SUMMARY (dual 12-band AUC pyramid, landscape) =====
 async function drawCBMSummary(pdf, pageNumber) {
-  const cbm = await fetchCBM();
-  const levels = cbm.levels || Array(5).fill(null).map(() => ({ behaviors: [] }));
+  const cbmLog = (await fetchCBMLog()).filter(validCbmEntry);
+
+  // Find today's log entry
+  const today = new Date();
+  const dk = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const todayKey = dk(today);
+  const todayEntry = cbmLog.find(e => dk(new Date(e.date)) === todayKey);
 
   const { pageWidth, pageHeight, contentTop } = await startNewPage(pdf, pageNumber, 'landscape');
   pageNumber++;
@@ -990,7 +1152,7 @@ async function drawCBMSummary(pdf, pageNumber) {
   pdf.setFont('times', 'normal');
   pdf.setFontSize(26);
   pdf.setTextColor(26, 50, 80);
-  pdf.text('Behavioral Map', pageWidth / 2, y + 8, { align: 'center' });
+  pdf.text('Behavior Log', pageWidth / 2, y + 8, { align: 'center' });
 
   pdf.setDrawColor(107, 163, 200);
   pdf.setLineWidth(0.4);
@@ -998,25 +1160,55 @@ async function drawCBMSummary(pdf, pageNumber) {
 
   y += 22;
 
-  const DYS_STYLES = [
-    { fill: [225, 240, 232], border: [120, 180, 150], text: [60, 130, 100] },
-    { fill: [222, 234, 244], border: [120, 165, 200], text: [60, 115, 165] },
-    { fill: [232, 224, 244], border: [160, 135, 200], text: [115, 90, 165] },
-    { fill: [248, 230, 215], border: [200, 140, 90],  text: [165, 100, 50] },
-    { fill: [244, 222, 222], border: [185, 105, 105], text: [150, 70, 70]  },
-  ];
+  if (!todayEntry) {
+    pdf.setFont('times', 'italic');
+    pdf.setFontSize(12);
+    pdf.setTextColor(140, 155, 170);
+    pdf.text('No log recorded for today.', pageWidth / 2, y + 20, { align: 'center' });
+    return pageNumber;
+  }
 
-  const REG_STYLES = [
-    { fill: [225, 240, 232], border: [90, 165, 130],  text: [50, 130, 95] },
-    { fill: [230, 242, 236], border: [105, 170, 140], text: [55, 130, 95] },
-    { fill: [235, 244, 239], border: [120, 175, 150], text: [60, 130, 95] },
-    { fill: [240, 246, 242], border: [140, 180, 160], text: [70, 135, 100] },
-    { fill: [244, 248, 245], border: [160, 185, 170], text: [80, 140, 105] },
-  ];
+  // Date + score banner
+  const dateStr = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  const score = todayEntry.score;
+  const positive = score >= 0;
 
-  const LEVEL_LABELS = ['Severe', 'Intense', 'Moderate', 'Low', 'Mild'];
-  const WIDTH_PCTS = [0.32, 0.50, 0.68, 0.85, 1.00];
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(9);
+  pdf.setTextColor(140, 155, 170);
+  pdf.text(dateStr.toUpperCase(), pageWidth / 2, y, { align: 'center' });
 
+  y += 7;
+
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(9);
+  pdf.setTextColor(107, 163, 200);
+  pdf.text('DAILY SCORE', pageWidth / 2, y, { align: 'center' });
+
+  y += 9;
+
+  pdf.setFont('times', 'normal');
+  pdf.setFontSize(28);
+  pdf.setTextColor(positive ? 74 : 200, positive ? 174 : 120, positive ? 136 : 120);
+  pdf.text((positive ? '+' : '') + score, pageWidth / 2, y, { align: 'center' });
+
+  y += 6;
+
+  // D and R subtotals
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(9);
+  pdf.setTextColor(200, 120, 120);
+  pdf.text('Dysregulated: ' + todayEntry.dTotal, pageWidth / 2 - 30, y, { align: 'right' });
+  pdf.setTextColor(74, 174, 136);
+  pdf.text('Regulated: ' + todayEntry.rTotal, pageWidth / 2 + 30, y, { align: 'left' });
+
+  y += 8;
+
+  const items = Array.isArray(todayEntry.items) ? todayEntry.items : [];
+  const dItems = items.filter(it => it.side === 'D');
+  const rItems = items.filter(it => it.side === 'R');
+
+  // Two pyramids side by side
   const colGap = 16;
   const colWidth = (contentWidth - colGap) / 2;
   const leftColX = margin;
@@ -1024,159 +1216,93 @@ async function drawCBMSummary(pdf, pageNumber) {
 
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(10);
-  pdf.setTextColor(60, 95, 130);
-  pdf.text('DYSREGULATED', leftColX + colWidth / 2, y, { align: 'center' });
+  pdf.setTextColor(200, 120, 120);
+  pdf.text('DYSREGULATING', leftColX + colWidth / 2, y, { align: 'center' });
 
-  pdf.setTextColor(74, 130, 100);
-  pdf.text('REGULATED', rightColX + colWidth / 2, y, { align: 'center' });
-
-  y += 5;
-
-  pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(7);
-  pdf.setTextColor(140, 155, 170);
-  pdf.text('Higher Dysregulation', leftColX + colWidth / 2, y, { align: 'center' });
-  pdf.text('Higher Regulation', rightColX + colWidth / 2, y, { align: 'center' });
+  pdf.setTextColor(74, 174, 136);
+  pdf.text('REGULATING', rightColX + colWidth / 2, y, { align: 'center' });
 
   y += 6;
 
   const pyramidTop = y;
-  const pyramidBottom = pageHeight - 22;
+  const pyramidBottom = pageHeight - 16;
   const availH = pyramidBottom - pyramidTop;
-  const rowGap = 2;
-  const rowH = (availH - rowGap * 4) / 5;
+  const rowGap = 1.5;
+  const bandCount = CBM_BANDS.length;
+  const rowH = (availH - rowGap * (bandCount - 1)) / bandCount;
 
   const drawPyramid = (colX, isReg) => {
-    const styles = isReg ? REG_STYLES : DYS_STYLES;
+    const rgb = isReg ? [74, 174, 136] : [200, 120, 120];
+    const fillRgb = isReg ? [240, 250, 245] : [250, 240, 240];
+    const itemsForCol = isReg ? rItems : dItems;
 
-    for (let displayIdx = 0; displayIdx < 5; displayIdx++) {
-      const levelIdx = 4 - displayIdx;
-      const style = styles[4 - displayIdx];
-      const rowWidth = colWidth * WIDTH_PCTS[displayIdx];
+    // i is band index (0 = base widest, 11 = tip narrowest)
+    // We render top-to-bottom: tip first (i=11), base last (i=0)
+    for (let displayIdx = 0; displayIdx < bandCount; displayIdx++) {
+      const bandIdx = (bandCount - 1) - displayIdx;
+      const band = CBM_BANDS[bandIdx];
+      // Width: tip narrowest (38%), base widest (100%)
+      const widthPct = 0.38 + ((bandCount - 1 - bandIdx) / (bandCount - 1)) * 0.62;
+      const rowWidth = colWidth * widthPct;
       const rowX = colX + (colWidth - rowWidth) / 2;
       const rowY = pyramidTop + displayIdx * (rowH + rowGap);
 
-      pdf.setFillColor(style.fill[0], style.fill[1], style.fill[2]);
-      pdf.setDrawColor(style.border[0], style.border[1], style.border[2]);
-      pdf.setLineWidth(0.4);
-      pdf.roundedRect(rowX, rowY, rowWidth, rowH, 1.5, 1.5, 'FD');
+      pdf.setFillColor(fillRgb[0], fillRgb[1], fillRgb[2]);
+      pdf.setDrawColor(rgb[0], rgb[1], rgb[2]);
+      pdf.setLineWidth(0.3);
+      pdf.roundedRect(rowX, rowY, rowWidth, rowH, 1.2, 1.2, 'FD');
 
-      pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(7);
-      pdf.setTextColor(style.text[0], style.text[1], style.text[2]);
-      pdf.text(LEVEL_LABELS[displayIdx].toUpperCase(), rowX + 4, rowY + 5);
-
+      // Band label on the left (outside the band, in the column gutter)
       pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(7);
-      pdf.setTextColor(160, 175, 190);
-      pdf.text(String(levelIdx + 1), rowX + rowWidth - 4, rowY + 5, { align: 'right' });
+      pdf.setFontSize(6.5);
+      pdf.setTextColor(140, 155, 170);
+      pdf.text(band.label, rowX - 2, rowY + rowH / 2 + 1.5, { align: 'right' });
 
-      const behaviors = (levels[levelIdx] && levels[levelIdx].behaviors) || [];
-      let items;
-      if (isReg) {
-        items = behaviors.flatMap(b => {
-          if (Array.isArray(b.alternatives)) return b.alternatives.filter(a => a && a.trim());
-          if (b.alternative && b.alternative.trim()) return [b.alternative];
-          return [];
-        });
-      } else {
-        items = behaviors.map(b => b.name).filter(Boolean);
-      }
+      // Items in this band
+      const inBand = itemsForCol.filter(it => bandForLoad(it.load) === bandIdx);
+      if (inBand.length === 0) continue;
 
-      if (items.length === 0) {
-        pdf.setFont('times', 'italic');
-        pdf.setFontSize(9);
-        pdf.setTextColor(180, 190, 200);
-        pdf.text('Level ' + (levelIdx + 1), rowX + rowWidth / 2, rowY + rowH / 2 + 1.5, { align: 'center' });
-        continue;
-      }
-
-      const padX = 8;
-      const padTopForItems = 9;
-      const pillPadX = 4;
-      const pillPadY = 1.5;
-      const pillH = 5;
-      const pillGap = 3;
-      const lineGap = 2;
-      const fontSize = 8;
+      const pillPadX = 3;
+      const pillH = rowH * 0.6;
+      const pillGap = 2;
+      const fontSize = 7;
 
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(fontSize);
 
-      const rows = [];
-      let currentRow = [];
-      let currentRowW = 0;
-      const maxRowW = rowWidth - padX * 2;
+      // Lay out pills (single row, wrap not needed for typical band counts)
+      const pillData = inBand.map(it => ({
+        text: it.name,
+        w: pdf.getTextWidth(it.name) + pillPadX * 2,
+      }));
 
-      for (const item of items) {
-        const textW = pdf.getTextWidth(item);
-        const pillW = textW + pillPadX * 2;
-        const addW = (currentRow.length === 0 ? 0 : pillGap) + pillW;
-        if (currentRowW + addW > maxRowW && currentRow.length > 0) {
-          rows.push(currentRow);
-          currentRow = [{ text: item, w: pillW }];
-          currentRowW = pillW;
-        } else {
-          currentRow.push({ text: item, w: pillW });
-          currentRowW += addW;
-        }
-      }
-      if (currentRow.length > 0) rows.push(currentRow);
+      const maxRowW = rowWidth - 8;
+      const totalW = pillData.reduce((s, p) => s + p.w, 0) + (pillData.length - 1) * pillGap;
 
-      const totalPillsH = rows.length * pillH + (rows.length - 1) * lineGap;
-      let pillsStartY = rowY + padTopForItems + ((rowH - padTopForItems - totalPillsH) / 2);
-      if (pillsStartY < rowY + padTopForItems) pillsStartY = rowY + padTopForItems;
-
-      const maxRowsThatFit = Math.floor((rowH - padTopForItems) / (pillH + lineGap)) || 1;
-      const rowsToDraw = Math.min(rows.length, maxRowsThatFit);
-
-      for (let r = 0; r < rowsToDraw; r++) {
-        const row = rows[r];
-        const rowTotalW = row.reduce((s, p) => s + p.w, 0) + (row.length - 1) * pillGap;
-        let pillX = rowX + (rowWidth - rowTotalW) / 2;
-        const pillY = pillsStartY + r * (pillH + lineGap);
-
-        for (const pill of row) {
-          if (isReg) {
-            pdf.setFillColor(240, 250, 245);
-            pdf.setDrawColor(120, 180, 150);
-          } else {
-            pdf.setFillColor(255, 255, 255);
-            pdf.setDrawColor(style.border[0], style.border[1], style.border[2]);
-          }
+      if (totalW <= maxRowW) {
+        let px = rowX + (rowWidth - totalW) / 2;
+        const py = rowY + (rowH - pillH) / 2;
+        for (const p of pillData) {
+          pdf.setFillColor(255, 255, 255);
+          pdf.setDrawColor(rgb[0], rgb[1], rgb[2]);
           pdf.setLineWidth(0.2);
-          pdf.roundedRect(pillX, pillY, pill.w, pillH, 1.2, 1.2, 'FD');
-
-          if (isReg) {
-            pdf.setTextColor(60, 130, 95);
-          } else {
-            pdf.setTextColor(60, 75, 90);
-          }
-          pdf.setFont('helvetica', 'normal');
-          pdf.setFontSize(fontSize);
-          pdf.text(pill.text, pillX + pill.w / 2, pillY + pillH - pillPadY - 0.3, { align: 'center' });
-
-          pillX += pill.w + pillGap;
+          pdf.roundedRect(px, py, p.w, pillH, 0.8, 0.8, 'FD');
+          pdf.setTextColor(60, 75, 90);
+          pdf.text(p.text, px + p.w / 2, py + pillH / 2 + 1.5, { align: 'center' });
+          px += p.w + pillGap;
         }
-      }
-
-      if (rows.length > rowsToDraw) {
+      } else {
+        // Too many to fit one row: render a count
         pdf.setFont('helvetica', 'italic');
         pdf.setFontSize(7);
-        pdf.setTextColor(150, 165, 180);
-        pdf.text('+ ' + (rows.length - rowsToDraw) + ' more', rowX + rowWidth - 4, rowY + rowH - 2, { align: 'right' });
+        pdf.setTextColor(100, 115, 130);
+        pdf.text(inBand.map(it => it.name).join(', '), rowX + rowWidth / 2, rowY + rowH / 2 + 1.5, { align: 'center', maxWidth: rowWidth - 6 });
       }
     }
   };
 
   drawPyramid(leftColX, false);
   drawPyramid(rightColX, true);
-
-  pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(7);
-  pdf.setTextColor(140, 155, 170);
-  pdf.text('Lower Dysregulation', leftColX + colWidth / 2, pyramidBottom + 4, { align: 'center' });
-  pdf.text('Lower Regulation', rightColX + colWidth / 2, pyramidBottom + 4, { align: 'center' });
 
   return pageNumber;
 }

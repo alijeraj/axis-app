@@ -96,6 +96,39 @@ function AddHabitModal({ side, existingNames, onAdd, onClose }) {
   );
 }
 
+function InfoModal({ onClose }) {
+  return (
+    <div style={styles.overlay} onClick={onClose}>
+      <div style={styles.modal} onClick={e => e.stopPropagation()}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <button style={styles.x} onClick={onClose}>✕</button>
+        </div>
+
+        <h3 style={styles.infoHead}>How It Works</h3>
+        <p style={styles.infoP}>
+          Every substance and behavior triggers a dopamine response with two dimensions: <em>peak</em> (how high it spikes) and <em>duration</em> (how long it lasts). Multiply them and you get the <strong style={styles.infoStrong}>AUC index</strong>, the dopamine load from a single use.
+        </p>
+        <p style={styles.infoP}>
+          Your usage level decides how strongly your receptors still respond. Someone who rarely uses something feels close to the full spike (Occasional, 100%). A heavy daily user feels only a fraction (Heavy, 25%). Chronic use has downregulated their receptors, so it's the same cigarette for far less reward.
+        </p>
+
+        <h3 style={styles.infoHead}>The Logic</h3>
+        <p style={styles.infoP}>
+          A dysregulated system is always seeking dopamine. Think of it as a currency the brain spends trying to feel balanced, and you can earn it through compulsive habits or through healthy ones. Compulsive behaviors spike high but fade fast; healthy behaviors give a gentler rise that lasts much longer. The Behavior Log shows you, in one number, which way your day leans.
+        </p>
+
+        <h3 style={styles.infoHead}>The Formula</h3>
+        <div style={styles.infoFormula}>Daily load = AUC × Quantity × Receptor multiplier</div>
+        <ul style={styles.infoList}>
+          <li style={styles.infoLi}><strong style={styles.infoStrong}>AUC</strong>: fixed per item</li>
+          <li style={styles.infoLi}><strong style={styles.infoStrong}>Quantity</strong>: units you log per day</li>
+          <li style={styles.infoLi}><strong style={styles.infoStrong}>Receptor multiplier</strong>: Occasional (100%) / Regular (50%) / Heavy (25%)</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
 function CBM() {
   const navigate = useNavigate();
   const token = localStorage.getItem('axis_token');
@@ -103,6 +136,7 @@ function CBM() {
   const [todayLog, setTodayLog] = useState({}); // habitId -> quantity for today
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(null);   // 'D' | 'R' | null
+  const [showInfo, setShowInfo] = useState(false);
   const [logStatus, setLogStatus] = useState(''); // '', 'saving', 'saved', 'error'
   const [loggedToday, setLoggedToday] = useState(false);
 
@@ -158,6 +192,14 @@ function CBM() {
 
   const setQty = (id, qty) => {
     const nextLog = { ...todayLog, [id]: qty };
+    setTodayLog(nextLog);
+    persist(habits, nextLog);
+  };
+
+  const resetDay = () => {
+    if (!window.confirm('Reset all quantities to 0? Your habits and Usage settings stay.')) return;
+    const nextLog = {};
+    habits.forEach(h => { nextLog[h.id] = 0; });
     setTodayLog(nextLog);
     persist(habits, nextLog);
   };
@@ -275,6 +317,12 @@ function CBM() {
           </div>
         </div>
 
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+          <button style={styles.infoTrigger} onClick={() => setShowInfo(true)}>
+            <span style={styles.infoTriggerIcon}>i</span> How it works
+          </button>
+        </div>
+
         <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginBottom: '32px' }}>
           <button style={styles.logBtn} onClick={logToday}>
             {logStatus === 'saving' ? 'Saving…' : logStatus === 'error' ? 'Failed — retry' : loggedToday ? 'Update Today' : 'Log Today'}
@@ -282,6 +330,7 @@ function CBM() {
           {loggedToday && (
             <button style={styles.resultsBtn} onClick={() => navigate('/cbmresults')}>View Today's Results</button>
           )}
+          <button style={styles.resultsBtn} onClick={() => navigate('/progress?tab=behavior')}>View Progress</button>
         </div>
 
         {/* TWO COLUMNS */}
@@ -302,7 +351,15 @@ function CBM() {
           </div>
         </div>
 
+        {habits.length > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '36px' }}>
+            <button style={styles.resetBtn} onClick={resetDay}>Reset Day</button>
+          </div>
+        )}
+
       </PageBody>
+
+      {showInfo && <InfoModal onClose={() => setShowInfo(false)} />}
 
       {adding && (
         <AddHabitModal
@@ -324,6 +381,7 @@ const styles = {
   dashSub: { fontSize: '10px', color: '#8BAFC8', marginTop: '6px' },
   logBtn: { background: 'rgba(142,196,224,0.15)', border: '1px solid rgba(142,196,224,0.4)', borderRadius: '3px', padding: '12px 32px', color: '#8EC4E0', fontSize: '11px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', cursor: 'pointer' },
   resultsBtn: { background: 'none', border: '1px solid rgba(142,196,224,0.3)', borderRadius: '3px', padding: '12px 24px', color: '#8BAFC8', fontSize: '11px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', cursor: 'pointer' },
+  resetBtn: { background: 'none', border: '1px solid rgba(142,196,224,0.25)', borderRadius: '3px', padding: '11px 28px', color: '#8BAFC8', fontSize: '11px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', cursor: 'pointer' },
   cols: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' },
   colHead: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '12px', marginBottom: '12px', borderBottom: '1px solid rgba(142,196,224,0.15)', fontSize: '11px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase' },
   addBtn: { background: 'none', border: '1px solid rgba(142,196,224,0.25)', borderRadius: '2px', padding: '4px 10px', color: '#8BAFC8', fontSize: '10px', cursor: 'pointer', letterSpacing: '1px' },
@@ -340,6 +398,14 @@ const styles = {
   x: { background: 'none', border: 'none', color: '#8BAFC8', cursor: 'pointer', fontSize: '18px' },
   input: { width: '100%', background: '#0f2236', border: '1px solid rgba(142,196,224,0.2)', borderRadius: '3px', padding: '10px 14px', color: '#D8E6F0', fontSize: '14px', outline: 'none', boxSizing: 'border-box' },
   pickRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderBottom: '1px solid rgba(142,196,224,0.08)', cursor: 'pointer' },
+  infoTrigger: { display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(142,196,224,0.06)', border: '1px solid rgba(142,196,224,0.3)', borderRadius: '20px', padding: '7px 16px', color: '#8EC4E0', fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', cursor: 'pointer' },
+  infoTriggerIcon: { width: '15px', height: '15px', borderRadius: '50%', border: '1px solid rgba(142,196,224,0.5)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '10px', lineHeight: 1 },
+  infoHead: { fontFamily: 'Georgia, serif', fontSize: '17px', fontWeight: '400', color: '#8EC4E0', margin: '18px 0 8px', letterSpacing: '0.5px' },
+  infoP: { fontSize: '13px', lineHeight: 1.7, color: '#B3C9DA', margin: '0 0 12px' },
+  infoStrong: { color: '#D8E6F0', fontWeight: '600' },
+  infoFormula: { fontFamily: 'Georgia, serif', fontSize: '14px', color: '#D8E6F0', background: '#0f2236', border: '1px solid rgba(142,196,224,0.2)', borderRadius: '3px', padding: '12px 14px', textAlign: 'center', margin: '4px 0 12px' },
+  infoList: { margin: '4px 0 0', paddingLeft: '18px' },
+  infoLi: { fontSize: '13px', lineHeight: 1.7, color: '#B3C9DA', marginBottom: '6px' },
 };
 
 export default CBM;

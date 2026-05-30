@@ -1108,6 +1108,32 @@ function MapCanvas({ people, mapView, selfPerson, patternCategories, patterns, a
   );
 }
 
+function HowItWorksModal({ onClose }) {
+  const para = { fontSize: '13px', lineHeight: 1.75, color: '#B3C9DA', margin: '0 0 14px' };
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 300, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '40px 20px' }} onClick={onClose}>
+      <div style={{ background: '#162534', border: '1px solid rgba(142,196,224,0.3)', borderRadius: '4px', width: '100%', maxWidth: '720px', padding: '32px', boxShadow: '0 0 40px rgba(0,0,0,0.6)' }} onClick={e => e.stopPropagation()}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '4px' }}>
+          <div>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: '300', color: '#D8E6F0' }}>How It Works</div>
+            <div style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8', marginTop: '4px' }}>Relational Map</div>
+          </div>
+          <button style={{ background: 'none', border: 'none', color: '#8BAFC8', cursor: 'pointer', fontSize: '18px' }} onClick={onClose}>✕</button>
+        </div>
+        <p style={{ ...para, marginTop: '18px' }}>
+          A person connects to complexes and dreams. A person also connects to patterns drawn from the pattern library.
+        </p>
+        <p style={para}>
+          The Family Tree map reveals the patterns of your family system. The Romantic History map reveals patterns across past romantic relationships, flings, and interests, over different life periods. The Friendships map reveals patterns across friendships, over different life periods.
+        </p>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+          <button style={{ background: 'rgba(142,196,224,0.15)', border: '1px solid rgba(142,196,224,0.4)', borderRadius: '3px', padding: '10px 24px', color: '#8EC4E0', fontSize: '11px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', cursor: 'pointer' }} onClick={onClose}>Close</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function People() {
   const navigate = useNavigate();
   const token = localStorage.getItem('axis_token');
@@ -1130,6 +1156,7 @@ function People() {
   const [patternCategories, setPatternCategories] = useState([]);
   const [patterns, setPatterns] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showInfo, setShowInfo] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editIdx, setEditIdx] = useState(null);
   const [form, setForm] = useState({ name: '', level: '', patterns: {}, currentPartner: '', pastPartners: [], familyOrigin: '', isSelf: false, parents: [], mapView: 'family', romanticRole: '', lifeStage: '', lifeStages: [] });
@@ -1357,7 +1384,7 @@ function People() {
               <input style={styles.input} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Who is this person?" autoFocus />
             </div>
             <div style={styles.formGroup}>
-              <label style={styles.label}>Map View <span style={{ color: '#8BAFC8', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>— which map this person belongs to</span></label>
+              <label style={styles.label}>Map View <span style={{ color: '#8BAFC8', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>  which map this person belongs to</span></label>
               <select style={styles.input} value={form.mapView} onChange={e => setForm({ ...form, mapView: e.target.value })}>
                 {MAP_VIEWS.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}
               </select>
@@ -1422,14 +1449,14 @@ function People() {
             {form.mapView === 'family' && (
               <>
                 <div style={styles.formGroup}>
-                  <label style={styles.label}>Level <span style={{ color: '#8BAFC8', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>— optional, required for family tree</span></label>
+                  <label style={styles.label}>Level <span style={{ color: '#8BAFC8', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>  optional, required for family tree</span></label>
                   <select style={styles.input} value={form.level} onChange={e => setForm({ ...form, level: e.target.value })}>
                     <option value="">-- Not on family tree --</option>
                     {LEVELS.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
                   </select>
                 </div>
                 <div style={styles.formGroup}>
-                  <label style={styles.label}>Current Partner <span style={{ color: '#8BAFC8', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>— optional</span></label>
+                  <label style={styles.label}>Current Partner <span style={{ color: '#8BAFC8', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}> optional</span></label>
                   <select style={styles.input} value={form.currentPartner} onChange={e => setForm({ ...form, currentPartner: e.target.value })}>
                     <option value="">-- None --</option>
                     {otherPeople.filter(p => !form.pastPartners.includes(p.name)).map((p, i) => <option key={i} value={p.name}>{p.name}</option>)}
@@ -1541,6 +1568,7 @@ function People() {
 
   return (
     <Page>
+      {showInfo && <HowItWorksModal onClose={() => setShowInfo(false)} />}
       {showPatternMgmt && (
         <PatternManagementModal
           categories={patternCategories}
@@ -1574,14 +1602,20 @@ function People() {
         right={<button style={styles.btn} onClick={() => openForm()}>+ Add Person</button>}
       />
 
-      <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid rgba(142,196,224,0.15)', padding: '0 32px', flexShrink: 0 }}>
-        {[{ id: 'directory', label: 'Directory' }, { id: 'map', label: 'Map' }].map(t => (
-          <button key={t.id} style={{ ...styles.tabBtn, ...(view === t.id ? styles.tabBtnActive : {}) }} onClick={() => setView(t.id)}>{t.label}</button>
-        ))}
-      </div>
+      <PageBody width="content">
+        <div style={{ marginBottom: '16px' }}>
+          <button style={styles.infoTrigger} onClick={() => setShowInfo(true)}>
+            <span style={styles.infoTriggerIcon}>i</span> How it works
+          </button>
+        </div>
+        <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid rgba(142,196,224,0.15)', marginBottom: '24px' }}>
+          {[{ id: 'directory', label: 'Directory' }, { id: 'map', label: 'Map' }].map(t => (
+            <button key={t.id} style={{ ...styles.tabBtn, ...(view === t.id ? styles.tabBtnActive : {}) }} onClick={() => setView(t.id)}>{t.label}</button>
+          ))}
+        </div>
 
-      {view === 'directory' && (
-        <PageBody width="content">
+        {view === 'directory' && (
+          <>
           {people.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '80px 40px', color: '#8BAFC8' }}>
               <div style={{ fontSize: '13px', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '12px' }}>No people yet</div>
@@ -1639,8 +1673,9 @@ function People() {
               })}
             </>
           )}
-        </PageBody>
-      )}
+          </>
+        )}
+      </PageBody>
 
       {view === 'map' && (
         <PageBody width="full">
@@ -1725,6 +1760,8 @@ const styles = {
   subTabBtn: { background: 'none', border: 'none', borderBottom: '2px solid transparent', padding: '10px 16px', color: '#8BAFC8', fontSize: '9px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', cursor: 'pointer', marginBottom: '-1px' },
   subTabBtnActive: { color: '#8EC4E0', borderBottomColor: '#8EC4E0' },
   treeCtrlBtn: { background: 'none', border: '1px solid rgba(142,196,224,0.2)', color: '#8BAFC8', cursor: 'pointer', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', borderRadius: '2px', padding: 0 },
+  infoTrigger: { display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(142,196,224,0.06)', border: '1px solid rgba(142,196,224,0.3)', borderRadius: '20px', padding: '7px 16px', color: '#8EC4E0', fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', cursor: 'pointer' },
+  infoTriggerIcon: { width: '15px', height: '15px', borderRadius: '50%', border: '1px solid rgba(142,196,224,0.5)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '10px', lineHeight: 1 },
 };
 
 export default People;

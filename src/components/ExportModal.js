@@ -59,12 +59,12 @@ function ExportModal({ patternCategories, patterns, onClose, onExport }) {
         </div>
 
         <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#8BAFC8', marginBottom: '8px' }}>Name <span style={{ color: '#8BAFC8', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>— optional, appears on the contents page</span></label>
+          <label style={{ display: 'block', fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#8BAFC8', marginBottom: '8px' }}>Name <span style={{ color: '#8BAFC8', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>· optional, appears on the contents page</span></label>
           <input
             style={{ width: '100%', background: '#0f2236', border: '1px solid rgba(142,196,224,0.2)', borderRadius: '3px', padding: '10px 14px', color: '#D8E6F0', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
             value={config.name}
             onChange={e => setConfig({ ...config, name: e.target.value })}
-            placeholder="Your name (optional)"
+            placeholder="Your name"
           />
         </div>
 
@@ -83,7 +83,7 @@ function ExportModal({ patternCategories, patterns, onClose, onExport }) {
 
         <Toggle label="Complexes" checked={config.complexes} onChange={v => setConfig({ ...config, complexes: v })} />
 
-        <Toggle label="Behavioral Map (summary)" checked={config.cbmSummary} onChange={v => setConfig({ ...config, cbmSummary: v })} />
+        <Toggle label="Behavior Log (summary)" checked={config.cbmSummary} onChange={v => setConfig({ ...config, cbmSummary: v })} />
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '28px', paddingTop: '16px', borderTop: '1px solid rgba(142,196,224,0.15)' }}>
           <button style={{ background: 'none', border: '1px solid rgba(142,196,224,0.2)', borderRadius: '3px', padding: '10px 20px', color: '#8BAFC8', fontSize: '11px', cursor: 'pointer' }} onClick={onClose}>Cancel</button>

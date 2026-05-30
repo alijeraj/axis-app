@@ -15,7 +15,7 @@ const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2
 const PRESETS = [
   {
     key: 'familyroles',
-    name: 'Family Systems — Childhood Roles',
+    name: 'Family Systems / Childhood Roles',
     blurb: 'Backbone: Wegscheider-Cruse · Golden Child from the narcissistic-family model (Pressman & Pressman) · Parentified Child from Minuchin (structural family therapy).',
     items: [
       {
@@ -119,7 +119,7 @@ const PRESETS = [
           { label: 'Cognitive Style', value: 'Inflexible, rigid thinking; failure to learn from experience; external locus of control' },
           { label: 'Feeling Style', value: 'Emotionally reactive and dysregulated; extreme lability of mood and affect; intense anger' },
           { label: 'Temperament', value: 'Dependent type: passive infantile pattern—low autonomic reactivity; Histrionic type: hyperresponsive—high autonomic reactivity; Passive-Aggressive type: “difficult”—affect irritability' },
-          { label: 'Self-View', value: '“I don\'t know who I am or where I\'m going” — identity problems; fluctuates with current emotion, loyalties, values; unstable self-esteem' },
+          { label: 'Self-View', value: '“I don\'t know who I am or where I\'m going” - identity problems; fluctuates with current emotion, loyalties, values; unstable self-esteem' },
           { label: 'World View', value: '“People are great, no they\'re not. Having goals is good, no it\'s not. If life doesn\'t go my way, I can\'t tolerate it. Don\'t commit to anything.”' },
           { label: 'Maladaptive Schemas', value: 'Abandonment; Defectiveness; Abuse/Mistrust; Insufficient Self-Control; Emotional Deprivation; Social Isolation' },
           { label: 'Optimal Diagnostic Criteria', value: 'Frantic efforts to avoid real or imagined abandonment' },
@@ -480,7 +480,7 @@ function BuilderModal({ initialCategory, initialItems, onClose, onSave }) {
                     boxShadow: it.color === c ? '0 0 6px rgba(216,230,240,0.4)' : 'none' }} />
               ))}
             </div>
-            <div style={styles.miniLabel}>Description <span style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 400 }}>— optional</span></div>
+            <div style={styles.miniLabel}>Description <span style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 400 }}> optional</span></div>
             <textarea style={{ ...styles.input, minHeight: '54px', resize: 'vertical', fontFamily: 'Georgia, serif' }}
               value={it.description || ''} onChange={e => updateItem(it.id, 'description', e.target.value)}
               placeholder="A short description shown when this item is tapped." />
@@ -536,6 +536,29 @@ function ItemDetailModal({ item, categoryName, onClose }) {
   );
 }
 
+function HowItWorksModal({ onClose }) {
+  const para = { fontSize: '13px', lineHeight: 1.75, color: '#B3C9DA', margin: '0 0 14px' };
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 300, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '40px 20px' }} onClick={onClose}>
+      <div style={{ background: '#162534', border: '1px solid rgba(142,196,224,0.3)', borderRadius: '4px', width: '100%', maxWidth: '720px', padding: '32px', boxShadow: '0 0 40px rgba(0,0,0,0.6)' }} onClick={e => e.stopPropagation()}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '4px' }}>
+          <div>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: '300', color: '#D8E6F0' }}>How It Works</div>
+            <div style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8', marginTop: '4px' }}>Pattern Library</div>
+          </div>
+          <button style={{ background: 'none', border: 'none', color: '#8BAFC8', cursor: 'pointer', fontSize: '18px' }} onClick={onClose}>✕</button>
+        </div>
+        <p style={{ ...para, marginTop: '18px' }}>
+          Patterns connect to the people on your Relational Map. To add one, adopt a pre-built pattern from the library below, or build your own. To view a pattern, open the Relational Map and select it from the View by filter.
+        </p>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+          <button style={{ background: 'rgba(142,196,224,0.15)', border: '1px solid rgba(142,196,224,0.4)', borderRadius: '3px', padding: '10px 24px', color: '#8EC4E0', fontSize: '11px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', cursor: 'pointer' }} onClick={onClose}>Close</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Patterns() {
   // eslint-disable-next-line no-unused-vars
   const navigate = useNavigate();
@@ -543,6 +566,7 @@ function Patterns() {
   const [categories, setCategories] = useState([]);
   const [patterns, setPatterns] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showInfo, setShowInfo] = useState(false);
   const [builderOpen, setBuilderOpen] = useState(false);
   const [editingCat, setEditingCat] = useState(null);
   const [detailItem, setDetailItem] = useState(null);
@@ -619,8 +643,15 @@ function Patterns() {
 
   return (
     <Page>
+      {showInfo && <HowItWorksModal onClose={() => setShowInfo(false)} />}
       <AppHeader title="Pattern Library" right={<button style={styles.addBtn} onClick={openNewBuilder}>+ New Pattern</button>} />
       <PageBody width="content">
+
+        <div style={{ marginBottom: '16px' }}>
+          <button style={styles.infoTrigger} onClick={() => setShowInfo(true)}>
+            <span style={styles.infoTriggerIcon}>i</span> How it works
+          </button>
+        </div>
 
         <div style={{ marginBottom: '20px' }}>
           <div style={styles.sectionTitle}>Your Patterns</div>
@@ -680,7 +711,7 @@ function Patterns() {
                 </div>
                 <div style={{ marginTop: '16px' }}>
                   <button style={adopted ? styles.adoptedBtn : styles.adoptBtn} onClick={() => adoptPreset(preset)}>
-                    {adopted ? '✓ Adopted — add again' : '+ Adopt'}
+                    {adopted ? '✓ Adopted - add again' : '+ Adopt'}
                   </button>
                 </div>
               </div>
@@ -733,6 +764,8 @@ const styles = {
   modalFooter: { display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(142,196,224,0.15)' },
   cancelBtn: { background: 'none', border: '1px solid rgba(142,196,224,0.2)', borderRadius: '3px', padding: '10px 20px', color: '#8BAFC8', fontSize: '11px', cursor: 'pointer' },
   confirmBtn: { background: 'rgba(142,196,224,0.15)', border: '1px solid rgba(142,196,224,0.4)', borderRadius: '3px', padding: '10px 24px', color: '#8EC4E0', fontSize: '11px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase' },
+  infoTrigger: { display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(142,196,224,0.06)', border: '1px solid rgba(142,196,224,0.3)', borderRadius: '20px', padding: '7px 16px', color: '#8EC4E0', fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', cursor: 'pointer' },
+  infoTriggerIcon: { width: '15px', height: '15px', borderRadius: '50%', border: '1px solid rgba(142,196,224,0.5)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '10px', lineHeight: 1 },
 };
 
 export default Patterns;
