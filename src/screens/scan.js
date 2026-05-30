@@ -269,6 +269,29 @@ function QuestionnaireMode({ phase, ismScores, esmScores, onIsmChange, onEsmChan
   );
 }
 
+function HowItWorksModal({ onClose }) {
+  const para = { fontSize: '13px', lineHeight: 1.75, color: '#B3C9DA', margin: '0 0 14px' };
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 300, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '40px 20px' }} onClick={onClose}>
+      <div style={{ background: '#162534', border: '1px solid rgba(142,196,224,0.3)', borderRadius: '4px', width: '100%', maxWidth: '720px', padding: '32px', boxShadow: '0 0 40px rgba(0,0,0,0.6)' }} onClick={e => e.stopPropagation()}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '4px' }}>
+          <div>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: '300', color: '#D8E6F0' }}>How It Works</div>
+            <div style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8', marginTop: '4px' }}>Scan</div>
+          </div>
+          <button style={{ background: 'none', border: 'none', color: '#8BAFC8', cursor: 'pointer', fontSize: '18px' }} onClick={onClose}>✕</button>
+        </div>
+        <p style={{ ...para, marginTop: '18px' }}>
+          Scan your internal and emotional states yourself in Custom mode if the sections feel familiar, or use the guided Questionnaire to be walked through them. Either way, you can then track your progress and evolution over time on the Progress page.
+        </p>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+          <button style={{ background: 'rgba(142,196,224,0.15)', border: '1px solid rgba(142,196,224,0.4)', borderRadius: '3px', padding: '10px 24px', color: '#8EC4E0', fontSize: '11px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', cursor: 'pointer' }} onClick={onClose}>Close</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Scan() {
   const navigate = useNavigate();
   const token = localStorage.getItem('axis_token');
@@ -282,6 +305,7 @@ function Scan() {
   const [justSaved, setJustSaved] = useState('');
   const [error, setError] = useState('');
   const [qComplete, setQComplete] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
 
   const ismScore = Math.round((Object.values(ism).reduce((a, b) => a + b, 0) / 4) + 5);
   const esmScore = Math.round((Object.values(esm).reduce((a, b) => a + b, 0) / 6) + 5);
@@ -350,9 +374,15 @@ function Scan() {
 
   return (
     <Page>
+      {showInfo && <HowItWorksModal onClose={() => setShowInfo(false)} />}
       <AppHeader title="Scan" />
 
       <PageBody width="content">
+        <div style={{ marginBottom: '16px' }}>
+          <button style={styles.infoTrigger} onClick={() => setShowInfo(true)}>
+            <span style={styles.infoTriggerIcon}>i</span> How it works
+          </button>
+        </div>
         <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid rgba(142,196,224,0.15)', marginBottom: '24px' }}>
           <button style={{ ...styles.tabBtn, ...(map === 'ism' ? styles.tabBtnActive : {}) }} onClick={() => { setMap('ism'); setQComplete(false); setJustSaved(''); }}>
             ISM {ismLogged && <span style={{ color: '#4AAE88', marginLeft: '6px' }}>✓</span>}
@@ -504,6 +534,9 @@ const styles = {
   qText: { fontFamily: 'Georgia, serif', fontSize: '18px', fontWeight: '300', color: '#D8E6F0', lineHeight: 1.6, marginBottom: '32px' },
   qSlider: { display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px' },
   qNav: { display: 'flex', alignItems: 'center', gap: '12px', marginTop: '24px' },
+  infoTrigger: { display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(142,196,224,0.06)', border: '1px solid rgba(142,196,224,0.3)', borderRadius: '20px', padding: '7px 16px', color: '#8EC4E0', fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', cursor: 'pointer' },
+  infoTriggerIcon: { width: '15px', height: '15px', borderRadius: '50%', border: '1px solid rgba(142,196,224,0.5)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '10px', lineHeight: 1 },
 };
+
 
 export default Scan;

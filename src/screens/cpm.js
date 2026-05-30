@@ -1012,6 +1012,29 @@ function HowItWorksModal({ onClose }) {
   );
 }
 
+function BuildHowItWorksModal({ onClose }) {
+  const para = { fontSize: '13px', lineHeight: 1.75, color: '#B3C9DA', margin: '0 0 14px' };
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 300, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '40px 20px' }} onClick={onClose}>
+      <div style={{ background: '#162534', border: '1px solid rgba(142,196,224,0.3)', borderRadius: '4px', width: '100%', maxWidth: '720px', padding: '32px', boxShadow: '0 0 40px rgba(0,0,0,0.6)' }} onClick={e => e.stopPropagation()}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '4px' }}>
+          <div>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: '300', color: '#D8E6F0' }}>How It Works</div>
+            <div style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', color: '#8BAFC8', marginTop: '4px' }}>Build Complex</div>
+          </div>
+          <button style={{ background: 'none', border: 'none', color: '#8BAFC8', cursor: 'pointer', fontSize: '18px' }} onClick={onClose}>✕</button>
+        </div>
+        <p style={{ ...para, marginTop: '18px' }}>
+          Choose Custom to build a complex manually, entering each part yourself. Choose Guided to be walked through it: pick an entry point and the questionnaire leads you the rest of the way. If you are triggered or dysregulated in the moment, use Guided and start from whichever entry point is clearest to you right now, the trigger, the emotion, the behavior, or the belief.
+        </p>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+          <button style={{ background: 'rgba(142,196,224,0.15)', border: '1px solid rgba(142,196,224,0.4)', borderRadius: '3px', padding: '10px 24px', color: '#8EC4E0', fontSize: '11px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', cursor: 'pointer' }} onClick={onClose}>Close</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CPM() {
 
   const location = useLocation();
@@ -1165,12 +1188,20 @@ function CPM() {
     const isEdit = editIdx !== null;
     return (
       <Page>
+        {showInfo && <BuildHowItWorksModal onClose={() => setShowInfo(false)} />}
         <AppHeader backLabel="← Cancel" onBack={closeBuilder} title={isEdit ? 'Edit Complex' : 'Build Complex'} />
         <PageBody width="reading">
           {!isEdit && !prefillBehavior && (
-            <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid rgba(142,196,224,0.15)', marginBottom: '36px' }}>
-              {['guided', 'custom'].map(m => <button key={m} style={{ ...styles.tabBtn, ...(builderMode === m ? styles.tabBtnActive : {}) }} onClick={() => setBuilderMode(m)}>{m.charAt(0).toUpperCase() + m.slice(1)}</button>)}
-            </div>
+            <>
+              <div style={{ marginBottom: '16px' }}>
+                <button style={styles.infoTrigger} onClick={() => setShowInfo(true)}>
+                  <span style={styles.infoTriggerIcon}>i</span> How it works
+                </button>
+              </div>
+              <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid rgba(142,196,224,0.15)', marginBottom: '36px' }}>
+                {['guided', 'custom'].map(m => <button key={m} style={{ ...styles.tabBtn, ...(builderMode === m ? styles.tabBtnActive : {}) }} onClick={() => setBuilderMode(m)}>{m.charAt(0).toUpperCase() + m.slice(1)}</button>)}
+              </div>
+            </>
           )}
           {(builderMode === 'guided' && !isEdit) && <GuidedBuilder onSave={saveComplex} complexes={complexes} prefillBehavior={prefillBehavior} />}
           {(builderMode === 'custom' || isEdit) && (
