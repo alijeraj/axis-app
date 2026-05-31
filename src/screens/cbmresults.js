@@ -85,6 +85,13 @@ function Pyramid({ title, accent, items }) {
 function CBMResults() {
   const navigate = useNavigate();
   const token = localStorage.getItem('axis_token');
+  const viewDate = (() => {
+    const params = new URLSearchParams(window.location.search);
+    const d = params.get('date');
+    return d && /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : todayKey();
+  })();
+  const isToday = viewDate === todayKey();
+  const logHref = isToday ? '/cbm' : '/cbm?date=' + viewDate;
   const [entry, setEntry] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -93,7 +100,7 @@ function CBMResults() {
       try {
         const res = await axios.get(`${API}/api/cbm-log`, { headers: { Authorization: `Bearer ${token}` } });
         const arr = Array.isArray(res.data) ? res.data : [];
-        const k = todayKey();
+        const k = viewDate;
         const today = arr.find(e => {
           if (!e || !e.date || typeof e.dTotal !== 'number') return false;
           const d = new Date(e.date);
@@ -109,15 +116,16 @@ function CBMResults() {
 
   if (loading) return <div style={{ color: '#8BAFC8', padding: '48px', textAlign: 'center' }}>Loading...</div>;
 
-  const dateStr = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  const [vy, vm, vd] = viewDate.split('-').map(Number);
+  const dateStr = new Date(vy, vm - 1, vd).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
   if (!entry) {
     return (
       <Page>
-        <AppHeader backLabel="← Behavior Log" onBack={() => navigate('/cbm')} title="Behavior Result" />
+        <AppHeader backLabel="← Behavior Log" onBack={() => navigate(logHref)} title="Behavior Result" />
         <PageBody width="content">
           <div style={{ textAlign: 'center', padding: '80px 32px', color: '#8BAFC8', fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
-            Nothing logged today yet.
+            Nothing logged for this day yet.
           </div>
         </PageBody>
       </Page>
@@ -134,7 +142,7 @@ function CBMResults() {
     <Page>
       <AppHeader
         backLabel="← Behavior Log"
-        onBack={() => navigate('/cbm')}
+        onBack={() => navigate(logHref)}
         title="Behavior Result"
         right={<button style={styles.btn} onClick={() => navigate('/progress?tab=behavior')}>View Progress →</button>}
       />
@@ -168,7 +176,7 @@ function CBMResults() {
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '32px' }}>
-          <button style={styles.secondaryBtn} onClick={() => navigate('/cbm')}>← Back to Log</button>
+          <button style={styles.secondaryBtn} onClick={() => navigate(logHref)}>← Back to Log</button>
           <button style={styles.btn} onClick={() => navigate('/progress?tab=behavior')}>View Progress →</button>
         </div>
 

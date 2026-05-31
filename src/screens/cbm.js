@@ -354,8 +354,10 @@ function CBM() {
               : isToday ? (loggedToday ? 'Update Today' : 'Log Today')
               : (loggedToday ? 'Update This Day' : 'Save This Day')}
           </button>
-          {isToday && loggedToday && (
-            <button style={styles.resultsBtn} onClick={() => navigate('/cbmresults')}>View Today's Results</button>
+          {loggedToday && (
+            <button style={styles.resultsBtn} onClick={() => navigate(isToday ? '/cbmresults' : '/cbmresults?date=' + logDate)}>
+              {isToday ? "View Today's Results" : 'View Results'}
+            </button>
           )}
           <button style={styles.resultsBtn} onClick={() => navigate('/progress?tab=behavior')}>View Progress</button>
         </div>
