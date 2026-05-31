@@ -545,8 +545,9 @@ function Progress() {
                     const key = calYear + '-' + String(calMonth + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
                     const isToday = calYear === today.getFullYear() && calMonth === today.getMonth() && day === today.getDate();
                     const hasEntry = !!cbmByDate[key];
+                    const loggable = !hasEntry && key <= todayKey;
                     return (
-                      <div key={day} style={{ ...styles.calDay, ...(isToday && !hasEntry ? styles.calDayToday : {}), ...(hasEntry ? styles.calDayHasEntry : {}), ...(hasEntry && isToday ? styles.calDayTodayEntry : {}) }} onClick={() => hasEntry && handleCbmCalDay(day)}>
+                      <div key={day} style={{ ...styles.calDay, ...(isToday && !hasEntry ? styles.calDayToday : {}), ...(hasEntry ? styles.calDayHasEntry : {}), ...(hasEntry && isToday ? styles.calDayTodayEntry : {}), ...(loggable && !isToday ? styles.calDayLoggable : {}) }} onClick={() => { if (hasEntry) handleCbmCalDay(day); else if (loggable) navigate('/cbm?date=' + key); }}>
                         {day}
                       </div>
                     );
@@ -560,6 +561,7 @@ function Progress() {
                       <div style={styles.entryDetailScore}><div style={styles.entryDetailLabel}>Reg</div><div style={{ ...styles.entryDetailValue, color: '#4AAE88' }}>{selectedCbm.rTotal}</div></div>
                       <div style={styles.entryDetailScore}><div style={styles.entryDetailLabel}>AXIS</div><div style={{ ...styles.entryDetailValue, color: '#8EC4E0' }}>{selectedCbm.score >= 0 ? '+' : ''}{selectedCbm.score}</div></div>
                     </div>
+                    <button style={styles.editDayBtn} onClick={() => navigate('/cbm?date=' + dk(new Date(selectedCbm.date)))}>Edit this day</button>
                   </div>
                 )}
               </div>
@@ -615,6 +617,8 @@ const styles = {
   entryDetailScore: { textAlign: 'center' },
   entryDetailLabel: { fontSize: '8px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#8BAFC8', marginBottom: '2px' },
   entryDetailValue: { fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: '300' },
+  editDayBtn: { marginTop: '14px', width: '100%', fontSize: '10px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', padding: '9px', border: '1px solid rgba(142,196,224,0.4)', background: 'rgba(142,196,224,0.08)', color: '#8EC4E0', cursor: 'pointer', borderRadius: '2px' },
+  calDayLoggable: { cursor: 'pointer', border: '1px dashed rgba(142,196,224,0.25)' },
 };
 
 export default Progress;

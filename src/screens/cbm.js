@@ -51,6 +51,11 @@ const todayKey = () => {
   const d = new Date();
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 };
+const keyOf = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const prettyDate = (key) => {
+  const [y, m, dd] = key.split('-').map(Number);
+  return new Date(y, m - 1, dd).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+};
 
 // ---------- Add-habit picker ----------
 function AddHabitModal({ side, existingNames, onAdd, onClose }) {
@@ -132,6 +137,12 @@ function InfoModal({ onClose }) {
 function CBM() {
   const navigate = useNavigate();
   const token = localStorage.getItem('axis_token');
+  const logDate = (() => {
+    const params = new URLSearchParams(window.location.search);
+    const d = params.get('date');
+    return d && /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : todayKey();
+  })();
+  const isToday = logDate === todayKey();
   const [habits, setHabits] = useState([]);     // {id,name,side,auc,unit,tier,quantity,multiplier}
   const [todayLog, setTodayLog] = useState({}); // habitId -> quantity for today
   const [loading, setLoading] = useState(true);
@@ -144,20 +155,29 @@ function CBM() {
     const load = async () => {
       try {
         const res = await axios.get(`${API}/api/cbm`, { headers: { Authorization: `Bearer ${token}` } });
-        if (res.data && Array.isArray(res.data.habits)) {
-          setHabits(res.data.habits);
-          if (res.data.todayLog && res.data.todayLogDate === todayKey()) {
-            setTodayLog(res.data.todayLog);
-          }
-        }
+        const globalHabits = (res.data && Array.isArray(res.data.habits)) ? res.data.habits : [];
+
         const logRes = await axios.get(`${API}/api/cbm-log`, { headers: { Authorization: `Bearer ${token}` } });
         const arr = Array.isArray(logRes.data) ? logRes.data : [];
-        const k = todayKey();
-        setLoggedToday(arr.some(e => {
-          if (!e || !e.date || typeof e.dTotal !== 'number') return false;
-          const d = new Date(e.date);
-          return (d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')) === k;
-        }));
+        const entryForDate = arr.find(e => e && e.date && keyOf(new Date(e.date)) === logDate);
+        setLoggedToday(!!entryForDate);
+
+        if (isToday) {
+          setHabits(globalHabits);
+          if (res.data && res.data.todayLog && res.data.todayLogDate === todayKey()) {
+            setTodayLog(res.data.todayLog);
+          }
+        } else if (entryForDate && Array.isArray(entryForDate.inputs)) {
+          setHabits(entryForDate.inputs);
+          const q = {};
+          entryForDate.inputs.forEach(h => { q[h.id] = (typeof h.quantity === 'number' ? h.quantity : 0); });
+          setTodayLog(q);
+        } else {
+          setHabits(globalHabits);
+          const z = {};
+          globalHabits.forEach(h => { z[h.id] = 0; });
+          setTodayLog(z);
+        }
       } catch (err) { console.log(err); }
       finally { setLoading(false); }
     };
@@ -165,6 +185,7 @@ function CBM() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const persist = async (nextHabits, nextLog) => {
+    if (!isToday) return; // editing a past day stays in memory until Save; never touches today's setup
     const payload = { habits: nextHabits, todayLog: nextLog, todayLogDate: todayKey() };
     await axios.post(`${API}/api/cbm`, { data: payload }, { headers: { Authorization: `Bearer ${token}` } });
   };
@@ -216,27 +237,23 @@ function CBM() {
 
   const logToday = async () => {
     setLogStatus('saving');
-    const k = todayKey();
+    const k = logDate;
     const items = habits
       .filter(h => qtyFor(h) > 0)
       .map(h => ({ name: h.name, side: h.side, load: loadFor(h) }));
-    const entry = { date: new Date(k + 'T12:00:00').toISOString(), dTotal, rTotal, score, items };
+    const inputs = habits.map(h => ({ id: h.id, name: h.name, side: h.side, auc: h.auc, unit: h.unit, tier: h.tier, quantity: qtyFor(h), multiplier: h.multiplier }));
+    const entry = { date: new Date(k + 'T12:00:00').toISOString(), dTotal, rTotal, score, items, inputs };
     try {
       let existing = [];
       try {
         const res = await axios.get(`${API}/api/cbm-log`, { headers: { Authorization: `Bearer ${token}` } });
         if (Array.isArray(res.data)) {
-          // keep only valid new-shape entries that aren't today
-          existing = res.data.filter(e => {
-            if (!e || !e.date || typeof e.dTotal !== 'number') return false;
-            const d = new Date(e.date);
-            const ek = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-            return ek !== k;
-          });
+          // keep every other day; only the day we're saving gets replaced
+          existing = res.data.filter(e => e && e.date && keyOf(new Date(e.date)) !== k);
         }
       } catch (e) { existing = []; }
       await axios.post(`${API}/api/cbm-log`, { data: [...existing, entry] }, { headers: { Authorization: `Bearer ${token}` } });
-      navigate('/cbmresults');
+      navigate(isToday ? '/cbmresults' : '/progress?tab=behavior');
     } catch (err) {
       console.log(err);
       setLogStatus('error');
@@ -298,6 +315,13 @@ function CBM() {
       />
       <PageBody width="content">
 
+        {!isToday && (
+          <div style={styles.editingBanner}>
+            <span>Editing · {prettyDate(logDate)}</span>
+            <button style={styles.bannerBack} onClick={() => navigate('/progress?tab=behavior')}>← Back to Progress</button>
+          </div>
+        )}
+
         {/* SCORE DASHBOARD */}
         <div style={styles.dash}>
           <div style={styles.dashCol}>
@@ -325,9 +349,12 @@ function CBM() {
 
         <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginBottom: '32px' }}>
           <button style={styles.logBtn} onClick={logToday}>
-            {logStatus === 'saving' ? 'Saving…' : logStatus === 'error' ? 'Failed — retry' : loggedToday ? 'Update Today' : 'Log Today'}
+            {logStatus === 'saving' ? 'Saving…'
+              : logStatus === 'error' ? 'Failed — retry'
+              : isToday ? (loggedToday ? 'Update Today' : 'Log Today')
+              : (loggedToday ? 'Update This Day' : 'Save This Day')}
           </button>
-          {loggedToday && (
+          {isToday && loggedToday && (
             <button style={styles.resultsBtn} onClick={() => navigate('/cbmresults')}>View Today's Results</button>
           )}
           <button style={styles.resultsBtn} onClick={() => navigate('/progress?tab=behavior')}>View Progress</button>
@@ -406,6 +433,8 @@ const styles = {
   infoFormula: { fontFamily: 'Georgia, serif', fontSize: '14px', color: '#D8E6F0', background: '#0f2236', border: '1px solid rgba(142,196,224,0.2)', borderRadius: '3px', padding: '12px 14px', textAlign: 'center', margin: '4px 0 12px' },
   infoList: { margin: '4px 0 0', paddingLeft: '18px' },
   infoLi: { fontSize: '13px', lineHeight: 1.7, color: '#B3C9DA', marginBottom: '6px' },
+  editingBanner: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '10px 16px', marginBottom: '20px', border: '1px solid rgba(200,168,80,0.3)', background: 'rgba(200,168,80,0.06)', borderRadius: '4px', fontSize: '11px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#C8A840' },
+  bannerBack: { background: 'none', border: '1px solid rgba(142,196,224,0.3)', borderRadius: '3px', padding: '6px 12px', color: '#8BAFC8', fontSize: '10px', fontWeight: '600', letterSpacing: '1px', textTransform: 'uppercase', cursor: 'pointer' },
 };
 
 export default CBM;
