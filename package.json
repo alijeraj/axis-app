@@ -2,6 +2,8 @@
   "name": "axis-app",
   "version": "0.1.0",
   "private": true,
+  "homepage": "./",
+  "main": "electron.js",
   "dependencies": {
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
@@ -20,6 +22,8 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "electron": "node node_modules/electron/cli.js .",
+    "dist": "npm run build && electron-builder",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -45,5 +49,24 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "build": {
+    "appId": "life.introspection.axis",
+    "productName": "AXIS",
+    "extends": null,
+    "files": [
+      "build/**/*",
+      "electron.js"
+    ],
+    "directories": {
+      "output": "dist-electron"
+    },
+    "win": {
+      "target": "nsis"
+    }
+  },
+  "devDependencies": {
+    "electron": "^42.3.2",
+    "electron-builder": "^26.8.1"
   }
 }

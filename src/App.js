@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter, HashRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Landing from './screens/landing';
 import Login from './screens/login';
@@ -62,7 +62,7 @@ function SplashScreen({ onDone }) {
     }}>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '32px' }}>
         <div style={{ opacity: phase !== 'fadeout' ? 1 : 0, transition: 'opacity 0.8s ease' }}>
-          <img src="/introspection-logo.png" alt="Introspection" style={{ height: '200px', display: 'block' }} />
+          <img src={process.env.PUBLIC_URL + '/introspection-logo.png'} alt="Introspection" style={{ height: '200px', display: 'block' }} />
         </div>
         <div style={{ width: '40px', height: '1px', background: '#c0c8d0', opacity: phase === 'tagline1' || phase === 'tagline2' || phase === 'hold' ? 1 : 0, transition: 'opacity 0.6s ease' }} />
         <div style={{
@@ -89,6 +89,9 @@ function Protected({ token, children }) {
   return <AccessGate>{children}</AccessGate>;
 }
 
+const isElectron = navigator.userAgent.toLowerCase().includes('electron');
+const Router = isElectron ? HashRouter : BrowserRouter;
+
 function App() {
   const [token, setToken] = useState(localStorage.getItem('axis_token'));
   const [showSplash, setShowSplash] = useState(true);
@@ -108,7 +111,7 @@ function App() {
   if (showSplash && !isAuthCallback) return <SplashScreen onDone={() => setShowSplash(false)} />;
 
   return (
-    <BrowserRouter>
+    <Router>
       <Routes>
         <Route path="/" element={token ? <Protected token={token}><Home onLogout={handleLogout} /></Protected> : <Landing />} />
         <Route path="/login" element={token ? <Navigate to="/" /> : <Login onLogin={handleLogin} />} />
@@ -129,7 +132,7 @@ function App() {
         <Route path="/auth/callback" element={<GoogleCallback onLogin={handleLogin} />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
-    </BrowserRouter>
+    </Router>
   );
 }
 
