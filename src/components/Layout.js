@@ -5,7 +5,8 @@ export const WIDTHS = { reading: 720, content: 1100 };
 
 const s = {
   container: { minHeight: '100vh', background: '#0d1b2a', display: 'flex', flexDirection: 'column' },
-  header: { display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 32px', borderBottom: '1px solid rgba(142,196,224,0.15)', background: '#0f2236', flexShrink: 0 },
+  headerBar: { borderBottom: '1px solid rgba(142,196,224,0.15)', background: '#0f2236', flexShrink: 0 },
+  headerInner: { display: 'flex', alignItems: 'center', gap: '16px', maxWidth: WIDTHS.content + 'px', margin: '0 auto', padding: '16px 32px', width: '100%' },
   backBtn: { background: 'none', border: 'none', color: '#8BAFC8', fontSize: '12px', fontWeight: '600', letterSpacing: '1px', cursor: 'pointer', padding: 0 },
   title: { fontFamily: 'Georgia, serif', fontSize: '18px', fontWeight: '300', color: '#D8E6F0', letterSpacing: '2px' },
 };
@@ -14,11 +15,13 @@ export function AppHeader({ backLabel = '← Home', onBack, title, right }) {
   const navigate = useNavigate();
   const handleBack = onBack || (() => navigate('/'));
   return (
-    <div style={s.header}>
-      <button style={s.backBtn} onClick={handleBack}>{backLabel}</button>
-      {title && <span style={s.title}>{title}</span>}
-      <div style={{ flex: 1 }} />
-      {right}
+    <div style={s.headerBar}>
+      <div style={s.headerInner}>
+        <button style={s.backBtn} onClick={handleBack}>{backLabel}</button>
+        {title && <span style={s.title}>{title}</span>}
+        <div style={{ flex: 1 }} />
+        {right}
+      </div>
     </div>
   );
 }
