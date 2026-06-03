@@ -93,7 +93,7 @@ const PRESETS = [
   {
     key: 'clusterb',
     name: 'Personality Disorders (Cluster B)',
-    blurb: 'Cluster B personality structures',
+    blurb: 'Cluster B personality structures. Overt / Covert: Pincus & Lukowitsky (2010), Miller et al. (2011), Cain et al. (2008). Communal: Gebauer et al. (2012). Malignant: Kernberg (1984), Caligor, Levy & Yeomans (2015). Inverted: Vaknin, Malignant Self-Love: Narcissism Revisited; The Inverted (Covert) Narcissist Codependent.',
     items: [
       {
         name: 'Antisocial', color: '#9AA0A6',

@@ -609,7 +609,7 @@ function PersonDetailModal({ person, complexes, dreams, patternCategories, patte
   );
 }
 
-function MapCanvas({ people, mapView, selfPerson, patternCategories, patterns, activeCategoryId, onPersonClick, onSavePositions }) {
+function MapCanvas({ people, mapView, selfPerson, patternCategories, patterns, activeCategoryId, maximized, onToggleMax, onPersonClick, onSavePositions }) {
   const viewportRef = useRef(null);
   const [scale, setScale] = useState(1);
   const [panX, setPanX] = useState(20);
@@ -860,6 +860,7 @@ function MapCanvas({ people, mapView, selfPerson, patternCategories, patterns, a
         <button style={styles.treeCtrlBtn} onClick={() => setScale(s => Math.min(3, s + 0.2))}>+</button>
         <button style={styles.treeCtrlBtn} onClick={() => setScale(s => Math.max(0.2, s - 0.2))}>−</button>
         <button style={{ ...styles.treeCtrlBtn, fontSize: '9px', letterSpacing: '2px', padding: '0 12px' }} onClick={() => { setScale(1); setPanX(20); setPanY(20); }}>Fit</button>
+        {onToggleMax && <button style={{ ...styles.treeCtrlBtn, width: 'auto', fontSize: '9px', letterSpacing: '2px', padding: '0 12px' }} onClick={onToggleMax}>{maximized ? '⤡ Collapse' : '⤢ Expand'}</button>}
         <span style={{ fontSize: '10px', color: '#8BAFC8', letterSpacing: '2px' }}>{Math.round(scale * 100)}%</span>
         <span style={{ fontSize: '9px', color: 'rgba(142,196,224,0.55)', marginLeft: '8px', letterSpacing: '1px', fontStyle: 'italic' }}>Drag people to position. Click to view.</span>
       </div>
@@ -1168,6 +1169,7 @@ function People() {
   const [detailPerson, setDetailPerson] = useState(null);
   const [showPatternMgmt, setShowPatternMgmt] = useState(false);
   const [viewComplex, setViewComplex] = useState(null);
+  const [maximized, setMaximized] = useState(false);
 
   useEffect(() => { loadData(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -1602,6 +1604,7 @@ function People() {
         right={<button style={styles.btn} onClick={() => openForm()}>+ Add Person</button>}
       />
 
+      {view === 'directory' && (
       <PageBody width="content">
         <div style={{ marginBottom: '16px' }}>
           <button style={styles.infoTrigger} onClick={() => setShowInfo(true)}>
@@ -1676,14 +1679,29 @@ function People() {
           </>
         )}
       </PageBody>
+      )}
 
       {view === 'map' && (
         <PageBody width="full">
+          {!maximized && (<>
+          <div style={{ padding: '20px 32px 0', flexShrink: 0 }}>
+            <div style={{ marginBottom: '16px' }}>
+              <button style={styles.infoTrigger} onClick={() => setShowInfo(true)}>
+                <span style={styles.infoTriggerIcon}>i</span> How it works
+              </button>
+            </div>
+            <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid rgba(142,196,224,0.15)' }}>
+              {[{ id: 'directory', label: 'Directory' }, { id: 'map', label: 'Map' }].map(t => (
+                <button key={t.id} style={{ ...styles.tabBtn, ...(view === t.id ? styles.tabBtnActive : {}) }} onClick={() => setView(t.id)}>{t.label}</button>
+              ))}
+            </div>
+          </div>
           <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid rgba(142,196,224,0.15)', padding: '0 32px', flexShrink: 0 }}>
             {MAP_VIEWS.filter(m => m.id !== 'none').map(m => (
               <button key={m.id} style={{ ...styles.subTabBtn, ...(mapView === m.id ? styles.subTabBtnActive : {}) }} onClick={() => setMapView(m.id)}>{m.label}</button>
             ))}
           </div>
+          </>)}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 32px', borderBottom: '1px solid rgba(142,196,224,0.08)', flexShrink: 0 }}>
             <span style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#8BAFC8' }}>View by:</span>
             <select
@@ -1719,6 +1737,8 @@ function People() {
             patternCategories={patternCategories}
             patterns={patterns}
             activeCategoryId={activeCategoryId}
+            maximized={maximized}
+            onToggleMax={() => setMaximized(m => !m)}
             onPersonClick={(p) => setDetailPerson(p)}
             onSavePositions={savePositions}
           />

@@ -588,7 +588,7 @@ function ViewModal({ complex, dreams, people, complexes, onClose, onEdit }) {
   );
 }
 
-function TreeView({ complexes, people, patterns, activeCategoryId, onViewComplex, onViewResolution, onSaveOrder, savedOrder }) {
+function TreeView({ complexes, people, patterns, activeCategoryId, maximized, onToggleMax, onViewComplex, onViewResolution, onSaveOrder, savedOrder }) {
   const viewportRef = useRef(null);
   const treeRef = useRef(null);
   const [scale, setScale] = useState(1);
@@ -884,6 +884,7 @@ function TreeView({ complexes, people, patterns, activeCategoryId, onViewComplex
         <button style={styles.treeCtrlBtn} onClick={() => setScale(s => Math.min(3, s + 0.2))}>+</button>
         <button style={styles.treeCtrlBtn} onClick={() => setScale(s => Math.max(0.2, s - 0.2))}>−</button>
         <button style={{ ...styles.treeCtrlBtn, fontSize: '9px', letterSpacing: '2px', padding: '0 12px' }} onClick={() => { setScale(1); setPanX(20); setPanY(20); }}>Fit</button>
+        {onToggleMax && <button style={{ ...styles.treeCtrlBtn, width: 'auto', fontSize: '9px', letterSpacing: '2px', padding: '0 12px' }} onClick={onToggleMax}>{maximized ? '⤡ Collapse' : '⤢ Expand'}</button>}
         <span style={{ fontSize: '10px', color: '#8BAFC8', letterSpacing: '2px' }}>{Math.round(scale * 100)}%</span>
         <span style={{ fontSize: '9px', color: 'rgba(142,196,224,0.45)', marginLeft: '8px', letterSpacing: '1px' }}>Drag ⇄ root nodes to reorder</span>
       </div>
@@ -1068,6 +1069,7 @@ function CPM() {
   const [resolutionViewComplexes, setResolutionViewComplexes] = useState(null);
   const [form, setForm] = useState({ name: '', burden: '', beliefs: '', thoughts: '', feelings: '', behaviors: '', trigger: '', counter: '', counterBehavior: '', notes: '', period: [], source: '', rootComplex: [], status: 'active', originalWound: false });
   const [saving, setSaving] = useState(false);
+  const [maximized, setMaximized] = useState(false);
 
   useEffect(() => {
     loadComplexes();
@@ -1301,6 +1303,7 @@ function CPM() {
           title="Complex Pattern Map"
           right={<button style={styles.btn} onClick={() => openBuilder()}>+ Build Complex</button>}
         />
+        {!maximized && (<>
         <div style={{ padding: '16px 32px 0', flexShrink: 0 }}>
           <button style={styles.infoTrigger} onClick={() => setShowInfo(true)}>
             <span style={styles.infoTriggerIcon}>i</span> How it works
@@ -1311,6 +1314,7 @@ function CPM() {
             <button key={t.id} style={{ ...styles.tabBtn, ...(tab === t.id ? styles.tabBtnActive : {}) }} onClick={() => setTab(t.id)}>{t.label}</button>
           ))}
         </div>
+        </>)}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 32px', borderBottom: '1px solid rgba(142,196,224,0.08)', flexShrink: 0 }}>
           <span style={{ fontSize: '9px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', color: '#8BAFC8' }}>View by:</span>
           <select
@@ -1339,7 +1343,7 @@ function CPM() {
           })()}
         </div>
         <PageBody width="full">
-          <TreeView complexes={complexes} people={people} patterns={patterns} activeCategoryId={activeCategoryId} onViewComplex={(idx) => setViewIdx(idx)} onViewResolution={(cxs) => setResolutionViewComplexes(cxs)} onSaveOrder={saveTreeOrder} savedOrder={treeOrder} />
+          <TreeView complexes={complexes} people={people} patterns={patterns} activeCategoryId={activeCategoryId} maximized={maximized} onToggleMax={() => setMaximized(m => !m)} onViewComplex={(idx) => setViewIdx(idx)} onViewResolution={(cxs) => setResolutionViewComplexes(cxs)} onSaveOrder={saveTreeOrder} savedOrder={treeOrder} />
         </PageBody>
       </Page>
     );
