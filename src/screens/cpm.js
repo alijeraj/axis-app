@@ -995,6 +995,8 @@ function HowItWorksModal({ onClose }) {
           <Down />
           <SpineRow label="Thoughts" color="#8EC4E0" border="rgba(142,196,224,0.3)" bg="rgba(142,196,224,0.05)" />
           <Down />
+          <SpineRow label="Feelings" color="#8EC4E0" border="rgba(142,196,224,0.3)" bg="rgba(142,196,224,0.05)" />
+          <Down />
           <SpineRow label="Behaviors" color="#8EC4E0" border="rgba(142,196,224,0.3)" bg="rgba(142,196,224,0.05)" counter="Counter Behavior" note="← emotional output" />
           <Up />
           <SpineRow label="Trigger" color="#C8A840" border="rgba(200,168,80,0.4)" bg="rgba(200,168,80,0.06)" />
