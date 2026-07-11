@@ -1,247 +1,163 @@
 import React from 'react';
 
-const TERMS_TEXT = `Terms of Service
+const TERMS_TEXT = `AXIS — Terms of Service
 
-Last Updated: May 17, 2026
+Operated by Introspection · Last updated: July 11, 2026
 
-1. Introduction and Acceptance of Terms
+1. Introduction and Acceptance
 
-Welcome to Introspection, operated by Introspection. These Terms of Service (the "Terms") govern your access to and use of the website located at https://introspection.life (the "Site") and all related services, features, content, and applications offered by Introspection (collectively, the "Service"). By accessing or using the Service, you confirm that you have read, understood, and agree to be bound by these Terms. If you do not agree with any part of these Terms, you must not use the Service. This is a legally binding agreement between you and Introspection. We've tried to make it clear, but it's important you understand these rules.
+These Terms of Service (the "Terms") govern your access to and use of Axis, a web, desktop, and mobile application operated by Introspection ("we," "us," or "our"). By creating an account or using Axis, you confirm that you have read, understood, and agree to these Terms. If you do not agree, please do not use Axis. This is a legally binding agreement between you and Introspection.
 
-2. Eligibility and Account Registration
+2. What Axis Is — and What It Is Not
 
-To use certain features of the Service, like creating content or managing subscriptions, you'll need to register for an account. You must be at least 18 years old to create an account and agree to these Terms. If you are under 18 but at least 13 years old, you may only use the Service with the explicit consent and supervision of a parent or legal guardian who agrees to be bound by these Terms. We do not knowingly collect personal information from children under 13 without verifiable parental consent. More on that below. When you register, you agree to provide accurate, current, and complete information. You are responsible for maintaining the confidentiality of your account password and for all activities that occur under your account. You must notify Introspection immediately of any unauthorized use of your account or any other breach of security. We can't be held liable for any loss or damage arising from your failure to comply with these obligations.
+Axis is a tool for personal self-exploration and general well-being. It helps you map and reflect on your inner world through self-assessment scans, behaviour tracking, relational maps, dream journaling, and reflective frameworks.
 
-3. User-Generated Content
+Axis is not a medical device, and it does not provide therapy, diagnosis, treatment, or medical advice. The scores, indicators, models, and frameworks Axis provides are personal indicators for self-reflection only. They are not a clinical measurement or a diagnosis, and they do not replace a qualified health professional. Axis is not a health service or an emergency service. If you are in distress or in crisis, please contact the appropriate support resources in your region.
 
-The Service allows you to create, post, upload, share, or store content, including comments, reviews, text, images, and other materials ("User Content"). You retain all ownership rights in your User Content. But here's the thing: by making your User Content available on or through the Service, you grant Introspection a worldwide, non-exclusive, transferable, sublicensable, royalty-free license to use, copy, modify, create derivative works based upon, distribute, publicly display, publicly perform, and distribute your User Content in connection with operating and providing the Service. This means we can show your content to other users, back it up, and generally make the Service work as intended. You are solely responsible for your User Content. You represent and warrant that you own all rights in your User Content or have the necessary licenses, rights, consents, and permissions to grant the license to Introspection as described above. You also agree that your User Content will not violate any third-party rights, including copyright, trademark, privacy, or publicity rights, or any applicable law or regulation. We don't monitor all User Content, but we reserve the right to remove or modify any User Content at our sole discretion, without notice, for any reason or no reason, including if we believe it violates these Terms.
+3. Eligibility
 
-4. Subscriptions, Payments, and Billing
+You must be at least 18 years old to create an account and use Axis. By using Axis, you confirm that you are 18 or older. Axis is not intended for, and we do not knowingly permit its use by, anyone under 18.
 
-Introspection offers various subscription plans that provide access to enhanced features of the Service. When you subscribe, you agree to pay the specified fees. All fees are in Canadian Dollars (CAD) unless otherwise stated. Payments are processed through third-party payment processors, currently Stripe and PayPal. By initiating a subscription, you authorize Introspection and its payment processors to charge your chosen payment method on a recurring basis (e.g., monthly or annually) until you cancel your subscription. You agree to provide current, complete, and accurate purchase and account information for all purchases made via the Service. You further agree to promptly update account and payment information, including email address, payment method, and payment card expiration date, so that we can complete your transactions and contact you as needed. We reserve the right to change our prices at any time. If we do, we'll notify you in advance, and the new prices will apply to your next billing cycle. All sales are final, and no refunds will be issued except as required by law or at our sole discretion. You can cancel your subscription at any time through your account settings on the Site. Your cancellation will take effect at the end of your current paid subscription period.
+4. Personal Use and the Professional Version
 
-5. Intellectual Property Rights
+The standard version of Axis is intended for your own personal, private use. Content you enter is stored for you and kept private. We treat it as confidential and do not sell it, use it for advertising, or use it to train models; we access it only where necessary to operate, maintain, secure, or support the service, or where the law requires it (see the Privacy Policy).
 
-The Service and its entire contents, features, and functionality (including but not limited to all information, software, text, displays, images, video, and audio, and the design, selection, and arrangement thereof), are owned by Introspection, its licensors, or other providers of such material and are protected by Canadian and international copyright, trademark, patent, trade secret, and other intellectual property or proprietary rights laws. You are granted a limited, non-exclusive, non-transferable, revocable license to access and use the Service for your personal, non-commercial use, subject to these Terms. This means you can use the Site and its features, but you can't copy, modify, distribute, sell, or lease any part of our Service or its content without our express written permission. The Introspection name, logo, and all related names, logos, product and service names, designs, and slogans are trademarks of Introspection or its affiliates or licensors. You must not use such marks without the prior written permission of Introspection.
+Axis also offers a professional version that allows a practitioner to create and manage profiles for their own clients. If you use the professional version, you act as the party responsible for the personal information you enter about your clients, and you are responsible for obtaining any consent and meeting any privacy obligations that apply to you under the laws that govern your practice.
 
-6. Third-Party Services and Links
+5. Your Content
 
-The Service may contain links to third-party websites or services that are not owned or controlled by Introspection. For example, we use Stripe and PayPal for payments, and we might use analytics services (like Google Analytics) or advertising partners to understand how our Service is used and to show you relevant ads. When you use these third-party services, your data may be shared with them. Our Privacy Policy explains more about how we handle your data and what we share. Introspection has no control over, and assumes no responsibility for, the content, privacy policies, or practices of any third-party websites or services. We do not warrant the offerings of any of these entities/individuals or their websites. You acknowledge and agree that Introspection shall not be responsible or liable, directly or indirectly, for any damage or loss caused or alleged to be caused by or in connection with the use of or reliance on any such content, goods, or services available on or through any such third-party websites or services. We strongly advise you to read the terms and conditions and privacy policies of any third-party websites or services that you visit.
+You retain all ownership rights in the content you create, enter, or store in Axis ("Your Content"). We do not claim ownership of it.
 
-7. Children's Online Safety and Parental Consent
+You grant us only the limited permission necessary to host, store, back up, and display Your Content to you, so that the service can function and your data can be preserved and shown back to you across your devices. We do not sell Your Content, and we do not use it to train models or share it for advertising. You are responsible for the content you enter, including any information you record about other people; you should only record information you are entitled to keep for your own personal use.
 
-The Service is not intended for children under the age of 13. We do not knowingly collect personally identifiable information from children under 13 without verifiable parental consent. If you are under 13, please do not use or provide any information on the Service or through any of its features, register on the Service, make any purchases through the Service, use any of the interactive or public comment features of the Service, or provide any information about yourself to us, including your name, address, telephone number, email address, or any screen name or user name you may use. If we learn we have collected or received personal information from a child under 13 without verification of parental consent, we will delete that information. If you believe we might have any information from or about a child under 13, please contact us immediately at hello@introspection.life. For users between 13 and 18, parental or guardian consent is required to use the Service, and the parent or guardian must agree to these Terms on behalf of the minor.
+6. Subscriptions, Payments, and Cancellation
 
-8. Disclaimers
+Axis offers subscription plans that provide access to enhanced features. Fees are stated in US dollars (USD) unless otherwise indicated, and all applicable fees are shown to you before you subscribe. Payments are processed by our third-party payment processor, Stripe; we do not store your full payment card details.
 
-THE SERVICE IS PROVIDED ON AN "AS IS" AND "AS AVAILABLE" BASIS, WITHOUT ANY WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED. THIS MEANS WE DON'T PROMISE IT WILL ALWAYS BE PERFECT OR ERROR-FREE. WITHOUT LIMITING THE FOREGOING, INTROSPECTION HEREBY DISCLAIMS ALL WARRANTIES OF ANY KIND, WHETHER EXPRESS OR IMPLIED, STATUTORY, OR OTHERWISE, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF MERCHANTABILITY, NON-INFRINGEMENT, AND FITNESS FOR PARTICULAR PURPOSE. WE DO NOT WARRANT THAT THE SERVICE WILL BE UNINTERRUPTED, SECURE, OR FREE OF ERRORS, VIRUSES, OR OTHER HARMFUL COMPONENTS. YOU USE THE SERVICE AT YOUR OWN RISK.
+Subscriptions renew automatically for the period you selected (for example, monthly or annually) until you cancel. You may cancel at any time through your account settings; cancellation takes effect at the end of your current paid period. If we change our prices, we will give you advance notice, and the new price will apply only to your next billing cycle. Your statutory rights, including any right to cancel a service contract or to a refund under applicable consumer-protection law, are not affected by these Terms.
 
-9. Limitation of Liability
+Depending on where you subscribe, your payment is handled differently. If you subscribe through our website, your payment is processed by Stripe, and cancellations and refunds are handled by us as described above. If you subscribe through a mobile app store (such as the Apple App Store or Google Play), your purchase is a transaction between you and that store: it is subject to the store's own payment, cancellation, and refund policies, and we do not process or control those payments. To cancel or request a refund for a subscription purchased through an app store, you must use that store's account settings and support channels.
 
-TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT WILL INTROSPECTION, ITS AFFILIATES, OR THEIR LICENSORS, SERVICE PROVIDERS, EMPLOYEES, AGENTS, OFFICERS, OR DIRECTORS BE LIABLE FOR DAMAGES OF ANY KIND, UNDER ANY LEGAL THEORY, ARISING OUT OF OR IN CONNECTION WITH YOUR USE, OR INABILITY TO USE, THE SERVICE, ANY WEBSITES LINKED TO IT, ANY CONTENT ON THE SERVICE OR SUCH OTHER WEBSITES, INCLUDING ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING BUT NOT LIMITED TO, PERSONAL INJURY, PAIN AND SUFFERING, EMOTIONAL DISTRESS, LOSS OF REVENUE, LOSS OF PROFITS, LOSS OF BUSINESS OR ANTICIPATED SAVINGS, LOSS OF USE, LOSS OF GOODWILL, LOSS OF DATA, AND WHETHER CAUSED BY TORT (INCLUDING NEGLIGENCE), BREACH OF CONTRACT, OR OTHERWISE, EVEN IF FORESEEABLE. THIS LIMITATION APPLIES EVEN IF INTROSPECTION HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. SOME JURISDICTIONS DO NOT ALLOW LIMITATIONS ON IMPLIED WARRANTIES OR THE EXCLUSION OR LIMITATION OF CERTAIN DAMAGES, SO SOME OR ALL OF THE ABOVE DISCLAIMERS OR LIMITATIONS MAY NOT APPLY TO YOU.
+7. Intellectual Property
 
-10. Indemnification
+Axis, including its software, design, text, and the selection and arrangement of its features, is owned by Introspection or its licensors and is protected by applicable intellectual-property laws. We grant you a limited, non-exclusive, non-transferable, revocable licence to use Axis for your personal use under these Terms. The "Introspection" and "Axis" names and logos are ours; please do not use them without our written permission.
 
-You agree to defend, indemnify, and hold harmless Introspection, its affiliates, licensors, and service providers, and its and their respective officers, directors, employees, contractors, agents, licensors, suppliers, successors, and assigns from and against any claims, liabilities, damages, judgments, awards, losses, costs, expenses, or fees (including reasonable attorneys' fees) arising out of or relating to your violation of these Terms or your use of the Service, including, but not limited to, your User Content, any use of the Service's content, services, and products other than as expressly authorized in these Terms, or your use of any information obtained from the Service. This means if your actions cause us a problem, you'll cover the costs.
+Some reflective frameworks available in Axis are built on established bodies of work, credited to their authors. These frameworks are offered as educational tools for reflection; the names of their authors are cited for attribution and do not imply any affiliation or endorsement.
 
-11. Governing Law and Jurisdiction
+8. Third-Party Services
 
-All matters relating to the Service and these Terms, and any dispute or claim arising therefrom or related thereto (in each case, including non-contractual disputes or claims), shall be governed by and construed in accordance with the internal laws of the Province of Ontario and the federal laws of Canada applicable therein, without giving effect to any choice or conflict of law provision or rule. Any legal suit, action, or proceeding arising out of, or related to, these Terms or the Service shall be instituted exclusively in the courts of the Province of Ontario, although we retain the right to bring any suit, action, or proceeding against you for breach of these Terms in your country of residence or any other relevant country. You waive any and all objections to the exercise of jurisdiction over you by such courts and to venue in such courts.
+We rely on a small number of third-party providers to operate Axis, including Stripe (payments), Railway (hosting), Vercel (deployment), Resend (transactional email), and Google (sign-in). When you use Axis, limited information is processed by these providers as described in our Privacy Policy. We do not use advertising partners and do not share your content for advertising. We are not responsible for the practices of third-party services beyond our own use of them, and we encourage you to review their terms.
 
-12. Termination
+9. Service Provided "As Is"
 
-We may terminate or suspend your account and bar access to the Service immediately, without prior notice or liability, under our sole discretion, for any reason whatsoever and without limitation, including but not limited to a breach of the Terms. If you wish to terminate your account, you may simply discontinue using the Service or follow the cancellation process in your account settings. All provisions of the Terms which by their nature should survive termination shall survive termination, including, without limitation, ownership provisions, warranty disclaimers, indemnity, and limitations of liability.
+Axis is provided on an "as is" and "as available" basis. We work to keep it reliable and secure, but we do not guarantee that it will always be uninterrupted or error-free. To the extent permitted by law, we disclaim implied warranties such as merchantability and fitness for a particular purpose. Nothing in this section limits any warranty or right that cannot be excluded under the law that applies to you.
 
-13. Changes to These Terms
+10. Suspension and Termination
 
-We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision is material, we will provide at least 30 days' notice prior to any new terms taking effect. What constitutes a material change will be determined at our sole discretion. By continuing to access or use our Service after any revisions become effective, you agree to be bound by the revised terms. If you do not agree to the new terms, you are no longer authorized to use the Service.
+You may stop using Axis and close your account at any time through your account settings. We may suspend or end your access if you materially breach these Terms or use Axis unlawfully; where reasonable and lawful, we will give you notice and an opportunity to address the issue. If your account is closed, you may request access to or deletion of your data as described in the Privacy Policy.
 
-14. Miscellaneous
+11. Governing Law
 
-14.1. Entire Agreement These Terms and our Privacy Policy constitute the sole and entire agreement between you and Introspection regarding the Service and supersede all prior and contemporaneous understandings, agreements, representations, and warranties, both written and oral, regarding the Service.
+These Terms are governed by the laws applicable in the Province of Québec and the federal laws of Canada applicable there. Nothing in these Terms deprives you of the protection of the mandatory consumer-protection rules of the province or country where you reside; those protections continue to apply to you.
 
-14.2. Waiver and Severability
+12. Changes to These Terms
 
-No waiver by Introspection of any term or condition set forth in these Terms shall be deemed a further or continuing waiver of such term or condition or a waiver of any other term or condition, and any failure of Introspection to assert a right or provision under these Terms shall not constitute a waiver of such right or provision. If any provision of these Terms is held by a court or other tribunal of competent jurisdiction to be invalid, illegal, or unenforceable for any reason, such provision shall be eliminated or limited to the minimum extent such that the remaining provisions of the Terms will continue in full force and effect.
+We may update these Terms from time to time. If a change is significant, we will give you reasonable advance notice before it takes effect. If you continue to use Axis after the change takes effect, you accept the updated Terms; if you do not agree, you may stop using Axis and close your account.
 
-14.3. Assignment
+13. Contact
 
-You may not assign or transfer these Terms, by operation of law or otherwise, without Introspection's prior written consent. Any attempt by you to assign or transfer these Terms, without such consent, will be null and void. Introspection may freely assign or transfer these Terms without restriction.
+If you have any questions about these Terms, contact us at hello@introspection.life.`;
 
-15. Contact Us
+const PRIVACY_TEXT = `AXIS — Privacy Policy
 
-If you have any questions about these Terms, please contact us:
+Operated by Introspection · Last updated: July 11, 2026
 
-By email: hello@introspection.life`;
+This Privacy Policy explains how Introspection ("we," "us," or "our") handles personal information in connection with Axis, our web, desktop, and mobile application for personal self-exploration and well-being. We are committed to protecting your privacy and to complying with Québec's Act respecting the protection of personal information in the private sector (as modernized by Law 25) and, where it applies, the European General Data Protection Regulation (GDPR).
 
-const PRIVACY_TEXT = `AXIS PRIVACY POLICY
-Last updated May 17, 2026
+1. A Note on Your Private Content
 
+Axis is designed so that the personal content you enter — your scans, behaviour logs, relational maps, dream journal, and reflections — remains your private space. This content is stored for you and kept private. We treat it as confidential: we do not sell it, we do not use it for advertising, and we do not use it to train models. We access it only where necessary to operate, maintain, secure, or support the service, or where the law requires it. We provide the tool, and you remain in control of what you record in it.
 
+One exception applies by design: in the professional version of Axis, a practitioner creates and manages profiles for their own clients and therefore has access to the information in those profiles. In that case, the practitioner is the party responsible for that information (see section 10).
 
-This Privacy Notice for Introspection ("we," "us," or "our"), describes how and why we might access, collect, store, use, and/or share ("process") your personal information when you use our services ("Services"), including when you:
-Visit our website at https://introspection.life or any website of ours that links to this Privacy Notice
-Download and use our mobile application (Axis), or any other application of ours that links to this Privacy Notice
-Use Axis. AXIS is a web and mobile application that helps users map their inner world through daily emotional scans, complex mapping, behavior tracking, relational maps, and dream journaling. The app supports personal self-exploration through structured tracking and reflection tools.
-Engage with us in other related ways, including any marketing or events
-Questions or concerns? Reading this Privacy Notice will help you understand your privacy rights and choices. We are responsible for making decisions about how your personal information is processed. If you do not agree with our policies and practices, please do not use our Services. If you still have any questions or concerns, please contact us at hello@introspection.life.
+2. Information We Collect
 
+We collect only the limited information we need to provide Axis:
 
-SUMMARY OF KEY POINTS
-This summary provides key points from our Privacy Notice, but you can find out more details about any of these topics by clicking the link following each key point or by using our table of contents below to find the section you are looking for.
+- Account information: your name and email address, and authentication data if you sign in with Google.
 
-What personal information do we process? When you visit, use, or navigate our Services, we may process personal information depending on how you interact with us and the Services, the choices you make, and the products and features you use. Learn more about personal information you disclose to us.
+- Payment information: if you subscribe, payment is processed by Stripe; we do not store your full card details.
 
-Do we process any sensitive personal information? Some of the information may be considered "special" or "sensitive" in certain jurisdictions, for example your racial or ethnic origins, sexual orientation, and religious beliefs. We may process sensitive personal information when necessary with your consent or as otherwise permitted by applicable law. Learn more about sensitive information we process.
+Separately from the information above, you enter and store your own content in Axis — your scans, behaviour logs, relational maps, dream journal, and reflections. This self-reported emotional, behavioural, and reflective content is entered by you and kept in your private space (see section 1). Because it concerns your inner and emotional states, it is sensitive by nature, and we treat it as confidential and protect it accordingly. We do not sell it, use it for advertising, or use it to train models.
 
-Do we collect any information from third parties? We may collect information from public databases, marketing partners, social media platforms, and other outside sources. Learn more about information collected from other sources.
+3. Why We Use Your Information and Our Legal Basis
 
-How do we process your information? We process your information to provide, improve, and administer our Services, communicate with you, for security and fraud prevention, and to comply with law. We may also process your information for other purposes with your consent. We process your information only when we have a valid legal reason to do so. Learn more about how we process your information.
+We use your account and payment information to create and secure your account, deliver and maintain Axis, process your subscription, and communicate with you about the service. We rely on your consent and on the performance of our contract with you as our legal bases.
 
-In what situations and with which parties do we share personal information? We may share information in specific situations and with specific third parties. Learn more about when and with whom we share your personal information.
+Because the content you enter is sensitive, we ask for your express, specific consent when you create your account, separately from your general acceptance of the Terms. You may withdraw your consent at any time by contacting us or closing your account. Under Law 25 and the GDPR, we keep a record of the consent you provide.
 
-How do we keep your information safe? We have adequate organizational and technical processes and procedures in place to protect your personal information. However, no electronic transmission over the internet or information storage technology can be guaranteed to be 100% secure, so we cannot promise or guarantee that hackers, cybercriminals, or other unauthorized third parties will not be able to defeat our security and improperly collect, access, steal, or modify your information. Learn more about how we keep your information safe.
+4. Who We Share Information With
 
-What are your rights? Depending on where you are located geographically, the applicable privacy law may mean you have certain rights regarding your personal information. Learn more about your privacy rights.
+We do not sell your personal information and we do not share it for advertising. We rely on a small number of service providers who process limited information on our behalf, under agreements requiring them to protect it:
 
-How do you exercise your rights? The easiest way to exercise your rights is by contacting us at hello@introspection.life. We will consider and act upon any request in accordance with applicable data protection laws.
+- Stripe — payment processing;
 
-Want to learn more about what we do with any information we collect? Review the Privacy Notice in full.
+- Railway — hosting; Vercel — deployment;
 
+- Resend — transactional email;
 
-TABLE OF CONTENTS
+- Google — sign-in.
 
-1. WHAT INFORMATION DO WE COLLECT?
-2. HOW DO WE PROCESS YOUR INFORMATION?
-3. WHAT LEGAL BASES DO WE RELY ON TO PROCESS YOUR PERSONAL INFORMATION?
-4. WHEN AND WITH WHOM DO WE SHARE YOUR PERSONAL INFORMATION?
-5. DO WE USE COOKIES AND OTHER TRACKING TECHNOLOGIES?
-6. HOW DO WE HANDLE YOUR SOCIAL LOGINS?
-7. IS YOUR INFORMATION TRANSFERRED INTERNATIONALLY?
-8. HOW LONG DO WE KEEP YOUR INFORMATION?
-9. HOW DO WE KEEP YOUR INFORMATION SAFE?
-10. DO WE COLLECT INFORMATION FROM MINORS?
-11. WHAT ARE YOUR PRIVACY RIGHTS?
-12. CONTROLS FOR DO-NOT-TRACK FEATURES
-13. DO UNITED STATES RESIDENTS HAVE SPECIFIC PRIVACY RIGHTS?
-14. DO WE MAKE UPDATES TO THIS NOTICE?
-15. HOW CAN YOU CONTACT US ABOUT THIS NOTICE?
-16. HOW CAN YOU REVIEW, UPDATE, OR DELETE THE DATA WE COLLECT FROM YOU?
+We may also disclose information if required by law. If our business is ever involved in a transfer such as a merger or acquisition, we will require any successor to continue protecting your information under this Policy and will inform you.
 
+5. Where Your Information Is Stored (International Transfer)
 
-1. WHAT INFORMATION DO WE COLLECT?
+Our service providers store and process information on servers located outside Québec, including in the United States. This means your information may be transferred to and processed in other countries whose laws may differ from those of your own. Before entrusting information to these providers, we assess that they offer an adequate level of protection, and we take reasonable measures to ensure your information remains protected in accordance with this Policy, Law 25, and the GDPR.
 
-Personal information you disclose to us
-In Short: We collect personal information that you provide to us.
+6. How Long We Keep Your Information
 
-We collect personal information that you voluntarily provide to us when you register on the Services, express an interest in obtaining information about us or our products and Services, when you participate in activities on the Services, or otherwise when you contact us.
+We keep your account information for as long as your account is active. When you close your account or ask us to delete your data, we delete or anonymize it within a reasonable period, unless we are required by law to keep it longer. We do not keep personal information longer than necessary for the purposes described here.
 
-Personal Information Provided by You. The personal information that we collect depends on the context of your interactions with us and the Services, the choices you make, and the products and features you use. The personal information we collect may include the following: email addresses, passwords, contact or authentication data.
+7. How We Protect Your Information
 
-Sensitive Information. When necessary, with your consent or as otherwise permitted by applicable law, we process the following categories of sensitive information: health data, self-reported emotional, behavioral, and reflective content.
+We use reasonable technical and organizational security measures appropriate to the sensitivity of the information, including access controls that limit who may access it and encryption of your data at rest. We continue to strengthen these measures over time. No system can be guaranteed perfectly secure, but we work to protect your information and to maintain a register of any confidentiality incident as required by Law 25. If an incident presents a risk of serious harm, we will notify the Commission d'accès à l'information and affected individuals as required by law.
 
-Payment Data. We may collect data necessary to process your payment if you choose to make purchases, such as your payment instrument number, and the security code associated with your payment instrument. All payment data is handled and stored by Stripe.
+8. Your Rights
 
-Social Media Login Data. We may provide you with the option to register with us using your existing social media account details. If you choose to register in this way, we will collect certain profile information about you from the social media provider.
+Depending on where you live, you have rights over your personal information. In all cases, you may:
 
-Information automatically collected
-In Short: Some information is collected automatically when you visit our Services.
+- access the personal information we hold about you;
 
-We automatically collect certain information when you visit, use, or navigate the Services. This information does not reveal your specific identity but may include device and usage information, such as your IP address, browser and device characteristics, operating system, language preferences, referring URLs, device name, country, location, information about how and when you use our Services, and other technical information. This information is primarily needed to maintain the security and operation of our Services, and for our internal analytics and reporting purposes.
+- ask us to correct inaccurate information;
 
+- ask us to delete your information;
 
-2. HOW DO WE PROCESS YOUR INFORMATION?
+- withdraw your consent; and
 
-In Short: We process your information to provide, improve, and administer our Services, communicate with you, for security and fraud prevention, and to comply with law.
+- request a copy of your information in a portable format (data portability).
 
-We process your personal information for a variety of reasons, including: to facilitate account creation and authentication; to deliver the Services; to respond to user inquiries; to send administrative information; to request feedback; to send marketing communications (with your consent); to protect our Services; to identify usage trends; and to save or protect an individual's vital interest.
+To exercise any of these rights, contact us using the details in section 11. We will respond within the time required by applicable law. If you are in the European Union, you also have the right to lodge a complaint with your local data protection authority; in Québec, you may contact the Commission d'accès à l'information.
 
+9. Children
 
-3. WHAT LEGAL BASES DO WE RELY ON TO PROCESS YOUR INFORMATION?
+Axis is intended only for people aged 18 and over. We do not knowingly collect personal information from anyone under 18. If we learn that we have collected information from a person under 18, we will delete it.
 
-In Short: We only process your personal information when we believe it is necessary and we have a valid legal reason to do so under applicable law.
+10. The Professional Version
 
-If you are located in the EU or UK, we may rely on the following legal bases to process your personal information: consent, performance of a contract, legitimate interests, legal obligations, and vital interests.
+Axis offers a professional version in which a practitioner may create profiles for their own clients. When Axis is used this way, the practitioner — not Introspection — is responsible for the personal information they enter about their clients, including obtaining the necessary consent and meeting the privacy obligations that apply to their practice. Introspection remains responsible only for providing the platform securely.
 
-If you are located in Canada, we may process your information if you have given us express or implied consent. You can withdraw your consent at any time.
+11. Person in Charge of Protecting Your Information
 
+We have designated a person responsible for the protection of personal information (the Person in Charge of the Protection of Personal Information under Law 25), who oversees our compliance and handles your requests and questions:
 
-4. WHEN AND WITH WHOM DO WE SHARE YOUR PERSONAL INFORMATION?
+Alihasan Jeraj — Person in Charge of the Protection of Personal Information
 
-In Short: We may share information in specific situations described in this section and with the following third parties.
-
-The third parties we may share personal information with are: Google account, Stripe (billing), Google Sign-In, Resend (transactional emails), Railway (cloud computing), and Vercel (website hosting).
-
-We may also share your information in connection with business transfers, such as during negotiations of any merger, sale of company assets, financing, or acquisition.
-
-
-5. DO WE USE COOKIES AND OTHER TRACKING TECHNOLOGIES?
-
-We may use cookies and similar tracking technologies to gather information when you interact with our Services. These help us maintain the security of our Services and your account, prevent crashes, fix bugs, save your preferences, and assist with basic site functions.
-
-
-6. HOW DO WE HANDLE YOUR SOCIAL LOGINS?
-
-If you choose to register or log in to our Services using a social media account, we will receive certain profile information about you from your social media provider. We will use the information we receive only for the purposes that are described in this Privacy Notice.
-
-
-7. IS YOUR INFORMATION TRANSFERRED INTERNATIONALLY?
-
-Our servers are located in the United States. Regardless of your location, please be aware that your information may be transferred to, stored by, and processed by us in our facilities and in the facilities of the third parties with whom we may share your personal information, including facilities in the United States, and other countries.
-
-
-8. HOW LONG DO WE KEEP YOUR INFORMATION?
-
-We will only keep your personal information for as long as it is necessary for the purposes set out in this Privacy Notice, unless a longer retention period is required or permitted by law. When we have no ongoing legitimate business need to process your personal information, we will either delete or anonymize such information.
-
-
-9. HOW DO WE KEEP YOUR INFORMATION SAFE?
-
-We have implemented appropriate and reasonable technical and organizational security measures designed to protect the security of any personal information we process. However, no electronic transmission over the Internet or information storage technology can be guaranteed to be 100% secure.
-
-
-10. DO WE COLLECT INFORMATION FROM MINORS?
-
-We do not knowingly collect data from or market to children under 18 years of age. By using the Services, you represent that you are at least 18 or the equivalent age as specified by law in your jurisdiction, or that you are the parent or guardian of such a minor and consent to such minor dependent's use of the Services.
-
-
-11. WHAT ARE YOUR PRIVACY RIGHTS?
-
-Depending on your state of residence in the US or in some regions (EEA, UK, Switzerland, Canada), you have rights that allow you greater access to and control over your personal information. You may review, change, or terminate your account at any time. You can make such a request by contacting us at hello@introspection.life.
-
-
-12. CONTROLS FOR DO-NOT-TRACK FEATURES
-
-Most web browsers include a Do-Not-Track ("DNT") feature you can activate. At this stage, no uniform technology standard for recognizing and implementing DNT signals has been finalized. As such, we do not currently respond to DNT browser signals.
-
-
-13. DO UNITED STATES RESIDENTS HAVE SPECIFIC PRIVACY RIGHTS?
-
-If you are a resident of California, Colorado, Connecticut, Delaware, Florida, Indiana, Iowa, Kentucky, Maryland, Minnesota, Montana, Nebraska, New Hampshire, New Jersey, Oregon, Rhode Island, Tennessee, Texas, Utah, or Virginia, you may have specific rights regarding your personal information, including the right to access, correct, delete, and withdraw consent. To exercise these rights, contact us at hello@introspection.life.
-
-
-14. DO WE MAKE UPDATES TO THIS NOTICE?
-
-We may update this Privacy Notice from time to time. The updated version will be indicated by an updated "Revised" date at the top of this Privacy Notice.
-
-
-15. HOW CAN YOU CONTACT US ABOUT THIS NOTICE?
-
-If you have questions or comments about this notice, you may contact our Data Protection Officer (DPO):
-
-By email: hello@introspection.life
-By phone: 1-438-367-7755
-By post:
 Introspection
-Data Protection Officer
-170 Rue Principale, app 514
-Saint-Zotique J0P 1Z0
-Canada
+Email: hello@introspection.life
 
+12. Changes to This Policy
 
-16. HOW CAN YOU REVIEW, UPDATE, OR DELETE THE DATA WE COLLECT FROM YOU?
-
-You have the right to request access to the personal information we collect from you, details about how we have processed it, correct inaccuracies, or delete your personal information. You may also have the right to withdraw your consent. To request, please contact us at hello@introspection.life.`;
+We may update this Privacy Policy from time to time. The updated version will show a new "last updated" date, and if the change is significant we will take reasonable steps to inform you.`;
 
 function LegalModal({ type, onClose }) {
   if (!type) return null;
