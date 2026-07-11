@@ -129,6 +129,11 @@ function InfoModal({ onClose }) {
           <li style={styles.infoLi}><strong style={styles.infoStrong}>Quantity</strong>: units you log per day</li>
           <li style={styles.infoLi}><strong style={styles.infoStrong}>Receptor multiplier</strong>: Occasional (100%) / Regular (50%) / Heavy (25%)</li>
         </ul>
+        <div style={{ marginTop: '20px', padding: '14px 16px', border: '1px solid rgba(142,196,224,0.2)', borderRadius: '3px', background: 'rgba(142,196,224,0.04)' }}>
+          <div style={{ fontSize: '11px', lineHeight: 1.65, color: '#8BAFC8', fontStyle: 'italic' }}>
+            The Axis load is a relative model based on scientific principles, meant to help you compare behaviours and reflect on your tendencies over time. It is an indicator, not a measurement of your actual dopamine, and it is not medical advice.
+          </div>
+        </div>
       </div>
     </div>
   );

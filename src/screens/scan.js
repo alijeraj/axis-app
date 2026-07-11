@@ -284,6 +284,11 @@ function HowItWorksModal({ onClose }) {
         <p style={{ ...para, marginTop: '18px' }}>
           Scan your internal and emotional states yourself in Custom mode if the sections feel familiar, or use the guided Questionnaire to be walked through them. Either way, you can then track your progress and evolution over time on the Progress page.
         </p>
+        <div style={{ marginTop: '24px', padding: '14px 16px', border: '1px solid rgba(142,196,224,0.2)', borderRadius: '3px', background: 'rgba(142,196,224,0.04)' }}>
+          <div style={{ fontSize: '11px', lineHeight: 1.65, color: '#8BAFC8', fontStyle: 'italic' }}>
+            These scores are a personal indicator based on the Axis model, meant for self-reflection and tracking over time. They are not a diagnosis or a clinical measurement, and do not replace a qualified professional.
+          </div>
+        </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
           <button style={{ background: 'rgba(142,196,224,0.15)', border: '1px solid rgba(142,196,224,0.4)', borderRadius: '3px', padding: '10px 24px', color: '#8EC4E0', fontSize: '11px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', cursor: 'pointer' }} onClick={onClose}>Close</button>
         </div>
