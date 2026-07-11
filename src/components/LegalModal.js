@@ -76,7 +76,7 @@ This Privacy Policy explains how Introspection ("we," "us," or "our") handles pe
 
 1. A Note on Your Private Content
 
-Axis is designed so that the personal content you enter — your scans, behaviour logs, relational maps, dream journal, and reflections — remains your private space. This content is stored for you and kept private. We treat it as confidential: we do not sell it, we do not use it for advertising, and we do not use it to train models. We access it only where necessary to operate, maintain, secure, or support the service, or where the law requires it. We provide the tool, and you remain in control of what you record in it.
+Axis is designed so that the personal content you enter, your scans, behaviour logs, relational maps, dream journal, and reflections, remains your private space. This content is stored for you and kept private. We treat it as confidential: we do not sell it, we do not use it for advertising, and we do not use it to train models. We access it only where necessary to operate, maintain, secure, or support the service, or where the law requires it. We provide the tool, and you remain in control of what you record in it.
 
 One exception applies by design: in the professional version of Axis, a practitioner creates and manages profiles for their own clients and therefore has access to the information in those profiles. In that case, the practitioner is the party responsible for that information (see section 10).
 
@@ -88,7 +88,7 @@ We collect only the limited information we need to provide Axis:
 
 - Payment information: if you subscribe, payment is processed by Stripe; we do not store your full card details.
 
-Separately from the information above, you enter and store your own content in Axis — your scans, behaviour logs, relational maps, dream journal, and reflections. This self-reported emotional, behavioural, and reflective content is entered by you and kept in your private space (see section 1). Because it concerns your inner and emotional states, it is sensitive by nature, and we treat it as confidential and protect it accordingly. We do not sell it, use it for advertising, or use it to train models.
+Separately from the information above, you enter and store your own content in Axis, your scans, behaviour logs, relational maps, dream journal, and reflections. This self-reported emotional, behavioural, and reflective content is entered by you and kept in your private space (see section 1). Because it concerns your inner and emotional states, it is sensitive by nature, and we treat it as confidential and protect it accordingly. We do not sell it, use it for advertising, or use it to train models.
 
 3. Why We Use Your Information and Our Legal Basis
 
@@ -144,13 +144,13 @@ Axis is intended only for people aged 18 and over. We do not knowingly collect p
 
 10. The Professional Version
 
-Axis offers a professional version in which a practitioner may create profiles for their own clients. When Axis is used this way, the practitioner — not Introspection — is responsible for the personal information they enter about their clients, including obtaining the necessary consent and meeting the privacy obligations that apply to their practice. Introspection remains responsible only for providing the platform securely.
+Axis offers a professional version in which a practitioner may create profiles for their own clients. When Axis is used this way, the practitioner, not Introspection, is responsible for the personal information they enter about their clients, including obtaining the necessary consent and meeting the privacy obligations that apply to their practice. Introspection remains responsible only for providing the platform securely.
 
 11. Person in Charge of Protecting Your Information
 
 We have designated a person responsible for the protection of personal information (the Person in Charge of the Protection of Personal Information under Law 25), who oversees our compliance and handles your requests and questions:
 
-Alihasan Jeraj — Person in Charge of the Protection of Personal Information
+Ali Jeraj - Person in Charge of the Protection of Personal Information
 
 Introspection
 Email: hello@introspection.life
