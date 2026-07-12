@@ -219,7 +219,7 @@ const PRESETS = [
   },
   {
     key: 'mbti',
-    name: 'Personality Types (Myers-Briggs)',
+    name: '16 Personality Types',
     blurb: 'Framework sources: Jung (cognitive functions) · Myers & Briggs (16-type structure) · Keirsey (temperament grouping).',
     sources: 'Not affiliated with or endorsed by The Myers & Briggs Foundation. “MBTI” and “Myers-Briggs” are trademarks of the Foundation.',
     items: [
@@ -551,6 +551,11 @@ function HowItWorksModal({ onClose }) {
         <p style={{ ...para, marginTop: '18px' }}>
           Patterns connect to the people on your Relational Map. To add one, adopt a pre-built pattern from the library below, or build your own. To view a pattern, open the Relational Map and select it from the View by filter.
         </p>
+        <div style={{ marginTop: '24px', padding: '14px 16px', border: '1px solid rgba(142,196,224,0.2)', borderRadius: '3px', background: 'rgba(142,196,224,0.04)' }}>
+          <div style={{ fontSize: '11px', lineHeight: 1.65, color: '#8BAFC8', fontStyle: 'italic' }}>
+            These descriptions are for education and self-reflection. They are not a diagnosis and do not replace a qualified professional.
+          </div>
+        </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
           <button style={{ background: 'rgba(142,196,224,0.15)', border: '1px solid rgba(142,196,224,0.4)', borderRadius: '3px', padding: '10px 24px', color: '#8EC4E0', fontSize: '11px', fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase', cursor: 'pointer' }} onClick={onClose}>Close</button>
         </div>

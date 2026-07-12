@@ -111,15 +111,15 @@ function InfoModal({ onClose }) {
 
         <h3 style={styles.infoHead}>How It Works</h3>
         <p style={styles.infoP}>
-          Every substance and behavior triggers a dopamine response with two dimensions: <em>peak</em> (how high it spikes) and <em>duration</em> (how long it lasts). Multiply them and you get the <strong style={styles.infoStrong}>AUC index</strong>, the dopamine load from a single use.
+          Axis models how substances and behaviours may relate to a dopamine response with two dimensions: <em>peak</em> (how high it spikes) and <em>duration</em> (how long it lasts). Multiply them and you get the <strong style={styles.infoStrong}>AUC index</strong>, the dopamine load from a single use.
         </p>
         <p style={styles.infoP}>
-          Your usage level decides how strongly your receptors still respond. Someone who rarely uses something feels close to the full spike (Occasional, 100%). A heavy daily user feels only a fraction (Heavy, 25%). Chronic use has downregulated their receptors, so it's the same cigarette for far less reward.
+          Your usage level decides how strongly your receptors still respond. Someone who rarely uses something feels close to the full spike (Occasional, 100%). A heavy daily user feels only a fraction (Heavy, 25%). In this model, chronic use is treated as having downregulated the receptors, so it's the same cigarette for far less reward.
         </p>
 
         <h3 style={styles.infoHead}>The Logic</h3>
         <p style={styles.infoP}>
-          A dysregulated system is always seeking dopamine. Think of it as a currency the brain spends trying to feel balanced, and you can earn it through compulsive habits or through healthy ones. Compulsive behaviors spike high but fade fast; healthy behaviors give a gentler rise that lasts much longer. The Behavior Log shows you, in one number, which way your day leans.
+          In the Axis model, a dysregulated system is represented as always seeking dopamine. Think of it as a currency the brain spends trying to feel balanced, and you can earn it through compulsive habits or through healthy ones. Compulsive behaviors spike high but fade fast; healthy behaviors give a gentler rise that lasts much longer. The Behavior Log shows you, in one number, which way your day leans.
         </p>
 
         <h3 style={styles.infoHead}>The Formula</h3>
